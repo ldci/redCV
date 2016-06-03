@@ -3,12 +3,12 @@
 ### This library needs View 
 
 
-Only for Windows for the moment. Avaialable for OSX and Linux ASAP
+Only for Windows for the moment. Available for OSX and Linux ASAP
 
 
 
 ### NEW: June 2016
-After playing a long with OpenCV and Red languge, it's time for me to write some image processing functions directly with Red:)
+After playing a long time with OpenCV and Red language, it's time for me to write some image processing functions directly with Red:)
 
 Conversions, logical and some math operators for images are available.
 
@@ -19,7 +19,7 @@ This file includes Red Functions and calls all necessary routines.
 
 More functions and samples to come!
 
-You'll find some images to play with in images dir. All supported images by Red can be used.
+You'll find some images to play within images folder. All supported images by Red can be used.
 
 Special thanks to Nenad for developing Red, and to Qingtian for image implementation.
 
