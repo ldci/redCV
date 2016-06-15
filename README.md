@@ -5,6 +5,12 @@
 
 Only for Windows for the moment. Available for OSX and Linux ASAP
 
+### NEW: June 15 2016
+Added statistical functions on image.
+
+Added some space color conversion.
+
+More to come...
 
 
 ### NEW: June 2016

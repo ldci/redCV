@@ -16,7 +16,7 @@ isFile: false
 ;interface 
 rimg: make image!  reduce [512x512 black]
 rimg2: make image! reduce [512x512 black]
-
+xyzimg: make image! reduce [512x512 black]
 loadImage: does [	
 	isFile: false
 	canvas/image/rgb: black
@@ -27,23 +27,32 @@ loadImage: does [
 		win/text: fileName
 		rimg: load tmp
 		;generate random image
-		rimg2: rcvRandom rimg 127.127.100.0		
+                rimg2: rcvRandom rimg/size 127.127.100.0
+                testimg: rcvRandom rimg/size 255.255.255.0
 		; update faces
-		if win/size/x >= 512 [
+                if rimg/size/x >= 512 [
 			win/size/x: rimg/size/x + 20
-			win/size/y: rimg/size/y + 50
-		]
+                        win/size/y: rimg/size/y + 110
+                ]
 		canvas/size/x: rimg/size/x
 		canvas/size/y: rimg/size/y
 		canvas/image/size: canvas/size	
+                canvas/offset/x: (win/size/x - rimg/size/x) / 2
+                canvas/offset/y: 40 + (win/size/y - rimg/size/y) / 2
+                sBar1/offset/y: win/size/y - 30
+                sBar2/offset/y: win/size/y - 30
 		canvas/image: rimg
+                sBar1/text: to string! rimg/size/x
+                append sBar1/text "x"
+                append sBar1/text to string! rimg/size/y
+                sBar1/text
+                sBar2/text: showTuple rcvMeanImage rimg
 		isFile: true
 		op/selected: 1
 		op2/selected: 1
 		op3/selected: 1
 	]
 ]
-
 
 
 
@@ -54,10 +63,28 @@ btnLoad: make face! [
 	]
 ]
 
+showTuple: function [ val [tuple!] return: [string!]][
+        n: length? val
+        s: copy ""
+        append s to string! val/1
+        append s "."
+        append s to string! val/2
+        append s "."
+        append s to string! val/3
+        if n = 4 [
+                append s "."
+                append s to string! val/3
+        ]
+
+
+]
+
+
 op: make face! [
 	type: 'drop-down offset: 80x10 size: 120x24
 	data: ["Conversions" "GrayScale/Average" "GrayScale/Luminosity" "GrayScale/lightness" 
-	"Black and White"  "RGB to BGR" "Up Down Flip"]	
+        "Black and White"  "Red Channel" "Green Channel"
+        "Blue Channel" "RGB => BGR"  "RBG => XYZ"  "XYZ => RGB" "Up Down Flip" "Left Right Flip" "V&H Flip"]
 	actors: object [
 			on-create: func [face [object!]][
 				face/selected: 1
@@ -69,9 +96,16 @@ op: make face! [
 						2 	[canvas/image: rcv2Gray/average rimg ]
 						3 	[canvas/image: rcv2Gray/luminosity rimg ]
 						4 	[canvas/image: rcv2Gray/lightness rimg ]
-						5 	[canvas/image: rcv2BW rimg 127.127.127.0]
-						6 	[canvas/image: rcv2BGRA rimg]
-						7   [canvas/image: rcv2BGRA rcvReverse rimg]
+                                                5 	[canvas/image: rcv2BW rimg]
+                                                6	[canvas/image: rcvSplit/red rimg]
+                                                7	[canvas/image: rcvSplit/green rimg]
+                                                8	[canvas/image: rcvSplit/blue rimg]
+                                                9 	[canvas/image: rcv2BGRA rimg]
+                                                10  [canvas/image: rcvRGB2XYZ rimg testimg: canvas/image]
+                                                11 	[canvas/image: rcvXYZ2RGB testimg]
+                                                12  [canvas/image: rcvFlip/vertical rimg]
+                                                13  [canvas/image: rcvFlip/horizontal rimg]
+                                                14  [canvas/image: rcvFlip/vertical rcvFlip/horizontal rimg]
 					]
 				]	
 			]
@@ -165,9 +199,16 @@ canvas: make face! [
 	image: rimg
 ]
 
+sBar1: make face! [
+        type: 'field offset: 10x560 size: 100x20
+]
+
+sBar2: make face! [
+        type: 'field offset: 120x560 size: 100x20
+]
 
 win: make face! [
-	type: 'window text: "Red View" size: 532x580
+        type: 'window text: "Red View" size: 532x600
 	pane:  []
 ]
 
@@ -178,4 +219,6 @@ append win/pane op2
 append win/pane op3
 append win/pane btnQuit
 append win/pane canvas
+append win/pane sBar1
+append win/pane sBar2
 view win
