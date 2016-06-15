@@ -1,7 +1,7 @@
 Red [
-        Title:   "Red Computer Vision: Core functions"
+	Title:   "Red Computer Vision: Core functions"
 	Author:  "Francois Jouen"
-        File: 	 %core.red
+	File: 	 %core.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
 	License: {
@@ -30,7 +30,7 @@ pixel >>> 24				: Alpha
 
 ; ********* image transformation **********
 ;general image conversion routine
-; used for conversion to Grayscale  to RGBA, to BGRA or to Black and White
+; used for conversion to Grayscale  to RGBA, to BGRA or to Black and White 
 rcvConvert: routine [src1 [image!] op [integer!] return: [image!]
 	/local 
 		dst 
@@ -93,8 +93,8 @@ rcvConvert: routine [src1 [image!] op [integer!] return: [image!]
               		  s: (mini + maxi) / 2
               		  dataDst/pos: ((a << 24) OR (s << 16 ) OR (s << 8) OR s)] ;RGB2Gray lightness
             	2 [dataDst/pos: ((a << 24) OR (b << 16 ) OR (g << 8) OR r)] ;2BGRA
-		3 [dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)] ;2RGBA
-		4 [either r >= 128 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0]
+            	3 [dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)] ;2RGBA
+            	4 [either r >= 128 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
             	   dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)] ;2BW
             	
         	]
@@ -109,27 +109,27 @@ rcvConvert: routine [src1 [image!] op [integer!] return: [image!]
 ]
 
 
-; extract RGB Channel. Since we can't use 1 channel image we make a 3 channels image
-; with the same values for each channel
+; extract RGB Channel. Since we can't use 1 channel image we make a 3 channels image 
+; with the same values for each channel 
 
 rcvChannel: routine [src [image!] op [integer!] return: [image!]
-        /local
-                dst
-                stride1
-                stride2
-                bmp1
-                bmpDst
-                data1
-                dataDst
-                w
-                h
-                x
-                y
-                pos
-                r
-                g
-                b
-                a
+	/local 
+		dst 
+		stride1 
+		stride2 
+		bmp1 
+		bmpDst 
+		data1 
+		dataDst 
+		w 
+		h
+		x 
+		y 
+		pos
+		r
+		g
+		b
+		a
 ][
     dst: as red-image! stack/push*        ;-- create an new image slot
     image/copy src dst null yes null
@@ -137,8 +137,8 @@ rcvChannel: routine [src [image!] op [integer!] return: [image!]
     stride2: 0
     bmp1: OS-image/lock-bitmap as-integer src/node no
     bmpDst: OS-image/lock-bitmap as-integer dst/node yes
-
-    data1: OS-image/get-data bmp1 :stride1
+    
+    data1: OS-image/get-data bmp1 :stride1   
     dataDst: OS-image/get-data bmpDst :stride2
 
     w: IMAGE_WIDTH(src/size)
@@ -150,15 +150,15 @@ rcvChannel: routine [src [image!] op [integer!] return: [image!]
             pos: stride1 >> 2 * y + x + 1
             ; OK we get RGBA values
             a: data1/pos >>> 24
-            r: data1/pos and 00FF0000h >> 16
-            g: data1/pos and FF00h >> 8
-            b: data1/pos and FFh
+            r: data1/pos and 00FF0000h >> 16 
+            g: data1/pos and FF00h >> 8 
+            b: data1/pos and FFh 
             switch op [
-		1 [ g: r b: r];Red Channel
-		2 [ r: g b: g] ;Green Channel
-		3 [ r: b g: b] ;blue Channel
+            	1 [ g: r b: r];Red Channel
+              	2 [ r: g b: g] ;Green Channel 
+              	3 [ r: b g: b] ;blue Channel
             ]
-		dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
+           	dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
             x: x + 1
         ]
         x: 0
@@ -166,30 +166,30 @@ rcvChannel: routine [src [image!] op [integer!] return: [image!]
     ]
     OS-image/unlock-bitmap as-integer src/node bmp1
     OS-image/unlock-bitmap as-integer dst/node bmpDst
-        as red-image! stack/set-last as cell! dst            ;-- return new image
+	as red-image! stack/set-last as cell! dst            ;-- return new image
 ]
 
 
-; creates a mirror image
+; creates a mirror image 
 rcvFlipH: routine [src [image!] return: [image!]
-        /local
-                dst
-                stride1
-                stride2
-                bmp1
-                bmpDst
-                data1
-                dataDst
-                w
-                h
-                x
-                y
-                pos
-                pos2
-                r
-                g
-                b
-                a
+	/local 
+		dst 
+		stride1 
+		stride2 
+		bmp1 
+		bmpDst 
+		data1 
+		dataDst 
+		w 
+		h
+		x 
+		y 
+		pos
+		pos2
+		r
+		g
+		b
+		a
 ][
     dst: as red-image! stack/push*        ;-- create an new image slot
     image/copy src dst null yes null
@@ -197,8 +197,8 @@ rcvFlipH: routine [src [image!] return: [image!]
     stride2: 0
     bmp1: OS-image/lock-bitmap as-integer src/node no
     bmpDst: OS-image/lock-bitmap as-integer dst/node yes
-
-    data1: OS-image/get-data bmp1 :stride1
+    
+    data1: OS-image/get-data bmp1 :stride1   
     dataDst: OS-image/get-data bmpDst :stride2
 
     w: IMAGE_WIDTH(src/size)
@@ -209,7 +209,7 @@ rcvFlipH: routine [src [image!] return: [image!]
         while [x < w][
             pos: stride1 >> 2 * y + x + 1
             pos2: stride1 >> 2 * y + w - x ; reverse x order
-		dataDst/pos: data1/pos2
+           	dataDst/pos: data1/pos2
             x: x + 1
         ]
         x: 0
@@ -217,7 +217,7 @@ rcvFlipH: routine [src [image!] return: [image!]
     ]
     OS-image/unlock-bitmap as-integer src/node bmp1
     OS-image/unlock-bitmap as-integer dst/node bmpDst
-        as red-image! stack/set-last as cell! dst            ;-- return new image
+	as red-image! stack/set-last as cell! dst            ;-- return new image
 ]
 
 
@@ -434,8 +434,8 @@ rcvMathT: routine [src1 [image!]  value [tuple!] op [integer!] return: [image!]
             switch op [
             	1 [dataDst/pos: data1/pos + tp]
             	2 [dataDst/pos: data1/pos - tp]
-		3 [dataDst/pos: data1/pos * tp]
-
+            	;3 [dataDst/pos: data1/pos * tp]
+            	
             ]
             x: x + 1
         ]
@@ -501,3 +501,6 @@ rcvMathS: routine [src1 [image!]  value [integer!] op [integer!] return: [image!
     OS-image/unlock-bitmap as-integer dst/node bmpDst
 	as red-image! stack/set-last as cell! dst            ;-- return new image
 ]
+
+
+
