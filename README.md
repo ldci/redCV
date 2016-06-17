@@ -6,7 +6,7 @@
 Only for Windows for the moment. Available for OSX and Linux ASAP
 ### NEW: June 17 2016
 
-Convolution routines for iamges are added
+Convolution routines for images are added
 
 More to come ...
 
