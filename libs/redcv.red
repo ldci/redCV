@@ -26,6 +26,7 @@ pixel >>> 24				: Alpha
 
 #include %core.red 			; basic image processing routines
 #include %colorspace.red	; Color space conversions
+#include %imgproc.red		; Convolution
 
 ; All included Red/System routines can be directly called in Red Code 
 ; See routines definition in included files
@@ -403,3 +404,8 @@ rcvSortImage: function [source [image!] return: [image!]/local img][
 	img/rgb: copy sort source/rgb 
 	img
 ]
+
+
+; *************** convolution Functions *****************
+; defined in imgproc.red
+
