@@ -502,5 +502,221 @@ rcvMathS: routine [src1 [image!]  value [integer!] op [integer!] return: [image!
 	as red-image! stack/set-last as cell! dst            ;-- return new image
 ]
 
+; ********** Statistical Functions  *********
 
+rcvMean: routine [src1 [image!]  return: [image!]
+	/local 
+		dst 
+		stride1 
+		stride2 
+		bmp1 
+		bmpDst 
+		data1 
+		dataDst 
+		w 
+		x 
+		y 
+		h 
+		pos
+		r 
+		g
+		b
+		a
+		sr 
+		sg
+		sb
+		sa
+][
+    dst: as red-image! stack/push*        ;-- create an new image slot
+    image/copy src1 dst null yes null
+    stride1: 0
+    stride2: 0
+    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    bmpDst: OS-image/lock-bitmap as-integer dst/node yes
+    
+    data1: OS-image/get-data bmp1 :stride1   
+    dataDst: OS-image/get-data bmpDst :stride2
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    sa: 0
+    sr: 0
+    sg: 0
+    sb: 0
+    while [y < h][
+        while [x < w][
+            pos: stride1 >> 2 * y + x + 1
+           	sa: sa + (data1/pos >>> 24)
+            sr: sr + (data1/pos and 00FF0000h >> 16)  
+            sg: sg + (data1/pos and FF00h >> 8)
+            sb: sb + (data1/pos and FFh)
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    x: 0
+    y: 0
+    
+    sa: sa / (w * h)
+    sr: sr / (w * h)
+    sg: sg / (w * h)
+    sb: sb / (w * h)
+ 	; makes mean image
+    while [y < h][
+        while [x < w][
+        	pos: stride1 >> 2 * y + x + 1
+        	dataDst/pos: ((sa << 24) OR (sr << 16 ) OR (sg << 8) OR sb)
+        	x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    OS-image/unlock-bitmap as-integer src1/node bmp1
+    OS-image/unlock-bitmap as-integer dst/node bmpDst
+	as red-image! stack/set-last as cell! dst            ;-- return new image
+]
+
+
+rcvMeanInt: routine [src1 [image!] return: [integer!]
+	/local 
+		stride1 
+		bmp1 
+		data1 
+		w 
+		x 
+		y 
+		h 
+		pos
+		r 
+		g
+		b
+		a
+		sr 
+		sg
+		sb
+		sa
+][
+    stride1: 0
+    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    data1: OS-image/get-data bmp1 :stride1   
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    sa: 0
+    sr: 0
+    sg: 0
+    sb: 0
+    while [y < h][
+        while [x < w][
+            pos: stride1 >> 2 * y + x + 1
+            sa: sa + (data1/pos >>> 24)
+            sr: sr + (data1/pos and 00FF0000h >> 16)  
+            sg: sg + (data1/pos and FF00h >> 8)
+            sb: sb + (data1/pos and FFh)
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    a: 0; 255 xor (sa / (w * h))
+    r: sr / (w * h)
+    g: sg / (w * h)
+    b: sb / (w * h)
+    OS-image/unlock-bitmap as-integer src1/node bmp1;
+    (a << 24) OR (r << 16 ) OR (g << 8) OR b 
+]
+
+
+rcvVarInt: routine [src1 [image!] return: [integer!]
+	/local 
+		stride1 
+		bmp1 
+		data1 
+		w 
+		x 
+		y 
+		h 
+		pos
+		r 
+		g
+		b
+		a
+		sr 
+		sg
+		sb
+		sa
+		fr 
+		fg
+		fb
+		fa
+		e
+][
+    stride1: 0
+    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    data1: OS-image/get-data bmp1 :stride1   
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    sa: 0
+    sr: 0
+    sg: 0
+    sb: 0
+    fa: 0.0
+    fr: 0.0
+    fg: 0.0
+    fb: 0.0
+    ; Sigma X
+    while [y < h][
+        while [x < w][
+            pos: stride1 >> 2 * y + x + 1
+            sa: sa + (data1/pos >>> 24)
+            sr: sr + (data1/pos and 00FF0000h >> 16)  
+            sg: sg + (data1/pos and FF00h >> 8)
+            sb: sb + (data1/pos and FFh)
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    ; mean values
+    a: 0; 255 xor (sa / (w * h))
+    r: sr / (w * h)
+    g: sg / (w * h)
+    b: sb / (w * h)
+    x: 0
+    y: 0
+    e: 0
+    ; x - m 
+    while [y < h][
+        while [x < w][
+            pos: stride1 >> 2 * y + x + 1
+            e: (data1/pos >>> 24) - a sa: sa + (e * e)
+            e: (data1/pos and 00FF0000h >> 16) - r   sr: sr + (e * e)
+            e: (data1/pos and FF00h >> 8) - g sg: sg + (e * e)
+            e: (data1/pos and FFh) - b sb: sb + (e * e)
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    ; standard deviation
+    fa: 0.0; 255 xor sa / ((w * h) - 1)
+    fr: sqrt integer/to-float (sr / ((w * h) - 1))
+    fg: sqrt integer/to-float (sg / ((w * h) - 1))
+    fb: sqrt integer/to-float (sb / ((w * h) - 1))
+    a: float/to-integer fa
+    r: float/to-integer fr
+    g: float/to-integer fg
+    b: float/to-integer fb
+    
+    OS-image/unlock-bitmap as-integer src1/node bmp1;
+    (a << 24) OR (r << 16 ) OR (g << 8) OR b 
+]
 

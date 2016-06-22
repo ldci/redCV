@@ -38,35 +38,40 @@ pixel >>> 24				: Alpha
 
 ; ********* image conversion **********
  
-rcv2Gray: function [source [image!] /average /luminosity /lightness return: [image!]] [
-"Converts RGB image to Grayscale"
+rcv2Gray: function [ source [image!] /average /luminosity /lightness return: [image!]
+"Converts RGB image to Grayscale" 
+][
 	case [
-		average [rcvConvert source 1]
-		luminosity [rcvConvert source 111]
-		lightness [rcvConvert source 112]
+		average 	[rcvConvert source 1]
+		luminosity 	[rcvConvert source 111]
+		lightness 	[rcvConvert source 112]
 	]
 ]
 
 
-rcv2BGRA: function [source [image!] return: [image!]] [
+rcv2BGRA: function [source [image!] return: [image!] 
 "Converts RGBA => BGRA"
+][
 	rcvConvert source 2 
 ]
 
-rcv2RGBA: function [source [image!] return: [image!]] [
+rcv2RGBA: function [source [image!] return: [image!]
 "Converts BGRA => RGBA"
+][
 	rcvConvert source 3 
 ]
 
-rcv2BW: function [source [image!] return: [image!] /local tmp][
+rcv2BW: function [source [image!] return: [image!]
 "Converts RGB image => Black and White"
+][
 	tmp: rcvConvert source 1 ; first a grayscale conversion
 	rcvConvert tmp 4  ; then binarization of the gray image with 128.128.128.0 as threshold
 ]
 
 
-rcvSplit: function[source [image!] /red /green /blue return: [image!]][
+rcvSplit: function[source [image!] /red /green /blue return: [image!]
 "Split source image in separate channels"
+][
 	case [
 		red [rcvChannel source 1]
 		green [rcvChannel source 2]
@@ -126,19 +131,19 @@ rcvMAX: function [src1 [image!] src2 [image!] return: [image!]] [
 
 
 ; ************ logical operators and scalar (tuple!) on images **********
-rcvANDS: function [src1 [image!] value [tuple!] return: [image!]/local tmp]
+rcvANDS: function [src1 [image!] value [tuple!] return: [image!]]
 [
 	tmp: make image! reduce[src1/size value]
 	rcvAND src1 tmp
 ]
 
-rcvORS: function [src1 [image!] value [tuple!] return: [image!]/local tmp]
+rcvORS: function [src1 [image!] value [tuple!] return: [image!]]
 [
 	tmp: make image! reduce[src1/size value]
 	rcvOR src1 tmp
 ]
 
-rcvXORS: function [src1 [image!] value [tuple!] return: [image!]/local tmp]
+rcvXORS: function [src1 [image!] value [tuple!] return: [image!]]
 [
 	tmp: make image! reduce[src1/size value]
 	rcvXOR src1 tmp
@@ -182,48 +187,70 @@ rcvAbsDiff: function [src1 [image!] src2 [image!] return: [image!]][
 ; ********** Math operators with scalar (tuple or integer) *********
 
 
-rcvAddS: function [source [image!] val [integer! tuple!]return: [image!]] [
+rcvAddS: function [source [image!] val [integer!] return: [image!]
 "Adds value to image"
-	either type? val = integer! [rcvMathS source val 1] [rcvMathT source val 1]
+][
+	rcvMathS source val 1
 ]
 
-rcvSubS: function [source [image!] val [integer! tuple!]return: [image!]] [
+rcvSubS: function [source [image!] val [integer!]return: [image!]
 "Substracts value to image"
-	either type? val = integer! [rcvMathS source val 2] [rcvMathT source val 2]
+][
+	rcvMathS source val 2
 ]
 
-rcvMulS: function [source [image!] val [integer!] return: [image!]] [
+rcvAddT: function [source [image!] val [tuple!] return: [image!]
+"Adds value to image"
+][
+	rcvMathT source val 1
+]
+
+rcvSubT: function [source [image!] val [tuple!] return: [image!]
+"Substracts value to image"
+][
+	rcvMathT source val 2
+]
+
+
+rcvMulS: function [source [image!] val [integer!] return: [image!]
 "Multiplies image by value"
+][
 	rcvMathS source val 3
 ]
 
-rcvDivS: function [source [image!] val [integer!]return: [image!]] [
+rcvDivS: function [source [image!] val [integer!]return: [image!] 
 "Divides image by value"
+][
 	rcvMathS source val 4
 ]
 
-rcvModS: function [source [image!] val [integer!]return: [image!]] [
+rcvModS: function [source [image!] val [integer!]return: [image!]
 "Modulo image value"
+][
 	rcvMathS source val 5
 ]
 
-rcvRemS: function [source [image!] val [integer!]return: [image!]] [
+rcvRemS: function [source [image!] val [integer!]return: [image!]
 "Remainder image value"
+][
 	rcvMathS source val 6
 ]
 
-rcvPow: function [source [image!] val [integer!] return: [image!]] [
+rcvPow: function [source [image!] val [integer!] return: [image!]
 "Power image value"
+][
 	rcvMathS source val 7
 ]
 
-rcvLSH: function [source [image!] val [integer!] return: [image!]] [
+rcvLSH: function [source [image!] val [integer!] return: [image!]
 "Left shift"
+][
 	rcvMathS source val 8
 ]
 
-rcvRSH: function [source [image!] val [integer!] return: [image!]] [
+rcvRSH: function [source [image!] val [integer!] return: [image!]
 "Right Shift"
+][
 	rcvMathS source val 9
 ]
 
@@ -233,18 +260,21 @@ rcvRSH: function [source [image!] val [integer!] return: [image!]] [
 ; *************** Image transform Functions *****************
 
 ; Little-Big endian conversion and up down flip
-rcvReverse: function [source [image!] return: [image!]] [
+rcvReverse: function [source [image!] return: [image!]
 "Reverses RGB order"
+][
+
 	img: copy source
 	img/rgb: reverse source/rgb
 	img 
 ]
 
-rcvFlip: function [source [image!]/vertical /horizontal return: [image!]] [
+rcvFlip: function [source [image!]/vertical /horizontal return: [image!]
 "Up down flip"
+][
 	case [
-		vertical [rcv2BGRA rcvReverse source]
-		horizontal [rcvFlipH source]
+		vertical 	[rcv2BGRA rcvReverse source]
+		horizontal 	[rcvFlipH source]
 	]	
 ]
 
@@ -254,8 +284,9 @@ rcvFlip: function [source [image!]/vertical /horizontal return: [image!]] [
 ; these functions do not use Red System Routines
 
 ; similar to NOT image
-rcvInvert: function [source [image!] return: [image!]][
+rcvInvert: function [source [image!] return: [image!]
 "Invert image = rcvNot"
+][
 	img: copy source
 	img/rgb:  complement source/rgb 
 	img
@@ -264,8 +295,9 @@ rcvInvert: function [source [image!] return: [image!]][
 
 
 ; to be improved
-rcvInRange: function [source [image!] minThresh [tuple!] maxThresh [tuple!] return: [image!]][
+rcvInRange: function [source [image!] minThresh [tuple!] maxThresh [tuple!] return: [image!]
 "Select range color values according to mini and maximal RGB values"
+][
 	img: copy source
 	forall img [
 			pxl: img/1
@@ -278,21 +310,22 @@ rcvInRange: function [source [image!] minThresh [tuple!] maxThresh [tuple!] retu
 
 
 
-; OK nice
-rcvRandom: function [size [pair!] value [tuple!] return: [image!]][
-	img: make image! reduce [size black]
-	forall img [
-	    img/1: random value 
-	]
-	 img
+; OK nice but /alea vry slow TBI
+rcvRandom: function [size [pair!] value [tuple!] /uniform /alea return: [image!]][
+	case [
+		uniform [img: make image! reduce [size random value]]
+		alea 	[img: make image! reduce [size black] forall img [img/1: random value ]]
+	] 
+	img
 ]
 
 
 
 ; *************** statistical Functions *****************
 
-rcvCountNonZero: function [source [image!] return: [integer!] /local n img][
+rcvCountNonZero: function [source [image!] return: [integer!]
 "Returns number of non zero values in image"
+][
 	n: 0
 	img: copy source
 	forall img [
@@ -301,8 +334,9 @@ rcvCountNonZero: function [source [image!] return: [integer!] /local n img][
 	 n
 ]
 
-rcvMedianImage: function [source [image!] return: [tuple!] /local img n pxl pos][
+rcvMedianImage: function [source [image!] return: [tuple!]
 "Returns median value of image as tuple"
+][
 	img: copy source
 	img/rgb: copy sort source/rgb 
 	n: to integer! (length? img/rgb) / 3 ; RGB channels only
@@ -311,85 +345,53 @@ rcvMedianImage: function [source [image!] return: [tuple!] /local img n pxl pos]
 	pxl
 ]
 
-rcvMeanImage: function [source [image!] return: [tuple!] /local img n pxl sa sr sg sb][
+
+rcvMeanImage: function [source [image!] return: [tuple!] 
 "Returns mean value of image as a tuple"
-	n: 0
-	sa: 0
-	sr: 0
-	sg: 0 
-	sb: 0
-	img: copy source
-	forall img [
-			n: n + 1
-	     	pxl: img/1 
-	     	sr: sr + pxl/1
-	     	sg: sg + pxl/2
-	     	sb: sb + pxl/3
-	     	sa: sa + pxl/4
-	 ]
-	 sr: sr / n sg: sg / n sb: sb / n sa: sa / n
-	 make tuple! reduce [sr sg sb sa]
+][
+	v: rcvMeanInt source
+	a: v >>> 24
+    r: v and 00FF0000h >> 16 
+    g: v and FF00h >> 8 
+    b: v and FFh
+	make tuple! reduce [r g b a]
 ]
 
-rcvStdDevImage:  function [source [image!] return: [tuple!] 
-    /local 
-	n pxl sa sr sg sb sa2 sr2 sg2 sb2 ma mr mg mb e va vr vg vb][
-"returns standard deviation value of image as a tuple"
-	n: 0
-	sa: 0
-	sr: 0
-	sg: 0 
-	sb: 0
-	sa2: 0
-	sr2: 0
-	sg2: 0
-	sb2: 0
-	img: copy source
-	forall img [
-			n: n + 1
-	     	pxl: img/1 
-	     	sr: sr + pxl/1
-	     	sg: sg + pxl/2
-	     	sb: sb + pxl/3
-	     	sa: sa + pxl/4 	
-	 ]
-	 ma: sa / n
-	 mr: sr / n
-	 mg: sg / n
-	 mb: sb / n
-	 
-	 forall img [
-	     	pxl: img/1 
-	     	e: pxl/1 - mr sr2: sr2 + (e * e)
-	     	e: pxl/2 - mg sg2: sg2 + (e * e)
-	     	e: pxl/3 - mb sb2: sb2 + (e * e)
-	     	e: pxl/4 - ma sa2: sa2 + (e * e)
-	 ]
-	 
-	 vr: to integer! (square-root (sr2 / (n - 1)))
-	 vg: to integer! (square-root (sg2 / (n - 1)))
-	 vb: to integer! (square-root (sb2 / (n - 1)))
-	 va: to integer! (square-root (sa2 / (n - 1)))
+rcvVarImage:  function [source [image!] /var /std  return: [tuple!] 
+"returns variance or standard deviation value of image as a tuple"
+][
+	v:  rcvVarInt source
+	a: v >>> 24
+    r: v and 00FF0000h >> 16 
+    g: v and FF00h >> 8 
+    b: v and FFh
+	case [
+		var [vr: r * r vg: g * g vb: b * b va: a * a]
+		std [vr: r vg: g vb: b va: a]
+	]	 
 	 make tuple! reduce [vr vg vb va]
 ]
 
-rcvMinImage: function [source [image!] return: [tuple!] /local img pxl][
+rcvMinImage: function [source [image!] return: [tuple!]
 "Minimal value in Image as a tuple"
+][
 	img: copy source
 	img/rgb: copy sort source/rgb 
 	pxl: img/1
 ]
 
-rcvMaxImage: function [source [image!] return: [tuple!] /local img n pxl][
+rcvMaxImage: function [source [image!] return: [tuple!] 
 "Maximal value in Image as a tuple"
+][
 	img: copy source
 	n: to integer! (length? img/rgb) / 3 ; RGB channels only
 	img/rgb: copy sort source/rgb 
 	pxl: img/(n)
 ]
 
-rcvRangeImage: function [source [image!] return: [tuple!]/local n img pxl1 pxl2][
+rcvRangeImage: function [source [image!] return: [tuple!]
 "Range value in Image as a tuple"
+][
 	img: copy source
 	n: to integer! (length? img/rgb) / 3 ; RGB channels only
 	img/rgb: copy sort source/rgb 
@@ -399,7 +401,7 @@ rcvRangeImage: function [source [image!] return: [tuple!]/local n img pxl1 pxl2]
 ]
 
 
-rcvSortImage: function [source [image!] return: [image!]/local img][
+rcvSortImage: function [source [image!] return: [image!]][
 	img: copy source
 	img/rgb: copy sort source/rgb 
 	img
