@@ -14,7 +14,7 @@ Libs are improved for faster routines.
 
 New convolution samples are included.
 
-Rendering duration is calculated with the new Red timer and send back to the user.
+Rendering duration is calculated with the new Red timer and sent back to the user.
 
 Special thanks for DideC for interface improvment:)
 
