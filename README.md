@@ -15,6 +15,8 @@ rcvFlip routines are faster (written in Red/System).
 
 Motion detection sample added : you can use your webcam to do a video monitoring!
 
+Samples are compiled with -t WindowsXP option.
+
 
 ### NEW: June 22 2016
 Libs are improved for faster routines.

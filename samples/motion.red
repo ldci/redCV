@@ -36,11 +36,11 @@ view win: layout [
 			d2: rcvAbsdiff  currImg nextImg 
 			r1: rcvAnd d1 d2
 			;rcvThreshold r1 r1 35.0 255.0 CV_THRESH_BINARY; TBD
-			motion/text: form rcvCountNonZero r1
+			motion/text: form rcvCountNonZero rcv2BW r1
 			canvas/image: r1
 			prevImg: currImg	
 			currImg: nextImg
-			nextImg: rcv2Gray/average to-image cam 	
+			nextImg: rcv2Gray/average to-image cam 
 			
 		]
 		return

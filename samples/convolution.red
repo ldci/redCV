@@ -17,7 +17,7 @@ isFile: false
 rimg: make image!  reduce [512x512 black]
 
 loadImage: does [
-	sb1/text: ""
+	sb1/data: ""
 	isFile: false
 	canvas/image/rgb: black
 	canvas/size: 0x0
@@ -53,24 +53,21 @@ img-convolve: func [num [integer!]] [
 		            0.0 0.0 -1.0]
 		            t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 128.0
-			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 			] ;emboss 1
 		3 	[filter: [2.0 0.0 0.0
 		            0.0 -1.0 0.0 
 		            0.0 0.0 -1.0]
 		            t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 128.0
-			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 			]; emboss2
 		4 	[filter: [-1.0 -1.0 0.0
 		            -1.0 0.0 1.0 
 		            0.0 1.0 1.0]
 		            t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 128.0
-			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 			]; emboss3
 		
 		5 	[filter: [-1.0 0.0 -1.0
@@ -78,8 +75,7 @@ img-convolve: func [num [integer!]] [
 		            -1.0 0.0 -1.0]
 		            t1: now/time/precise
 					canvas/image: rcvConvole rimg filter 1.0 128.0
-					t2: now/time/precise
-					sb1/text: form (t2 - t1)
+					sb1/data: third now/time/precise - t1
 					]; emboss Laplacian
 		
 		6 	[filter: [0.0 0.0 0.0
@@ -87,8 +83,7 @@ img-convolve: func [num [integer!]] [
 		            0.0 0.0 0.0]
 		    t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 127.0
-			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 					]; emboss Hz
 		
 		7 	[filter: [0.0 -1.0 0.0
@@ -96,8 +91,7 @@ img-convolve: func [num [integer!]] [
 		            0.0 1.0 0.0]
 		    t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 127.0
-			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 			]; emboss Vz
 		
 		8 	[filter: [1.0 2.0 1.0
@@ -106,7 +100,7 @@ img-convolve: func [num [integer!]] [
 		            t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 127.0
 			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 			]; Sobel H
 		
 		9 	[filter: [1.0 0.0 -1.0
@@ -114,8 +108,7 @@ img-convolve: func [num [integer!]] [
 		            1.0 -2.0 -1.0]
 		            t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 127.0
-			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 			]; Sobel v
 			
 		10 	[filter: [-1.0 -1.0 -1.0
@@ -123,8 +116,7 @@ img-convolve: func [num [integer!]] [
 		            -1.0 -1.0 -1.0]
 		            t1: now/time/precise
 			canvas/image: rcvConvole rimg filter 1.0 0.0
-			t2: now/time/precise
-			sb1/text: form (t2 - t1)
+			sb1/data: third now/time/precise - t1
 			]; Edges	
 			
 		11 	[filter: [-5.0 -5.0 -5.0
@@ -132,8 +124,7 @@ img-convolve: func [num [integer!]] [
 		            -5.0 -5.0 -5.0]
 		            t1: now/time/precise
 		canvas/image: rcvConvole rimg filter 1.0 127.0
-		t2: now/time/precise
-		sb1/text: form (t2 - t1)
+		sb1/data: third now/time/precise - t1
 		]; Edges 2	
 		
 			
@@ -142,8 +133,7 @@ img-convolve: func [num [integer!]] [
 		            -1.0 -1.0 -1.0]
 		            t1: now/time/precise
 		canvas/image: rcvConvole rimg filter 1.0 0.0
-		t2: now/time/precise
-		sb1/text: form (t2 - t1)
+		sb1/data: third now/time/precise - t1
 		]; mean removal	
 		
 		13 	[filter: [0.0 0.2 0.0
@@ -151,8 +141,7 @@ img-convolve: func [num [integer!]] [
 		            0.0 0.2 0.0]
 		            t1: now/time/precise
 		canvas/image: rcvConvole rimg filter 1.0 0.0
-		t2: now/time/precise
-		sb1/text: form (t2 - t1)
+		sb1/data: third now/time/precise - t1
 		]; Gaussian Blur
 		
 		14 	[filter: [1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
@@ -166,8 +155,7 @@ img-convolve: func [num [integer!]] [
 		0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0]
 		            t1: now/time/precise
 		canvas/image: rcvConvole rimg filter 1.0 / 9.0 0.0
-		t2: now/time/precise
-		sb1/text: form (t2 - t1)
+		sb1/data: third now/time/precise - t1
 		]; Motion Blur
 	]
 ]

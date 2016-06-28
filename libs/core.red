@@ -174,8 +174,8 @@ rcvChannel: routine [src [image!] op [integer!] return: [image!]
 rcvFlipHV: routine [src [image!] op [integer!] return: [image!]
 	/local 
 		dst 
-		stride1 
-		stride2 
+		stride1
+		stride2
 		bmp1 
 		bmpDst 
 		data1 
@@ -208,10 +208,9 @@ rcvFlipHV: routine [src [image!] op [integer!] return: [image!]
             pos: stride1 >> 2 * y + x + 1
             switch op [
             	1 [pos2: stride1 >> 2 * y + w - x] ;left/right 
-            	2 [y2: h - y pos2:  stride1 >> 2 * y2 + x + 1]; Up/down 
-            	3 [pos2:  stride1 >> 2 * h - pos];both 
+            	2 [y2: h - y - 1 pos2: stride1 >> 2 * y2 + x + 1]; Up/down 
+            	3 [y2: h - y - 1 pos2: stride1 >> 2 * y2 + w - x ];both 
             ]
-            
            	dataDst/pos: data1/pos2
             x: x + 1
         ]
