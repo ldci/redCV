@@ -95,6 +95,18 @@ rcvXYZ2RGB: function [src [image!] return: [image!]] [
 
 ; ************ logical operators on images as Red/S routines**********
 
+; all logical operators can use /rgb as in the next sample
+; but these functions are slower 
+
+rcvAND_: function [source1 [image!] source2 [image!] return: [image!]][
+"Image 1 AND image 2"
+	img: copy source1
+	img/rgb: source1/rgb and source2/rgb
+	img
+]
+
+
+; fast logical operators
 
 rcvAND: function [src1 [image!] src2 [image!] return: [image!]] [
 	rvcLogical src1 src2 1
@@ -259,66 +271,15 @@ rcvRSH: function [source [image!] val [integer!] return: [image!]
 
 ; *************** Image transform Functions *****************
 
-; Little-Big endian conversion and up down flip
-rcvReverse: function [source [image!] return: [image!]
-"Reverses RGB order"
-][
-
-	img: copy source
-	img/rgb: reverse source/rgb
-	img 
-]
-
-rcvFlip: function [source [image!]/vertical /horizontal return: [image!]
-"Up down flip"
+rcvFlip: function [source [image!] /horizontal /vertical /both return: [image!]
+"Left Right, Up down or both flip"
 ][
 	case [
-		vertical 	[rcv2BGRA rcvReverse source]
-		horizontal 	[rcvFlipH source]
+		horizontal 	[rcvFlipHV source 1]
+		vertical 	[rcvFlipHV source 2]
+		both		[rcvFlipHV source 3]
 	]	
 ]
-
-
-; *************** Red Functions *****************
-
-; these functions do not use Red System Routines
-
-; similar to NOT image
-rcvInvert: function [source [image!] return: [image!]
-"Invert image = rcvNot"
-][
-	img: copy source
-	img/rgb:  complement source/rgb 
-	img
-]
-
-
-
-; to be improved
-rcvInRange: function [source [image!] minThresh [tuple!] maxThresh [tuple!] return: [image!]
-"Select range color values according to mini and maximal RGB values"
-][
-	img: copy source
-	forall img [
-			pxl: img/1
-	    	if img/1 <= minThresh [pxl: 0.0.0.0] 
-	    	if img/1 > maxThresh [pxl: 0.0.0.0] 
-	     	img/1: pxl
-	 	]
-	 img
-]
-
-
-
-; OK nice but /alea vry slow TBI
-rcvRandom: function [size [pair!] value [tuple!] /uniform /alea return: [image!]][
-	case [
-		uniform [img: make image! reduce [size random value]]
-		alea 	[img: make image! reduce [size black] forall img [img/1: random value ]]
-	] 
-	img
-]
-
 
 
 ; *************** statistical Functions *****************
@@ -326,12 +287,7 @@ rcvRandom: function [size [pair!] value [tuple!] /uniform /alea return: [image!]
 rcvCountNonZero: function [source [image!] return: [integer!]
 "Returns number of non zero values in image"
 ][
-	n: 0
-	img: copy source
-	forall img [
-	    	if img/1 > 0.0.0.0 [n: n + 1] 
-	 ]
-	 n
+	rcvCount source
 ]
 
 rcvMedianImage: function [source [image!] return: [tuple!]
@@ -409,5 +365,57 @@ rcvSortImage: function [source [image!] return: [image!]][
 
 
 ; *************** convolution Functions *****************
-; defined in imgproc.red
+; convolution is defined in imgproc.red
+; TBD Filters
 
+
+
+; *************** Red Functions *****************
+
+; these functions do not use Red System Routines
+
+; Little-Big endian conversion and up down flip
+rcvReverse: function [source [image!] return: [image!]
+"Reverses RGB order"
+][
+
+	img: copy source
+	img/rgb: reverse source/rgb
+	img 
+]
+
+; similar to NOT image
+rcvInvert: function [source [image!] return: [image!]
+"Invert image = rcvNot"
+][
+	img: copy source
+	img/rgb:  complement source/rgb 
+	img
+]
+
+
+
+; to be improved
+rcvInRange: function [source [image!] minThresh [tuple!] maxThresh [tuple!] return: [image!]
+"Select range color values according to mini and maximal RGB values"
+][
+	img: copy source
+	forall img [
+			pxl: img/1
+	    	if img/1 <= minThresh [pxl: 0.0.0.0] 
+	    	if img/1 > maxThresh [pxl: 0.0.0.0] 
+	     	img/1: pxl
+	 	]
+	 img
+]
+
+
+
+; OK nice but /alea very slow TBI
+rcvRandom: function [size [pair!] value [tuple!] /uniform /alea return: [image!]][
+	case [
+		uniform [img: make image! reduce [size random value]]
+		alea 	[img: make image! reduce [size black] forall img [img/1: random value ]]
+	] 
+	img
+]

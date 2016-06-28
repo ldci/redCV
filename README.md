@@ -5,9 +5,16 @@
 
 Only for Windows for the moment. Available for OSX and Linux ASAP.
 
-You need the lastest Red master version.
+#### You need the lastest Red master version.
 
 Tested with Windows XP and Windows 10.
+
+### NEW: June 28 2016
+
+rcvFlip routines are faster (written in Red/System).
+
+Motion detection sample added : you can use your webcam to do a video monitoring!
+
 
 ### NEW: June 22 2016
 Libs are improved for faster routines.

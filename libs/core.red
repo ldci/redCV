@@ -24,7 +24,7 @@ pixel >>> 24				: Alpha
 
 
 ; This file contains Red routines (including Red/System code)
-;These routines can be directly called in Red Code or via their export in red.cv
+; These routines can be directly called in Red Code or via their export in red.cv
 
 
 
@@ -154,9 +154,9 @@ rcvChannel: routine [src [image!] op [integer!] return: [image!]
             g: data1/pos and FF00h >> 8 
             b: data1/pos and FFh 
             switch op [
-            	1 [ g: r b: r];Red Channel
-              	2 [ r: g b: g] ;Green Channel 
-              	3 [ r: b g: b] ;blue Channel
+            	1 [ g: r b: r]	;Red Channel
+              	2 [ r: g b: g] 	;Green Channel 
+              	3 [ r: b g: b] 	;blue Channel
             ]
            	dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
             x: x + 1
@@ -170,8 +170,8 @@ rcvChannel: routine [src [image!] op [integer!] return: [image!]
 ]
 
 
-; creates a mirror image 
-rcvFlipH: routine [src [image!] return: [image!]
+; creates up down, left right mirror image or both  
+rcvFlipHV: routine [src [image!] op [integer!] return: [image!]
 	/local 
 		dst 
 		stride1 
@@ -184,12 +184,9 @@ rcvFlipH: routine [src [image!] return: [image!]
 		h
 		x 
 		y 
+		y2
 		pos
 		pos2
-		r
-		g
-		b
-		a
 ][
     dst: as red-image! stack/push*        ;-- create an new image slot
     image/copy src dst null yes null
@@ -205,10 +202,16 @@ rcvFlipH: routine [src [image!] return: [image!]
     h: IMAGE_HEIGHT(src/size)
     x: 0
     y: 0
+    y2: 0
     while [y < h][
         while [x < w][
             pos: stride1 >> 2 * y + x + 1
-            pos2: stride1 >> 2 * y + w - x ; reverse x order
+            switch op [
+            	1 [pos2: stride1 >> 2 * y + w - x] ;left/right 
+            	2 [y2: h - y pos2:  stride1 >> 2 * y2 + x + 1]; Up/down 
+            	3 [pos2:  stride1 >> 2 * h - pos];both 
+            ]
+            
            	dataDst/pos: data1/pos2
             x: x + 1
         ]
@@ -219,7 +222,6 @@ rcvFlipH: routine [src [image!] return: [image!]
     OS-image/unlock-bitmap as-integer dst/node bmpDst
 	as red-image! stack/set-last as cell! dst            ;-- return new image
 ]
-
 
 
 
@@ -720,3 +722,45 @@ rcvVarInt: routine [src1 [image!] return: [integer!]
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
 
+
+rcvCount: routine [src1 [image!] return: [integer!]
+	/local 
+		stride1 
+		bmp1 
+		data1 
+		w 
+		x 
+		y 
+		h 
+		pos
+		r 
+		g
+		b
+		a
+		n
+][
+    stride1: 0
+    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    data1: OS-image/get-data bmp1 :stride1   
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    n: 0
+    while [y < h][
+        while [x < w][
+            pos: stride1 >> 2 * y + x + 1
+            r: data1/pos and 00FF0000h >> 16
+            g: data1/pos and FF00h >> 8
+            b: data1/pos and FFh
+            if (r > 0) and (g > 0) and (b > 0) [n: n + 1]
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    
+    OS-image/unlock-bitmap as-integer src1/node bmp1;
+    n
+]
