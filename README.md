@@ -2,6 +2,8 @@
 ## see http://www.red-lang.org 
 ### This library needs View 
 
+[![Join the chat at https://gitter.im/ldci/redCV](https://badges.gitter.im/ldci/redCV.svg)](https://gitter.im/ldci/redCV?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 Only for Windows for the moment. Available for OSX and Linux ASAP.
 
