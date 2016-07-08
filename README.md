@@ -9,6 +9,21 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 
 Tested with Windows XP and Windows 10.
 
+### NEW: July 8 2106
+A lot of work for this new version with faster routines and functions
+
+Most of functions are in the form rcvFunction [src [image!] dst [image!]] [....]
+This avoids memory leaks due to image copy 
+
+New organizations for libs 
+
+All Red/System Routines are in the same file and routines are exported as red functions in the various libs
+
+New basic samples (to be compiled) 
+
+Documentation and new samples will be included ASAP
+
+
 ### NEW: June 28 2016
 
 rcvFlip routines are faster (written in Red/System).
