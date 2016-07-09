@@ -7,10 +7,10 @@ Red [
 
 ; required last Red Master
 
-#include %../libs/redcv.red ; for red functions
+#include %../../libs/redcv.red ; for red functions
 
 margins: 5x5
-img1: rcvLoadImage %../images/lena.jpg
+img1: rcvLoadImage %../../images/lena.jpg
 
 ; ***************** Test Program ****************************
 view win: layout [

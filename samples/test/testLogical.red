@@ -7,9 +7,9 @@ Red [
 
 
 ; last Red Master required!
-#include %../libs/redcv.red ; for redCV functions
+#include %../../libs/redcv.red ; for redCV functions
 margins: 10x10
-img1: rcvLoadImage %../images/lena.jpg
+img1: rcvLoadImage %../../images/lena.jpg
 img2: rcvRandomImage/uniform img1/size 255.255.255 ;
 dst: rcvCreateImage img1/size
 

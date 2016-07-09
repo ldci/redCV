@@ -8,7 +8,7 @@ Red [
 ; last Red Master required!
 ; must be improved bt using a routine
 
-#include %../libs/redcv.red ; for red functions
+#include %../../libs/redcv.red ; for red functions
 margins: 10x10
 img1: make image! reduce [100x100 black]
 img2: make image! reduce [100x100 black]

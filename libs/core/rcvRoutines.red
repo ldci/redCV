@@ -104,6 +104,48 @@ rcvConvert: routine [
     image/release-buffer dst handleD yes
 ]
 
+rcvFilterBW: routine [
+    src1 	[image!]
+    dst  	[image!]
+    thresh	[integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD h w x y
+        r g b a
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+       	a: 255
+       	r: pix1/value and 00FF0000h >> 16 
+        g: 0 
+        b: 0
+        
+        either r >= thresh [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
+        pixD/value: FF000000h or ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
+       
+        x: x + 1
+        pix1: pix1 + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 rcvChannel: routine [
     src  [image!]
     dst  [image!]
@@ -190,7 +232,8 @@ rcvRGBXYZ: routine [
     	r: float/to-integer xf
     	g: float/to-integer yf
     	b: float/to-integer zf
-    	pixD/value: FF000000h or ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
+
+    	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
         x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1
@@ -238,7 +281,7 @@ rcvXYZRGB: routine [
 		r: float/to-integer (xf * 255.0) 
     	g: float/to-integer (yf * 255.0) 
     	b: float/to-integer (zf * 255.0)
-    	pixD/value: FF000000h or ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
+    	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
         x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1

@@ -8,6 +8,12 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 #### You need the lastest Red master version.
 
 Tested with Windows XP and Windows 10.
+### NEW july 9 2016
+
+Black and white image filter added.
+
+A new sample (motion.red) for motion tracking with webcam.
+
 
 ### NEW: July 8 2106
 A lot of work for this new version with faster routines and functions

@@ -40,9 +40,16 @@ rcvSaveImage: function [src [image!] fileName [file!]/bmp /png /jpg
 ; TBD
 ]
 
-rcvCloneImage: function [src [image!] dst [image!]
-"Make copy of image"
+rcvCloneImage: function [src [image!] return: [image!]
+"Returns a copy of src image"
 ] [
+	dst: make image! reduce [src/size black]
+	rcvCopy src dst
+	dst
+]
+rcvCopyImage: function [src [image!] dst [image!]
+"Copy source image to destination image"
+][
 	rcvCopy src dst
 ]
 

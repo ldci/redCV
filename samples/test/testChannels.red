@@ -7,9 +7,9 @@ Red [
 
 
 ; last Red Master required!
-#include %../libs/redcv.red ; for redCV functions
+#include %../../libs/redcv.red ; for redCV functions
 margins: 10x10
-img1: rcvLoadImage %../images/baboon.jpg
+img1: rcvLoadImage %../../images/baboon.jpg
 dst: rcvCreateImage img1/size
 
 ; ***************** Test Program ****************************
