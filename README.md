@@ -8,6 +8,12 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 #### You need the lastest Red master version.
 
 Tested with Windows XP and Windows 10.
+
+### NEW july 1 2016
+
+#### Documentation for redCV functions added
+
+
 ### NEW july 9 2016
 
 Black and white image filter added.
