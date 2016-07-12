@@ -440,7 +440,7 @@ rcvMathS: routine [
 ; exported as functions in /libs/core/rcvCore.red
 
 
-rcvNot: routine [
+_rcvNot: routine [
     src1 [image!]
     dst  [image!]
     /local
@@ -700,4 +700,45 @@ rcvMeanInt: routine [src1 [image!] return: [integer!]
     b: sb / (w * h)
     OS-image/unlock-bitmap as-integer src1/node bmp1;
     (255 << 24) OR (r << 16 ) OR (g << 8) OR b 
+]
+
+;***************** IMAGE TRANSFORMATION ROUTINES ***********************
+
+rcvFlipHV: routine [
+    src  [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        handle1 handleD h w x y        
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx: null
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+        switch op [
+        	0 [idx: pix1 + (y * w) + x] 				; no change
+            1 [idx: pix1 + (y * w) + (w - x)] 			;left/right
+            2 [idx: pix1 + (w * h) - (y * w) + x - w] 	; up/down
+            3 [idx: pix1 + (w * h) - (y * w) - x - 1]	; both flips
+        ]
+        
+        pixD/value: idx/value
+        x: x + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
 ]

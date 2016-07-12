@@ -12,36 +12,37 @@ Red [
 
 
 rcvCreateImage: function [size [pair!] return: [image!]
-"Create empty (black) image "
+"Create empty (black) image"
 ][
 	make image! reduce [size black]
 ]
 
 rcvReleaseImage: routine [src [image!]] [
+"Delete image from memory"
 	image/delete src
 ]
 
 rcvLoadImage: function [fileName [file!] return: [image!]
-"load image from file"
+"Load image from file"
 ] [
 	load fileName
 ]
 
 rcvLoadImageB: function [fileName [file!] return: [binary!] /alpha
-"load image from file and return Mat as binary"
+"Load image from file and return image as binary"
 ] [
 	tmp: load fileName
 	either alpha [tmp/argb] [tmp/rgb]
 ]
 
-rcvSaveImage: function [src [image!] fileName [file!]/bmp /png /jpg
-"save image to file"
+rcvSaveImage: function [src [image!] fileName [file!]
+"Save image to file"
 ][
-; TBD
+	write/binary file src
 ]
 
 rcvCloneImage: function [src [image!] return: [image!]
-"Returns a copy of src image"
+"Return a copy of source image"
 ] [
 	dst: make image! reduce [src/size black]
 	rcvCopy src dst
@@ -54,12 +55,20 @@ rcvCopyImage: function [src [image!] dst [image!]
 ]
 
 ; OK nice but /alea very slow Must be improved
-rcvRandomImage: function [size [pair!] value [tuple!] /uniform /alea return: [image!]][
+rcvRandomImage: function [size [pair!] value [tuple!] /uniform /alea return: [image!]
+"Create a random uniform or pixel random image"
+][
 	case [
 		uniform [img: make image! reduce [size random value]]
 		alea 	[img: make image! reduce [size black] forall img [img/1: random value ]]
 	] 
 	img
+]
+
+rcvZeroImage: function [src [image!]
+"All pixels to 0"
+][
+	src/argb: black
 ]
 
 {

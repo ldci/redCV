@@ -9,10 +9,13 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 
 Tested with Windows XP and Windows 10.
 
-### NEW july 1 2016
+### NEW July 12 2016
+
+Fast flip render and documentation update
+
+### NEW july 10 2016
 
 #### Documentation for redCV functions added
-
 
 ### NEW july 9 2016
 
