@@ -742,3 +742,331 @@ rcvFlipHV: routine [
     image/release-buffer src handle1 no
     image/release-buffer dst handleD yes
 ]
+
+
+
+; *************** IMAGE CONVOLUTION *************************
+
+{The 2D convolution operation isn't extremely fast, 
+unless you use small filters. We'll usually be using 3x3 or 5x5 filters. 
+There are a few rules about the filter:
+Its size has to be uneven, so that it has a center, for example 3x3, 5x5, 7x7 or 9x9 are ok. 
+The sum of all elements of the filter should be 1 if you want the resulting image to have the same brightness as the original
+If the sum of the elements is larger than 1, the result will be a brighter image
+If it's smaller than 1, a darker image. 
+If the sum is 0, the resulting image isn't necessarily completely black, but it'll be very dark
+Apart from using a kernel matrix, it also has a multiplier factor and a bias. 
+After applying the filter, the factor will be multiplied with the result, and the bias added to it. 
+So if you have a filter with an element 0.25 in it, but the factor is set to 2, all elements of the filter 
+are  multiplied by two so that element 0.25 is actually 0.5. 
+The bias can be used if you want to make the resulting image brighter. 
+}
+
+_rcvConvolve: routine [
+    src  	[image!]
+    dst  	[image!]
+    kernel 	[block!] 
+    factor 	[float!]
+    delta	[float!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        handle1 handleD h w x y i j
+        pixel
+        r g b
+        accR accG accB
+        f  imx imy 
+		kWidth 
+		kHeight 
+		kBase 
+		kValue  
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx:  pix1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    ; get Kernel dimension (e.g. 3, 5 ...)
+    kWidth: float/to-integer (sqrt integer/to-float (block/rs-length? kernel))
+	kHeight: kWidth
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+    	accR: 0.0
+        accG: 0.0 
+        accB: 0.0
+   		j: 0
+		kValue: kBase
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		imx:  (x + (i - (kWidth / 2)) + w ) % w 
+        			imy:  (y + (j - (kHeight / 2)) + h ) % h 
+            		idx: pix1 + (imy * w) + imx  ; corrected pixel index
+            		r: idx/value and 00FF0000h >> 16 
+        			g: idx/value and FF00h >> 8 
+       				b: idx/value and FFh  
+           			;get kernel values OK 
+        			f: as red-float! kValue
+        			; calculate weighted values
+        			accR: accR + ((integer/to-float r) * f/value)
+        			accG: accG + ((integer/to-float g) * f/value)
+        			accB: accB + ((integer/to-float b) * f/value)
+        			kValue: kBase + (j * kWidth + i + 1)
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+        
+        r: float/to-integer (accR * factor)						 
+        g: float/to-integer (accG * factor)	
+        b: float/to-integer (accB * factor)					 
+    	r: r + float/to-integer delta
+    	g: g + float/to-integer delta
+    	b: b + float/to-integer delta
+        if r < 0 [r: 0]
+        if r > 255 [r: 255]
+        if g < 0 [g: 0]
+        if g > 255 [g: 255]
+        if b < 0 [b: 0]
+        if b > 255 [b: 255]				 
+        pixD/value: ((255 << 24) OR (r << 16 ) OR (g << 8) OR b)	
+        x: x + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+; Similar to convolution but the sum of the weights is computed during the summation, and used to scale the result.
+
+_rcvFilter2D: routine [
+    src  	[image!]
+    dst  	[image!]
+    kernel 	[block!] 
+    delta	[integer!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        handle1 handleD h w x y i j
+        pixel
+        r g b
+        accR accG accB
+        weightSum
+        f  imx imy 
+		kWidth 
+		kHeight 
+		kBase 
+		kValue  
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx:  pix1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    ; get Kernel dimension (e.g. 3, 5 ...)
+    kWidth: float/to-integer (sqrt integer/to-float (block/rs-length? kernel))
+	kHeight: kWidth
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+    	weightSum: 0.0
+    	accR: 0.0
+        accG: 0.0 
+        accB: 0.0
+   		j: 0
+		kValue: kBase
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		imx:  (x + (i - (kWidth / 2)) + w ) % w 
+        			imy:  (y + (j - (kHeight / 2)) + h ) % h 
+            		idx: pix1 + (imy * w) + imx  ; corrected pixel index
+            		r: idx/value and 00FF0000h >> 16 
+        			g: idx/value and FF00h >> 8 
+       				b: idx/value and FFh  
+           			;get kernel values OK 
+        			f: as red-float! kValue
+        			; calculate weighted values
+        			accR: accR + ((integer/to-float r) * f/value)
+        			accG: accG + ((integer/to-float g) * f/value)
+        			accB: accB + ((integer/to-float b) * f/value)
+        			weightSum: weightSum + f/value
+        			kValue: kBase + (j * kWidth + i + 1)
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+        either (weightSum > 0.0) [r: float/to-integer (accR / weightSum)] 
+        						 [r: float/to-integer (accR)]
+        either (weightSum > 0.0) [g: float/to-integer (accG / weightSum)] 
+        						 [g: float/to-integer (accG)]
+        either (weightSum > 0.0) [b: float/to-integer (accB / weightSum)] 
+        						 [b: float/to-integer (accB)]
+        
+        r: r + delta
+        g: g + delta
+        b: b + delta
+        if r < 0 [r: 0]
+        if r > 255 [r: 255]
+        if g < 0 [g: 0]
+        if g > 255 [g: 255]
+        if b < 0 [b: 0]
+        if b > 255 [b: 255]				 
+        pixD/value: ((255 << 24) OR (r << 16 ) OR (g << 8) OR b)	
+        x: x + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+; a faster version without controls on pixel value !
+; basically for 1 channel gray scaled image
+;the sum of the weights is computed during the summation, and used to scale the result
+
+_rcvFastFilter2D: routine [
+    src  [image!]
+    dst  [image!]
+    kernel 	[block!] 
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        handle1 handleD h w x y i j
+        pixel
+        weightSum
+        weightAcc
+        f  imx imy 
+		kWidth 
+		kHeight 
+		kBase 
+		kValue  
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx:  pix1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    ; get Kernel dimension (e.g. 3, 5 ...)
+    kWidth: float/to-integer (sqrt integer/to-float (block/rs-length? kernel))
+	kHeight: kWidth
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+       	weightAcc: 0.0 
+    	weightSum: 0.0
+   		j: 0
+		kValue: kBase
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		imx:  (x + (i - (kWidth / 2)) + w ) % w 
+        			imy:  (y + (j - (kHeight / 2)) + h ) % h 
+            		idx: pix1 + (imy * w) + imx  ; corrected pixel index
+           			;get kernel values OK 
+        			f: as red-float! kValue
+        			; calculate weighted values
+        			weightAcc: weightAcc + ((integer/to-float idx/value) * f/value)
+        			weightSum: weightSum + f/value
+        			kValue: kBase + (j * kWidth + i + 1)
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+        either (weightSum > 0.0) [pixD/value: float/to-integer (weightAcc / weightSum)] 
+        						 [pixD/value: float/to-integer (weightAcc)]
+       
+        x: x + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
+
+
+
+;
+
+; to be DONE
+; ********* Image Random **********
+;TBI
+_rcvRandom: routine [size [pair!] value [tuple!] return: [image!]
+	/local 
+		dst 
+		stride 
+		bmpDst 
+		dataDst 
+		w 
+		x 
+		y 
+		h 
+		pos
+		tp
+		sz
+		r
+		g
+		b
+		a
+][
+    dst: as red-image! stack/push*        ;-- create an new image slot
+    sz: as red-pair! size
+    stride: 0
+      
+    bmpDst: OS-image/lock-bitmap as-integer dst/node yes
+    
+    dataDst: OS-image/get-data bmpDst :stride
+
+    w: sz/x
+    h: sz/y
+    x: 0
+    y: 0
+    tp: as red-tuple! value
+
+    while [y < h][
+        while [x < w][
+            pos: stride >> 2 * y + x + 1
+            a: 0 r: 0 g: 0 b: 0
+            dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
+            ;dataDst/pos: as-integer tuple/random tp true false false
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    OS-image/unlock-bitmap as-integer dst/node bmpDst
+	as red-image! stack/set-last as cell! dst            ;-- return new image
+]
+
+

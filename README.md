@@ -8,6 +8,13 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 #### You need the lastest Red master version.
 
 Tested with Windows XP and Windows 10.
+### NEW July 18 2016
+
+Convolve routines are improved but rather low speed as expected!
+
+2D Filtering can be used. (see documentation for details)
+
+More samples to come
 
 ### NEW July 12 2016
 
