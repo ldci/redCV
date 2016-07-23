@@ -8,6 +8,12 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 #### You need the lastest Red master version.
 
 Tested with Windows XP and Windows 10.
+
+### NEW July 23 2016
+
+Gaussian filter added (see /samples/test/ testGaussian.red)
+
+
 ### NEW July 18 2016
 
 Convolve routines are improved but rather low speed as expected!
