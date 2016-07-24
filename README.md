@@ -8,6 +8,10 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 #### You need the lastest Red master version.
 
 Tested with Windows XP and Windows 10.
+### NEW July 24 2016
+
+A sample for Gaussian Filter
+
 
 ### NEW July 23 2016
 
