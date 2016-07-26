@@ -7,7 +7,24 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 
 #### You need the lastest Red master version.
 
+Developped under Mac OSX 10.11.6
+
 Tested with Windows XP and Windows 10.
+
+You must compile samples since red routines are required
+
+
+### NEW JULY 26 2016
+
+Slight changes in libs: all red routines begin with underscore (e.g. _rcvCopy)
+
+Documentation updated
+
+Samples updated   
+
+New samples added in /samples/test directory
+
+
 ### NEW July 24 2016
 
 A sample for Gaussian Filter

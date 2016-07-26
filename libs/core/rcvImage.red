@@ -45,13 +45,13 @@ rcvCloneImage: function [src [image!] return: [image!]
 "Return a copy of source image"
 ] [
 	dst: make image! reduce [src/size black]
-	rcvCopy src dst
+	_rcvCopy src dst
 	dst
 ]
 rcvCopyImage: function [src [image!] dst [image!]
 "Copy source image to destination image"
 ][
-	rcvCopy src dst
+	_rcvCopy src dst
 ]
 
 ; OK nice but /alea very slow Must be improved

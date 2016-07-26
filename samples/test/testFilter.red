@@ -48,7 +48,7 @@ view win: layout [
 		button 60 "Sobel H" 	[rcvFastFilter2D img1 dst sobelH];
 		button 60 "Mean" 		[rcvFastFilter2D img1 dst removal];
 		button 60 "Emboss V" 	[rcvFastFilter2D img1 dst embossV];
-		button 80 "Quit" 		[Quit]
+		button 80 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
 		button 60 "No Filter" 	[rcvFilter2D img1 dst noFilter 0]
 		button 60 "Laplacian" 	[rcvFilter2D img1 dst laplacian 128];
@@ -65,5 +65,5 @@ view win: layout [
 		button 60 "Emboss V" 	[rcvConvolve img1 dst embossV 2.0 127.0 ];
 		return
 		canvas: base 512x512 dst	
-		do [rcvCopy img1 dst]
+		do [rcvCopyImage img1 dst]
 ]

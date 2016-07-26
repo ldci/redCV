@@ -16,7 +16,7 @@ dst: rcvCreateImage img1/size
 view win: layout [
 		title "RGB Channels Test"
 		origin margins space margins
-		button 50 "Source"	[rcvChannel img1 dst 0]	; routine
+		button 50 "Source"	[_rcvChannel img1 dst 0]	; routine
 		button 50 "Red"  	[rcvSplit/red img1 dst]
 		button 50 "Green"	[rcvSplit/green img1 dst]
 		button 50 "Blue"  	[rcvSplit/blue img1 dst]

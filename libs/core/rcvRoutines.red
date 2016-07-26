@@ -13,7 +13,7 @@ Red [
 
 ;***************** IMAGE CONVERSION ROUTINES *****************
 ;exported as functions in /libs/core/rcvCore.red
-rcvCopy: routine [
+_rcvCopy: routine [
     src1 [image!]
     dst  [image!]
     /local
@@ -45,7 +45,7 @@ rcvCopy: routine [
 ]
 
 
-rcvConvert: routine [
+_rcvConvert: routine [
     src1 [image!]
     dst  [image!]
     op	 [integer!]
@@ -104,7 +104,7 @@ rcvConvert: routine [
     image/release-buffer dst handleD yes
 ]
 
-rcvFilterBW: routine [
+_rcvFilterBW: routine [
     src1 	[image!]
     dst  	[image!]
     thresh	[integer!]
@@ -146,7 +146,7 @@ rcvFilterBW: routine [
 
 
 
-rcvChannel: routine [
+_rcvChannel: routine [
     src  [image!]
     dst  [image!]
     op	 [integer!]
@@ -192,7 +192,7 @@ rcvChannel: routine [
 
 ;***************** COLORSPACE CONVERSIONS ************
 
-rcvRGBXYZ: routine [
+_rcvRGBXYZ: routine [
     src1 [image!]
     dst  [image!]
     /local
@@ -245,7 +245,7 @@ rcvRGBXYZ: routine [
     image/release-buffer dst handleD yes
 ]
 
-rcvXYZRGB: routine [
+_rcvXYZRGB: routine [
     src1 [image!]
     dst  [image!]
     /local
@@ -297,7 +297,7 @@ rcvXYZRGB: routine [
 ;***************** MATH OPERATOR ON IMAGE ROUTINES ************
 ; exported as functions in /libs/core/rcvCore.red
 
-rcvMath: routine [
+_rcvMath: routine [
 	src1 [image!]
 	src2 [image!]
 	dst	 [image!]
@@ -346,7 +346,7 @@ rcvMath: routine [
 ]
 
 
-rcvMathT: routine [
+_rcvMathT: routine [
 	src1 [image!]
 	dst [image!]
 	t	 [tuple!]
@@ -390,7 +390,7 @@ rcvMathT: routine [
 ]
 
 ; scalar
-rcvMathS: routine [
+_rcvMathS: routine [
 	src1 [image!]
 	dst [image!]
 	v	 [integer!]
@@ -472,7 +472,7 @@ _rcvNot: routine [
 ]
 
 
-rvcLogical: routine [
+_rvcLogical: routine [
 	src1 [image!]
 	src2 [image!]
 	dst	 [image!]
@@ -523,7 +523,7 @@ rvcLogical: routine [
 
 ;***************** STATISTICAL ROUTINES ***********************
 ; exported as functions in /libs/math/rcvStats.red
-rcvCount: routine [src1 [image!] return: [integer!]
+_rcvCount: routine [src1 [image!] return: [integer!]
 	/local 
 		stride1 
 		bmp1 
@@ -564,7 +564,7 @@ rcvCount: routine [src1 [image!] return: [integer!]
     n
 ]
 
-rcvStdInt: routine [src1 [image!] return: [integer!]
+_rcvStdInt: routine [src1 [image!] return: [integer!]
 	/local 
 		stride1 
 		bmp1 
@@ -651,7 +651,7 @@ rcvStdInt: routine [src1 [image!] return: [integer!]
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
 
-rcvMeanInt: routine [src1 [image!] return: [integer!]
+_rcvMeanInt: routine [src1 [image!] return: [integer!]
 	/local 
 		stride1 
 		bmp1 
@@ -704,7 +704,7 @@ rcvMeanInt: routine [src1 [image!] return: [integer!]
 
 ;***************** IMAGE TRANSFORMATION ROUTINES ***********************
 
-rcvFlipHV: routine [
+_rcvFlipHV: routine [
     src  [image!]
     dst  [image!]
     op	 [integer!]
@@ -1012,12 +1012,6 @@ _rcvFastFilter2D: routine [
     image/release-buffer dst handleD yes
 ]
 
-
-
-
-
-
-;
 
 ; to be DONE
 ; ********* Image Random **********

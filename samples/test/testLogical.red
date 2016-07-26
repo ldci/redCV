@@ -17,7 +17,7 @@ dst: rcvCreateImage img1/size
 view win: layout [
 		title "Logical Tests"
 		origin margins space margins
-		button 35 "SRC" [rcvCopy img1 dst ]		; routine
+		button 35 "SRC" [rcvCopyImage img1 dst ]		
 		button 35 "NOT" [rcvNot img1 dst ]
 		button 35 "AND" [rcvAND img1 img2 dst]
 		button 35 "OR"  [rcvOR img1 img2 dst]
@@ -47,5 +47,5 @@ view win: layout [
 		return
 		pad 2x0
 		canvas: base 512x512 dst
-		do [rcvCopy img1 dst]
+		do [rcvCopyImage img1 dst]
 ]

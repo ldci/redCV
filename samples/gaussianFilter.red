@@ -20,16 +20,16 @@ knl: rcvMakeGaussian 5x5
 view win: layout [
 		title "Gaussian 2D Filter"
 		
-		button 60 "No Filter" 	[	rcvCopy img1 dst 
-								 	rcvCopy img1 currentImage
+		button 60 "No Filter" 	[	rcvCopyImage img1 dst 
+								 	rcvCopyImage img1 currentImage
 								]						    								
 		button 60 "Filter +"	[	rcvGaussianFilter currentImage dst knl 0
-									rcvCopy dst currentImage
+									rcvCopyImage dst currentImage
 								]
 								
-		button 80 "Quit" 		[Quit]
+		button 80 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		
 		return
 		canvas: base 512x512 dst	
-		do [rcvCopy img1 dst]
+		do [rcvCopyImage img1 dst]
 ]

@@ -19,7 +19,7 @@ seuil: 32
 view win: layout [
 		title "Conversion Tests"
 		origin margins space margins
-		button 45 "Source" 		[rcvConvert img1 dst 0]
+		button 45 "Source" 		[rcvCopyImage img1 dst]
 		button 45 "Gray 1" 		[rcv2Gray/average img1 dst]
 		button 45 "Gray 2" 		[rcv2Gray/luminosity img1 dst]
 		button 45 "Gray 3" 		[rcv2Gray/lightness img1 dst]
@@ -33,5 +33,5 @@ view win: layout [
 							Quit]
 		return 
 		canvas: base 512x512 dst
-		do [rcvConvert img1 dst 0]
+		do [rcvCopyImage img1 dst]
 ]

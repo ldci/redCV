@@ -49,11 +49,11 @@ view win: layout [
 		return
 		canvas: base 512x512 dst
 		return 
-		button 60 "Source"  [rcvMath img1 img2 dst 0] ; routine
+		button 60 "Source"  [_rcvMath img1 img2 dst 0] ; routine
 		button 60 "Quit" [	rcvReleaseImage img1 
 							rcvReleaseImage img2 
 							rcvReleaseImage dst 
 							Quit]
-		do [rcvMath img1 img2 dst 0]
+		do [_rcvMath img1 img2 dst 0]
 ]
 
