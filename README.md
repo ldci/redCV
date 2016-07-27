@@ -11,18 +11,22 @@ Developped under Mac OSX 10.11.6
 
 Tested with Windows XP and Windows 10.
 
-You must compile samples since red routines are required
+You must compile samples since red routines are required.
+
+### NEW JULY 27 2016
+
+gaussianFilter sample updated.
 
 
 ### NEW JULY 26 2016
 
-Slight changes in libs: all red routines begin with underscore (e.g. _rcvCopy)
+Slight changes in libs: all red routines begin with underscore (e.g. _rcvCopy).
 
-Documentation updated
+Documentation updated.
 
-Samples updated   
+Samples updated.   
 
-New samples added in /samples/test directory
+New samples added in /samples/test directory.
 
 
 ### NEW July 24 2016
