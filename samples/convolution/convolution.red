@@ -15,6 +15,11 @@ isFile: false
 noFilter: [0.0 0.0 0.0
 		  0.0 1.0 0.0 
 		  0.0 0.0 0.0]
+		  
+quickMask: [-1.0 0.0 -1.0
+		  0.0 4.0 0.0 
+		  -1.0 0.0 -1.0]
+
 
 emboss1: [0.0 0.0 0.0
 		  0.0 1.0 0.0 
@@ -144,7 +149,7 @@ img-convolve: func [num [integer!]] [
 			]
 		
 		9 	[t1: now/time/precise
-			canvas/image: rcvConvolve rimg dst sobelV 1.0 127.0
+			rcvConvolve rimg dst sobelV 1.0 127.0
 			sb1/data: third now/time/precise - t1
 			]
 			
@@ -173,6 +178,11 @@ img-convolve: func [num [integer!]] [
 			rcvConvolve rimg dst motion 1.0 / 9.0 0.0
 			sb1/data: third now/time/precise - t1
 		]; Motion Blur
+		
+		15 	[t1: now/time/precise
+			rcvConvolve rimg dst quickMask 1.0 0.0
+			sb1/data: third now/time/precise - t1
+		]; Quick Mask
 	]
 ]
 
@@ -188,7 +198,8 @@ view win: layout [
 	op: drop-d data [
 		"Convolution"  "Emboss1" "Emboss2" "Emboss3" "Emboss Laplacian"
 		"Emboss Horizontal" "Emboss Vertical" "Sobel Horizontal" "Sobel Vertical"
-		"Edges detection" "Edges detection 2" "Mean removal" "Gaussian blur" "Motion blur (9x9 Kernel)"
+		"Edges detection" "Edges detection 2" "Mean removal" "Gaussian blur" 
+		"Motion blur (9x9 Kernel)" "Quick Mask"
 	] select 1 on-change [if isFile [img-convolve face/selected]]
 	
 	text "Rendered in: " sb1: field 100x24 

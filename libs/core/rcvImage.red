@@ -71,6 +71,13 @@ rcvZeroImage: function [src [image!]
 	src/argb: black
 ]
 
+rcvSetAlpha: function [src [image!] dst [image!] alpha [integer!]
+"Sets image transparency"
+][
+	_rcvSetAlpha src dst alpha
+]
+
+
 {
 rcvDecodeImage
 rcvDecodeImageM

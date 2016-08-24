@@ -13,6 +13,17 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW AUGUST 24 2016
+
+Back from summer break with a lot of new samples and functions!
+
+Matrices can be used now with vector! datatype, but we'll wait for the matrix! datatype for improving functions.
+
+New samples folder thematic organization.
+
+Doc is updated.
+
+
 ### NEW JULY 27 2016
 
 gaussianFilter sample updated.

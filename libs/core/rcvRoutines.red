@@ -12,7 +12,10 @@ Red [
 
 
 ;***************** IMAGE CONVERSION ROUTINES *****************
-;exported as functions in /libs/core/rcvCore.red
+;exported as functions in /libs/core/rcvCore.red 
+
+
+
 _rcvCopy: routine [
     src1 [image!]
     dst  [image!]
@@ -32,10 +35,10 @@ _rcvCopy: routine [
     y: 0
     while [y < h] [
        while [x < w][
-           pixD/value: pix1/value
-           x: x + 1
-           pix1: pix1 + 1
-           pixD: pixD + 1
+           	pixD/value: pix1/value
+           	x: x + 1
+           	pix1: pix1 + 1
+           	pixD: pixD + 1
        ]
        x: 0
        y: y + 1
@@ -216,9 +219,9 @@ _rcvRGBXYZ: routine [
        	r: pix1/value and 00FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
-        rf: (integer/to-float r) / 255.0
-		gf: (integer/to-float g) / 255.0
-		bf: (integer/to-float b) / 255.0
+        rf: (as float! r) / 255.0
+		gf: (as float! g) / 255.0
+		bf: (as float! b) / 255.0
 		either (rf > 0.04045) [rf: pow ((rf + 0.055) / 1.055) 2.4] [rf: rf / 12.92]
 		either (gf > 0.04045) [gf: pow ((gf + 0.055) / 1.055) 2.4] [gf: gf / 12.92]
 		either (bf > 0.04045) [bf: pow ((bf + 0.055) / 1.055) 2.4] [bf: bf / 12.92]
@@ -229,9 +232,9 @@ _rcvRGBXYZ: routine [
 		xf: (rf * 0.4124) + (gf *  0.3576) + (bf * 0.1805)
     	yf: (rf * 0.2126) + (gf *  0.7152) + (bf * 0.0722)
     	zf: (rf * 0.0193) + (gf *  0.1192) + (bf * 0.9505)
-    	r: float/to-integer xf
-    	g: float/to-integer yf
-    	b: float/to-integer zf
+    	r: as integer! xf
+    	g: as integer! yf
+    	b: as integer! zf
 
     	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
         x: x + 1
@@ -269,18 +272,18 @@ _rcvXYZRGB: routine [
        	r: pix1/value and 00FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
-        xf: (integer/to-float r) / 100.0 
-		yf: (integer/to-float g) / 100.0
-		zf: (integer/to-float b) / 100.0
+        xf: (as float! r) / 100.0 
+		yf: (as float! g) / 100.0
+		zf: (as float! b) / 100.0
 		rf: (xf * 3.2406) + (yf * -1.5372) + (zf * -0.4986)			
 		gf: (xf * -0.9689) + (yf * 1.8758) + (zf * 0.0415)
 		bf: (xf * 0.05557)+ (yf * -0.2040) + (zf * 1.0570)
 		either (rf > 0.0031308) [rf: (1.055 * (pow rf 1.0 / 2.4)) - 0.055] [rf: rf * 12.92]
 		either (gf > 0.0031308) [gf: (1.055 * (pow gf 1.0 / 2.4)) - 0.055] [gf: gf * 12.92]
 		either (bf > 0.0031308) [bf: (1.055 * (pow bf 1.0 / 2.4)) - 0.055] [bf: bf * 12.92]
-		r: float/to-integer (xf * 255.0) 
-    	g: float/to-integer (yf * 255.0) 
-    	b: float/to-integer (zf * 255.0)
+		r: as integer! (xf * 255.0) 
+    	g: as integer! (yf * 255.0) 
+    	b: as integer! (zf * 255.0)
     	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
         x: x + 1
         pix1: pix1 + 1
@@ -419,10 +422,10 @@ _rcvMathS: routine [
 				4 [pixD/value: FF000000h or (pix1/Value / v)]
 				5 [pixD/value: FF000000h or (pix1/Value // v)]
 				6 [pixD/value: FF000000h or (pix1/Value % v)]
-				7 [pixD/value: FF000000h or float/to-integer (pow integer/to-float pix1/Value integer/to-float v)]
+				7 [pixD/value: FF000000h or as integer! (pow as float! pix1/Value as float! v)]
 				8 [pixD/value: FF000000h or (pix1/Value << v)]
 				9 [pixD/value: FF000000h or (pix1/Value >> v)]
-			   10 [pixD/value: FF000000h or float/to-integer ( sqrt integer/to-float pix1/Value >> v)]
+			   10 [pixD/value: FF000000h or as integer! ( sqrt as float! pix1/Value >> v)]
 			]
 			x: x + 1
 			pix1: pix1 + 1
@@ -640,13 +643,13 @@ _rcvStdInt: routine [src1 [image!] return: [integer!]
     ]
     ; standard deviation
     fa: 0.0; 255 xor sa / ((w * h) - 1)
-    fr: sqrt integer/to-float (sr / ((w * h) - 1))
-    fg: sqrt integer/to-float (sg / ((w * h) - 1))
-    fb: sqrt integer/to-float (sb / ((w * h) - 1))
-    a: float/to-integer fa
-    r: float/to-integer fr
-    g: float/to-integer fg
-    b: float/to-integer fb
+    fr: sqrt as float! (sr / ((w * h) - 1))
+    fg: sqrt as float! (sg / ((w * h) - 1))
+    fb: sqrt as float! (sb / ((w * h) - 1))
+    a: as integer! fa
+    r: as integer! fr
+    g: as integer! fg
+    b: as integer! fb
     OS-image/unlock-bitmap as-integer src1/node bmp1;
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
@@ -790,7 +793,7 @@ _rcvConvolve: routine [
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     ; get Kernel dimension (e.g. 3, 5 ...)
-    kWidth: float/to-integer (sqrt integer/to-float (block/rs-length? kernel))
+    kWidth: as integer! (sqrt as float! (block/rs-length? kernel))
 	kHeight: kWidth
 	kBase: block/rs-head kernel ; get pointer address of the kernel first value
     x: 0
@@ -815,21 +818,21 @@ _rcvConvolve: routine [
            			;get kernel values OK 
         			f: as red-float! kValue
         			; calculate weighted values
-        			accR: accR + ((integer/to-float r) * f/value)
-        			accG: accG + ((integer/to-float g) * f/value)
-        			accB: accB + ((integer/to-float b) * f/value)
+        			accR: accR + ((as float! r) * f/value)
+        			accG: accG + ((as float! g) * f/value)
+        			accB: accB + ((as float! b) * f/value)
         			kValue: kBase + (j * kWidth + i + 1)
            			i: i + 1
             	]
             	j: j + 1 
         ]
         
-        r: float/to-integer (accR * factor)						 
-        g: float/to-integer (accG * factor)	
-        b: float/to-integer (accB * factor)					 
-    	r: r + float/to-integer delta
-    	g: g + float/to-integer delta
-    	b: b + float/to-integer delta
+        r: as integer! (accR * factor)						 
+        g: as integer! (accG * factor)	
+        b: as integer! (accB * factor)					 
+    	r: r + as integer! delta
+    	g: g + as integer! delta
+    	b: b + as integer! delta
         if r < 0 [r: 0]
         if r > 255 [r: 255]
         if g < 0 [g: 0]
@@ -878,7 +881,7 @@ _rcvFilter2D: routine [
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     ; get Kernel dimension (e.g. 3, 5 ...)
-    kWidth: float/to-integer (sqrt integer/to-float (block/rs-length? kernel))
+    kWidth: as integer! (sqrt as float! (block/rs-length? kernel))
 	kHeight: kWidth
 	kBase: block/rs-head kernel ; get pointer address of the kernel first value
     x: 0
@@ -904,21 +907,21 @@ _rcvFilter2D: routine [
            			;get kernel values OK 
         			f: as red-float! kValue
         			; calculate weighted values
-        			accR: accR + ((integer/to-float r) * f/value)
-        			accG: accG + ((integer/to-float g) * f/value)
-        			accB: accB + ((integer/to-float b) * f/value)
+        			accR: accR + ((as float! r) * f/value)
+        			accG: accG + ((as float! g) * f/value)
+        			accB: accB + ((as float! b) * f/value)
         			weightSum: weightSum + f/value
         			kValue: kBase + (j * kWidth + i + 1)
            			i: i + 1
             	]
             	j: j + 1 
         ]
-        either (weightSum > 0.0) [r: float/to-integer (accR / weightSum)] 
-        						 [r: float/to-integer (accR)]
-        either (weightSum > 0.0) [g: float/to-integer (accG / weightSum)] 
-        						 [g: float/to-integer (accG)]
-        either (weightSum > 0.0) [b: float/to-integer (accB / weightSum)] 
-        						 [b: float/to-integer (accB)]
+        either (weightSum > 0.0) [r: as integer! (accR / weightSum)] 
+        						 [r: as integer! (accR)]
+        either (weightSum > 0.0) [g: as integer! (accG / weightSum)] 
+        						 [g: as integer! (accG)]
+        either (weightSum > 0.0) [b: as integer! (accB / weightSum)] 
+        						 [b: as integer! (accB)]
         
         r: r + delta
         g: g + delta
@@ -971,7 +974,7 @@ _rcvFastFilter2D: routine [
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     ; get Kernel dimension (e.g. 3, 5 ...)
-    kWidth: float/to-integer (sqrt integer/to-float (block/rs-length? kernel))
+    kWidth: as integer! (sqrt as float! (block/rs-length? kernel))
 	kHeight: kWidth
 	kBase: block/rs-head kernel ; get pointer address of the kernel first value
     x: 0
@@ -992,15 +995,15 @@ _rcvFastFilter2D: routine [
            			;get kernel values OK 
         			f: as red-float! kValue
         			; calculate weighted values
-        			weightAcc: weightAcc + ((integer/to-float idx/value) * f/value)
+        			weightAcc: weightAcc + ((as float! idx/value) * f/value)
         			weightSum: weightSum + f/value
         			kValue: kBase + (j * kWidth + i + 1)
            			i: i + 1
             	]
             	j: j + 1 
         ]
-        either (weightSum > 0.0) [pixD/value: float/to-integer (weightAcc / weightSum)] 
-        						 [pixD/value: float/to-integer (weightAcc)]
+        either (weightSum > 0.0) [pixD/value: as integer! (weightAcc / weightSum)] 
+        						 [pixD/value: as integer! (weightAcc)]
        
         x: x + 1
         pixD: pixD + 1
@@ -1013,54 +1016,122 @@ _rcvFastFilter2D: routine [
 ]
 
 
-; to be DONE
-; ********* Image Random **********
-;TBI
-_rcvRandom: routine [size [pair!] value [tuple!] return: [image!]
-	/local 
-		dst 
-		stride 
-		bmpDst 
-		dataDst 
-		w 
-		x 
-		y 
-		h 
-		pos
-		tp
-		sz
-		r
-		g
-		b
-		a
-][
-    dst: as red-image! stack/push*        ;-- create an new image slot
-    sz: as red-pair! size
-    stride: 0
-      
-    bmpDst: OS-image/lock-bitmap as-integer dst/node yes
-    
-    dataDst: OS-image/get-data bmpDst :stride
+; for pyramidal up and down functions (To Be Tested)
 
-    w: sz/x
-    h: sz/y
-    x: 0
-    y: 0
-    tp: as red-tuple! value
-
-    while [y < h][
-        while [x < w][
-            pos: stride >> 2 * y + x + 1
-            a: 0 r: 0 g: 0 b: 0
-            dataDst/pos: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
-            ;dataDst/pos: as-integer tuple/random tp true false false
-            x: x + 1
-        ]
-        x: 0
-        y: y + 1
+_rcvResizeImage: routine [
+    src  [image!]
+    dst  [image!]
+    w 	 [integer!]
+    h 	 [integer!]
     ]
-    OS-image/unlock-bitmap as-integer dst/node bmpDst
-	as red-image! stack/set-last as cell! dst            ;-- return new image
+[
+	dst: image/resize src w h
+	dst/size:  h << 16 or w
 ]
 
+
+; ********* Image Alpha **********
+
+_rcvSetAlpha: routine [
+	src1  	[image!]
+    dst   	[image!]
+    alpha 	[integer!]
+    /local
+	pix1 	[int-ptr!]
+    pixD 	[int-ptr!]
+    handle1 handleD 
+    h w x y r g b a
+][
+	handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+       		r: pix1/value and 00FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh 
+        	a: alpha
+       		pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
+           	x: x + 1
+           	pix1: pix1 + 1
+           	pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+;**********************MATRICES**************************
+; for GrayScale 8-32 bit Image Only
+
+
+_rcvImage2Mat: routine [
+	src		[image!]
+	mat		[vector!]
+	/local
+	pix1 	[int-ptr!]
+	handle1
+	 h w x y 
+] [
+	handle1: 0
+    pix1: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size) 
+    h: IMAGE_HEIGHT(src/size) 
+    x: 0
+    y: 0 
+    vector/rs-clear mat 
+    while [y < h] [
+       while [x < w][
+       		vector/rs-append-int mat pix1/value and 00FF0000h >> 16
+           	x: x + 1
+           	pix1: pix1 + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+]
+
+
+
+_rcvMat2Image: routine [
+	mat		[vector!]
+	dst		[image!]
+	uSize	[integer!]
+	/local
+	pixD 	[int-ptr!]
+	handle
+	i value  
+	h w x y pix
+	
+] [
+	handle: 0
+    pixD: image/acquire-buffer dst :handle
+    w: IMAGE_WIDTH(dst/size) 
+    h: IMAGE_HEIGHT(dst/size) 
+    x: 0
+    y: 0
+    value: vector/rs-head mat ; get pointer address of the matrice
+    while [y < h] [
+       while [x < w][
+       		i: vector/get-value-int as int-ptr! value 4
+       		pix: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
+       		pixD/value: FF000000h or pix
+       		value: value + uSize
+           	pixD: pixD + 1
+           	x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer dst handle yes
+]
 

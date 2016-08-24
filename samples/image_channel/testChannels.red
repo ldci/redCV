@@ -23,5 +23,5 @@ view win: layout [
 		button 80 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
 		canvas: base 512x512 dst	
-		do [rcvChannel img1 dst 0]
+		do [_rcvChannel img1 dst 0]
 ]
