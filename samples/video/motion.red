@@ -12,7 +12,7 @@ rep., Carnegie Mellon University, Pittsburg, PA (2000)}
 
 
 ; all we need for computer vision with red
-#include %../libs/redcv.red ; for red functions
+#include %../../libs/redcv.red ; for red functions
 
 
 ;live?: system/view/auto-sync?: no
@@ -29,13 +29,14 @@ r2: rcvCloneImage rimg
 margins: 10x10
 threshold: 32
 
-to-text: function [val][form to integer! 0.5 + 255 * any [val 0]]
+to-text: function [val][form to integer! 0.5 + 128 * any [val 0]]
+
 
 view win: layout [
 		title "Motion Detection"
 		origin margins space margins
-		text "Motion " 35
-motion: field 50
+		text "Motion " 35 
+		motion: field 50 rate 0:0:1 on-time [face/text: to-text rcvCountNonZero r2]
 		btnQuit: button "Quit" 60x24 on-click [
 			rcvReleaseImage rimg
 			rcvReleaseImage prevImg
@@ -53,31 +54,32 @@ motion: field 50
 			rcvAbsdiff  currImg nextImg d2
 			rcvAnd d1 d2 r1
 			rcv2BWFilter r1 r2 threshold
-			motion/text: form rcvCountNonZero r2
 			canvas/image: r2
 			prevImg: currImg	
 			currImg: nextImg
 			nextImg: to-image cam
+			
 		]
 		return
 		text 50 "Select" 
-		cam-list: drop-list 180x32 on-create [
+		cam-list: drop-list 185x32 on-create [
 				face/data: cam/data
 			]
-		onoff: button "Start/Stop" 70x24 on-click [
+		onoff: button "Start/Stop" 65x24 on-click [
 				either cam/selected [
 					cam/selected: none
 					canvas/rate: none
+					motion/rate: none
 					canvas/image: black
 				][
 					cam/selected: cam-list/selected
 					canvas/rate: 0:0:0.04; 1/25 fps in ms
-				]
+					motion/rate: 0:0:0.04				]
 			]
 		text "Filter" 22
-		sl1: slider 255 [filter/text: to-text sl1/data threshold: to integer! filter/data]
+		sl1: slider 255 [filter/text: to-text sl1/data threshold: to integer! filter/data ]
 		filter: field 25 "32" 
-		do [cam-list/selected: 1 canvas/rate: none sl1/data: 0.32 ]
+		do [cam-list/selected: 1 motion/rate: canvas/rate: none sl1/data: 0.32 ]
 ]
 	
 	
