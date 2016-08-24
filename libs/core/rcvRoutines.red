@@ -730,7 +730,7 @@ _rcvFlipHV: routine [
        while [x < w][
         switch op [
         	0 [idx: pix1 + (y * w) + x] 				; no change
-            1 [idx: pix1 + (y * w) + (w - x)] 			;left/right
+            1 [idx: pix1 + (y * w) + (w - x) - 1] 		;left/right
             2 [idx: pix1 + (w * h) - (y * w) + x - w] 	; up/down
             3 [idx: pix1 + (w * h) - (y * w) - x - 1]	; both flips
         ]
