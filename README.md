@@ -13,7 +13,7 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
-### NEW AUGUST 25 2016
+### NEW AUGUST 29 2016
 
 Convolution with integer matrices is now possible. 
 
