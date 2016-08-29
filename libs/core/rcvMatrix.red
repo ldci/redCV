@@ -13,7 +13,7 @@ Red [
 ; To be modified when Matrix! datatype will be available
 
 rcvCreateMat: function [ type [word!] bitSize [integer!] mSize [pair!] return: [vector!]
-"Create 1D matrix "
+"Creates 2D matrix "
 ][
 	xSize: mSize/x
 	ySize: mSize/y
@@ -22,13 +22,13 @@ rcvCreateMat: function [ type [word!] bitSize [integer!] mSize [pair!] return: [
 
 ; should be modified as a routine with vector/delete mat
 rcvReleaseMat: function [mat [vector!]
-"Release Matrix"
+"Releases Matrix"
 ] [
 	mat: none
 ]
 
 rcvRandomMat: function [mat [vector!] value [integer!]
-	"Randomize matrix"
+"Randomize matrix"
 ][
 	forall mat [mat/1: random value]
 ]
@@ -39,14 +39,21 @@ rcvColorMat: function [mat [vector!] value [integer!]
 	forall mat [mat/1: value]
 ]
 
-rcvImage2Mat: function [src	[image!] mat [vector!]
-"Image to 1-D Matrice"
+rcvImage2Mat: function [src	[image!] mat [vector!] unit	[integer!]
+"Image to 2-D Matrix"
 ] [
-	_rcvImage2Mat src mat
+	_rcvImage2Mat src mat unit
 ]
-rcvMat2Image: function [mat [vector!] dst [image!] uSize [integer!]
-"1-D Matrice to Image"
+rcvMat2Image: function [mat [vector!] dst [image!] unit [integer!]
+"2-D Matrice to Image"
 ] [
-	_rcvMat2Image mat dst uSize
+	_rcvMat2Image mat dst unit
 ]
+
+rcvConvolveMat: function [src [vector!] dst [vector!] mSize[pair!] unit	[integer!] kernel [block!] factor [float!] delta [float!]
+"Fast 2-D matrix convolution"
+] [
+	_rcvConvolveMat src dst mSize unit kernel factor delta 
+]
+
 

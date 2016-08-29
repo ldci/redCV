@@ -850,6 +850,85 @@ _rcvConvolve: routine [
     image/release-buffer dst handleD yes
 ]
 
+; only for 1-channel image (8-bit)
+_rcvFastConvolve: routine [
+    src  	[image!]
+    dst  	[image!]
+    channel	[integer!]
+    kernel 	[block!] 
+    factor 	[float!]
+    delta	[float!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        handle1 handleD h w x y i j
+        pixel
+        v
+        accV 
+        f  imx imy 
+		kWidth 
+		kHeight 
+		kBase 
+		kValue  
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx:  pix1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    ; get Kernel dimension (e.g. 3, 5 ...)
+    kWidth: as integer! (sqrt as float! (block/rs-length? kernel))
+	kHeight: kWidth
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+    	accV: 0.0
+   		j: 0
+		kValue: kBase
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		imx:  (x + (i - (kWidth / 2)) + w ) % w 
+        			imy:  (y + (j - (kHeight / 2)) + h ) % h 
+            		idx: pix1 + (imy * w) + imx  ; corrected pixel index
+            		switch channel [
+						1 [v: idx/value and 00FF0000h >> 16 ]
+						2 [v: idx/value and FF00h >> 8 ]
+						3 [v: idx/value and FFh]
+					]
+            		
+            		
+					;get kernel values OK 
+        			f: as red-float! kValue
+        			; calculate weighted values
+        			accV: accV + ((as float! v) * f/value)
+         			kValue: kBase + (j * kWidth + i + 1)
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+        
+        v: as integer! (accV * factor)						 
+    	v: v + as integer! delta
+        if v < 0 [v: 0]
+        if v > 255 [v: 255]
+        pixD/value: ((255 << 24) OR (v << 16 ) OR (v << 8) OR v)	
+        x: x + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
 
 ; Similar to convolution but the sum of the weights is computed during the summation, and used to scale the result.
 
@@ -1015,6 +1094,7 @@ _rcvFastFilter2D: routine [
     image/release-buffer dst handleD yes
 ]
 
+;**************** Image resizing *****************
 
 ; for pyramidal up and down functions (To Be Tested)
 
@@ -1076,10 +1156,13 @@ _rcvSetAlpha: routine [
 _rcvImage2Mat: routine [
 	src		[image!]
 	mat		[vector!]
+	unit	[integer!]
 	/local
 	pix1 	[int-ptr!]
+	dvalue 	[byte-ptr!]
+	p		[int-ptr!]
 	handle1
-	 h w x y 
+	h w x y 
 ] [
 	handle1: 0
     pix1: image/acquire-buffer src :handle1
@@ -1087,12 +1170,19 @@ _rcvImage2Mat: routine [
     h: IMAGE_HEIGHT(src/size) 
     x: 0
     y: 0 
-    vector/rs-clear mat 
+    dvalue: vector/rs-head mat	; a byte ptr
+   ; vector/rs-clear mat 
     while [y < h] [
        while [x < w][
-       		vector/rs-append-int mat pix1/value and 00FF0000h >> 16
+       		p: as int-ptr! dvalue
+       		p/value: switch unit [
+					1 [(pix1/value and 00FF0000h >> 16 and FFh) or (p/value and FFFFFF00h)]
+					2 [(pix1/value and 00FF0000h >> 16 and FFFFh) or (p/value and FFFF0000h)]
+					4 [pix1/value and 00FF0000h >> 16]
+			]
            	x: x + 1
            	pix1: pix1 + 1
+           	dValue: dValue + 1
        ]
        x: 0
        y: y + 1
@@ -1101,11 +1191,10 @@ _rcvImage2Mat: routine [
 ]
 
 
-
 _rcvMat2Image: routine [
 	mat		[vector!]
 	dst		[image!]
-	uSize	[integer!]
+	unit	[integer!]
 	/local
 	pixD 	[int-ptr!]
 	handle
@@ -1122,10 +1211,10 @@ _rcvMat2Image: routine [
     value: vector/rs-head mat ; get pointer address of the matrice
     while [y < h] [
        while [x < w][
-       		i: vector/get-value-int as int-ptr! value 4
+       		i: vector/get-value-int as int-ptr! value unit
        		pix: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
        		pixD/value: FF000000h or pix
-       		value: value + uSize
+       		value: value + 1
            	pixD: pixD + 1
            	x: x + 1
        ]
@@ -1135,3 +1224,80 @@ _rcvMat2Image: routine [
     image/release-buffer dst handle yes
 ]
 
+
+_rcvConvolveMat: routine [
+    src  	[vector!]
+    dst  	[vector!]
+    mSize	[pair!]
+    unit	[integer!]
+    kernel 	[block!] 
+    factor 	[float!]
+    delta	[float!]
+    /local
+        h w x y i j
+        value dvalue idx 
+        accV v f 
+        mx my 
+		kWidth 
+		kHeight 
+		kBase 
+		kValue  
+		p
+][
+    ;get mat size will be improved in future
+    
+    w: mSize/x
+    h: mSize/y
+    ; get Kernel dimension (e.g. 3, 5 ...)
+    kWidth: as integer! (sqrt as float! (block/rs-length? kernel))
+	kHeight: kWidth
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+	value: vector/rs-head src   ; get pointer address of the source matrix first value
+	dvalue: vector/rs-head dst	; a byte ptr
+	vector/rs-clear dst 		; clears destination matrix
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+    	accV: 0.0
+   		j: 0
+		kValue: kBase
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		mx:  (x + (i - (kWidth / 2)) + w ) % w 
+        			my:  (y + (j - (kHeight / 2)) + h ) % h 
+            		idx: value + (my * w) + mx  ; corrected pixel index
+            		v: vector/get-value-int as int-ptr! idx unit ; get mat value
+           			;get kernel values OK 
+        			f: as red-float! kValue
+        			; calculate weighted values
+        			accV: accV + ((as float! v) * f/value)
+        			kValue: kBase + (j * kWidth + i + 1)
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+        
+        v: as integer! (accv * factor)						 			 
+    	v: v + as integer! delta
+        if v < 0 [v: 0] if v > 255 [v: 255]
+       
+             
+        p: as int-ptr! dvalue
+          
+       	p/value: switch unit [
+					1 [v and FFh or (p/value and FFFFFF00h)]
+					2 [v and FFFFh or (p/value and FFFF0000h)]
+					4 [v]
+		]
+		
+        value: value + 1 
+        dvalue: dvalue + 2
+        x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+]

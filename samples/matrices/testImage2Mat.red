@@ -9,14 +9,19 @@ Red [
 img1: rcvLoadImage %../../images/lena.jpg
 img2: rcvCreateImage img1/size
 img3: rcvCreateImage img1/size
-mat: rcvCreateMat 'integer! 8 img1/size
-iSize: 4
 
+intSize: 8
+iSize: intSize / 8
+
+mat: rcvCreateMat 'integer! intSize img1/size
+
+print [length? mat lf ]
 
 rcv2Gray/average img1 img2							; Grayscaled image
-rcvImage2Mat img2 mat 								; Converts grayscaled image to 1 Channel matrix [0..255]  
+rcvImage2Mat img2 mat iSize							; Converts grayscaled image to 1 Channel matrix [0..255]  
 rcvMat2Image mat img3 iSize							; from matrix to red image
 
+print [length? mat lf ]
 
 s1: rcvNamedWindow "Source"
 s2: rcvNamedWindow "Gray"

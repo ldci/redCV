@@ -13,6 +13,13 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW AUGUST 25 2016
+
+Convolution with integer matrices is now possible. 
+
+Also added  a faster rcvFastConvolve working on separate image channel or grayscaled images. 
+
+
 ### NEW AUGUST 24 2016
 
 Back from summer break with a lot of new samples and functions!
