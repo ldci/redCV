@@ -7,12 +7,14 @@ Red [
 
 
 ; last Red Master required!
-#include %../libs/redcv.red ; for red functions
+#include %../../libs/redcv.red ; for red functions
 margins: 10x10
 knl: rcvMakeGaussian 5x5
 img1: rcvCreateImage 512x512
 dst: rcvCreateImage 512x512
 iSize: 0x0
+knl: rcvMakeGaussian 5x5
+
 loadImage: does [
 	canvas/image/rgb: black
 	canvas/size: 0x0
@@ -21,7 +23,6 @@ loadImage: does [
 		fileName: to string! to-local-file tmp
 		win/text: fileName
 		img1: rcvLoadImage tmp
-		currentImage: rcvCloneImage img1
 		dst:  rcvCloneImage img1
 		; update faces
 		if img1/size/x >= 512 [
@@ -29,9 +30,8 @@ loadImage: does [
 			win/size/y: img1/size/y + 70
 		] 
 		iSize: img1/size
-		canvas/size/x: img1/size/x
-		canvas/size/y: img1/size/y
-		canvas/image/size: canvas/size	
+		canvas/size: iSize
+		canvas/image/size: iSize	
 		canvas/offset/x: (win/size/x - img1/size/x) / 2
 		canvas/image: dst
 		f/data: form dst/size
@@ -43,31 +43,22 @@ loadImage: does [
 	  
 ; ***************** Test Program ****************************
 view win: layout [
-		title "Gaussian 2D Filter"
-		button 60 "Load" 		[loadImage]
+		title "Pyramidal Sizing"
+		button 60 "Load" 			[loadImage]
 		
-		button 60 "Source" 			[iSize: img1/size
-									rcvCopyImage img1 dst 
-								    rcvCopyImage img1 currentImage
-								    canvas/size: iSize
-									canvas/image: dst]	
 								    					    								
-		button 60 "Pyr Down"	   [rcvPyrDown/gaussian currentImage dst
+		button 60 "Pyr Down"	   [
 									iSize: iSize / 2
-									f/data: form iSize
-								    rcvCopyImage dst currentImage
-								    canvas/size: iSize
-									canvas/image: dst
+								    	if iSize > 5x5 [
+								    		f/data: form rcvResizeImage/gaussian dst canvas iSize
+										]
 								    ]	
-		button 60 "Pyr Up"	   		[rcvPyrUp/gaussian currentImage dst
+		button 60 "Pyr Up"	   		[
 									iSize: iSize * 2
-									f/data: form iSize
-								    rcvCopyImage dst currentImage
-								    canvas/size: iSize
-									canvas/image: dst
+									f/data: form rcvResizeImage/gaussian dst canvas iSize
 								    ]				
 								    
-		f: field 						
+		f: field 70x29						
 		button 80 "Quit" 			[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		
 		return

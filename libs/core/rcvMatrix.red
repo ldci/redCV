@@ -40,7 +40,7 @@ rcvColorMat: function [mat [vector!] value [integer!]
 ]
 
 rcvImage2Mat: function [src	[image!] mat [vector!] unit	[integer!]
-"Image to 2-D Matrix"
+"Image to 2-D Matrice"
 ] [
 	_rcvImage2Mat src mat unit
 ]
@@ -51,7 +51,7 @@ rcvMat2Image: function [mat [vector!] dst [image!] unit [integer!]
 ]
 
 rcvConvolveMat: function [src [vector!] dst [vector!] mSize[pair!] unit	[integer!] kernel [block!] factor [float!] delta [float!]
-"Fast 2-D matrix convolution"
+"Fast matrix convolution"
 ] [
 	_rcvConvolveMat src dst mSize unit kernel factor delta 
 ]

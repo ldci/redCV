@@ -1094,20 +1094,7 @@ _rcvFastFilter2D: routine [
     image/release-buffer dst handleD yes
 ]
 
-;**************** Image resizing *****************
 
-; for pyramidal up and down functions (To Be Tested)
-
-_rcvResizeImage: routine [
-    src  [image!]
-    dst  [image!]
-    w 	 [integer!]
-    h 	 [integer!]
-    ]
-[
-	dst: image/resize src w h
-	dst/size:  h << 16 or w
-]
 
 
 ; ********* Image Alpha **********

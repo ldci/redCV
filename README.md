@@ -13,6 +13,15 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW SEPTEMBER 1 2016
+Image resizing and Gaussian Pyramid Decomposition are added with this function: 
+
+rcvResizeImage: function [src [image!] canvas iSize [pair!]/gaussian return: [pair!]]
+
+Only Gaussian 5x5 kernel is currently supported. Canvas is a base facet.If you don’t call /Gaussian refinement image is just resized by Red.
+Documentation updated.
+
+
 ### NEW AUGUST 29 2016
 
 Convolution with integer matrices is now possible. 
