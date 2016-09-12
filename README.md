@@ -13,6 +13,13 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW SEPTEMBER 12 2016
+A lot of optimized functions for working with 8,16 and 32-bit integer matrices.
+
+New samples added.
+
+Documentation updated.
+
 ### NEW SEPTEMBER 1 2016
 Image resizing and Gaussian Pyramid Decomposition are added with this function: 
 

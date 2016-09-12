@@ -10,7 +10,7 @@ Red [
 ]
 
 ; some highgui functions for RedCV quick test
-
+; routines are not required
 rcvNamedWindow: function [title [string!] return: [window!]
 "Creates a window"
 ][

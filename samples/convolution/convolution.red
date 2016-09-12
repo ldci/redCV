@@ -10,7 +10,7 @@ fileName: ""
 isFile: false
 
 ; all we need for computer vision with red
-#include %../libs/redcv.red ; for red functions
+#include %../../libs/redcv.red ; for red functions
 
 noFilter: [0.0 0.0 0.0
 		  0.0 1.0 0.0 
@@ -49,7 +49,7 @@ sobelH: [1.0 2.0 1.0
 		 0.0 0.0 0.0 
 		-1.0 -2.0 -1.0]
 		
-sobelV: [1.0 0.0 -1.0
+sobelV: [1.0 2.0 -1.0
 		 2.0 0.0 -2.0 
 		 1.0 -2.0 -1.0]
 
@@ -67,6 +67,9 @@ removal: [-1.0 -1.0 -1.0
 gaussian: [0.0 0.2 0.0
 		   0.2 0.2 0.2 
 		   0.0 0.2 0.0]
+		   
+		   
+cross: [0.0 1.0 -1.0 0.0]
 		   
 motion: [1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
 		0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
@@ -183,6 +186,10 @@ img-convolve: func [num [integer!]] [
 			rcvConvolve rimg dst quickMask 1.0 0.0
 			sb1/data: third now/time/precise - t1
 		]; Quick Mask
+		16 	[t1: now/time/precise
+			rcvConvolve rimg dst cross 1.0 0.0
+			sb1/data: third now/time/precise - t1
+		];
 	]
 ]
 
@@ -199,7 +206,7 @@ view win: layout [
 		"Convolution"  "Emboss1" "Emboss2" "Emboss3" "Emboss Laplacian"
 		"Emboss Horizontal" "Emboss Vertical" "Sobel Horizontal" "Sobel Vertical"
 		"Edges detection" "Edges detection 2" "Mean removal" "Gaussian blur" 
-		"Motion blur (9x9 Kernel)" "Quick Mask"
+		"Motion blur (9x9 Kernel)" "Quick Mask" "Cross"
 	] select 1 on-change [if isFile [img-convolve face/selected]]
 	
 	text "Rendered in: " sb1: field 100x24 

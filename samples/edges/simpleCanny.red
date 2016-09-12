@@ -1,7 +1,7 @@
 Red [
 	Title:   "Simple Canny Subtraction Filter "
 	Author:  "Francois Jouen"
-	File: 	 %testGaussian.red
+	File: 	 %simpleCanny.red
 	Needs:	 'View
 ]
 
@@ -10,7 +10,7 @@ Red [
 
 
 ; last Red Master required!
-#include %../libs/redcv.red ; for redCV functions
+#include %../../libs/redcv.red ; for redCV functions
 margins: 10x10
 defSize: 512x512
 img1: rcvCreateImage defSize
@@ -68,7 +68,7 @@ view win: layout [
 		check 25 [gScale: face/data]	
 		text 55 "Grayscale?"						
 		sl: slider 256 [ if isFile [
-							delta: to integer! sl/data * 256
+							delta: to integer! sl/data * 64
 							vf/data: form delta
 							either gScale [
 								if not gScaleLoad [rcv2Gray/average img1 gray] 
