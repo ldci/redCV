@@ -96,7 +96,7 @@ _rcvImage2Mat: routine [
 
 
 ; 1 channel 2-D matrice (grayscale) -> Red Image 
-
+; 8 16 and 32-bit matrices 
 _rcvMat2Image: routine [
 	mat		[vector!]
 	dst		[image!]
@@ -119,13 +119,114 @@ _rcvMat2Image: routine [
        while [x < w][
        		i: _getMatValue as integer! value unit; get mat value as integer
        		switch unit [
-       			1 [v: as float! i]
-       			2 [v: (as float! i) / FFFFh * FFh]
-       			4 [v: (as float! i) / FFFFFFh * FFh ]
+       			1 [v: as float! i]						; 8-bit
+       			2 [v: (as float! i) / FFFFh * FFh]		; 16-bit -> 8-bit
+       			4 [v: (as float! i) / FFFFFFh * FFh ]	; 32-bit -> 8-bit
        		]
        		i: as integer! v
        		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
        		value: value + unit
+           	pixD: pixD + 1
+           	x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer dst handle yes
+]
+
+
+
+; Splits image to 4 matrices including transparency
+; image and matrices must have the same size!
+
+_rcvSplit2Mat: routine [
+	src			[image!]
+	mat0		[vector!]
+	mat1		[vector!]
+	mat2		[vector!]
+	mat3		[vector!]
+	/local
+	pix1 		[int-ptr!]
+	dvalue0 	[byte-ptr!]
+	dvalue1 	[byte-ptr!]
+	dvalue2 	[byte-ptr!]
+	dvalue3 	[byte-ptr!]
+	handle1
+	h w x y 
+	r g b a
+] [
+	handle1: 0
+    pix1: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size) 
+    h: IMAGE_HEIGHT(src/size) 
+    x: 0
+    y: 0 
+    dvalue0: vector/rs-head mat0	; a byte ptr
+    dvalue1: vector/rs-head mat1	; a byte ptr
+    dvalue2: vector/rs-head mat2	; a byte ptr
+    dvalue3: vector/rs-head mat3	; a byte ptr
+   ; vector/rs-clear mat 
+    while [y < h] [
+       while [x < w][
+			a: pix1/value >>> 24
+       		r: pix1/value and 00FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh 
+        	dvalue0/value: as-byte a
+			dvalue1/value: as-byte r
+			dvalue2/value: as-byte g
+			dvalue3/value: as-byte b
+           	x: x + 1
+           	pix1: pix1 + 1
+           	dValue0: dValue0 + 1
+           	dValue1: dValue1 + 1
+           	dValue2: dValue2 + 1
+           	dValue3: dValue3 + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+]
+
+
+; 1 channel 2-D matrice (grayscale) -> Red Image 
+
+_rcvMerge2Image: routine [
+	mat0		[vector!]
+	mat1		[vector!]
+	mat2		[vector!]
+	mat3		[vector!]
+	dst			[image!]
+	/local
+	pixD 	[int-ptr!]
+	handle
+	a r g b value0 value1 value2 value3  
+	h w x y
+	
+] [
+	handle: 0
+    pixD: image/acquire-buffer dst :handle
+    w: IMAGE_WIDTH(dst/size) 
+    h: IMAGE_HEIGHT(dst/size) 
+    x: 0
+    y: 0
+    value0: vector/rs-head mat0 ; get pointer address of the matrice
+    value1: vector/rs-head mat1 
+    value2: vector/rs-head mat2
+    value3: vector/rs-head mat3
+    while [y < h] [
+       while [x < w][
+       		a: _getMatValue as integer! value0 1; get mat value as integer
+       		r: _getMatValue as integer! value1 1; get mat value as integer
+       		g: _getMatValue as integer! value2 1; get mat value as integer
+       		b: _getMatValue as integer! value3 1; get mat value as integer
+       		pixD/value: ((255 << 24) OR (r << 16 ) OR (g << 8) OR b)
+       		value0: value0 + 1
+       		value1: value1 + 1
+       		value2: value2 + 1
+       		value3: value3 + 1
            	pixD: pixD + 1
            	x: x + 1
        ]

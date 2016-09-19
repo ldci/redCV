@@ -90,6 +90,18 @@ rcvMat322Image: function [mat [vector!] dst [image!]
 	_rcvMat2Image mat dst 4
 ]
 
+rcvSplit: function [src [image!] mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  
+"Split an image to 4 8-bit matrices"
+] [
+	_rcvSplit2Mat src mat0 mat1 mat2 mat3
+]
+
+rcvMerge: function [ mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  dst [image!]
+"Merge 4 8-bit matrices to image"
+] [
+	_rcvMerge2Image mat0 mat1 mat2 mat3 dst
+]
+
 rcvConvolveMat: function [src [vector!] dst [vector!] mSize[pair!] kernel [block!] factor [float!] delta [float!]
 "Fast matrix convolution"
 ] [

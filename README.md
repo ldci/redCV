@@ -13,6 +13,11 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW SEPTEMBER 19 2016
+
+Split and Merge function for matrices are added.
+
+
 ### NEW SEPTEMBER 12 2016
 A lot of optimized functions for working with 8,16 and 32-bit integer matrices.
 
