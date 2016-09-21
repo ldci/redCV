@@ -14,7 +14,7 @@ Tested with Windows XP and Windows 10.
 You must compile samples since red routines are required.
 ### NEW SEPTEMBER 21 2016
 
-Statitical functions are rewritten to be used with images and matrices.
+Statistical functions are rewritten to be used with images and matrices.
 
 rcvMinLoc and rcvMaxLoc functions added: Finds global minimum or maximum location in array.
 
