@@ -10,7 +10,7 @@ Red [
 	}
 ]
 
-;***************** STATISTICAL ROUTINES ***********************
+;***************** STATISTICAL ROUTINES ON IMAGE ***********************
 ; exported as functions in /libs/math/rcvStats.red
 _rcvCount: routine [src1 [image!] return: [integer!]
 	/local 
@@ -190,3 +190,257 @@ _rcvMeanInt: routine [src1 [image!] return: [integer!]
     OS-image/unlock-bitmap as-integer src1/node bmp1;
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
+
+
+_rcvMinLoc: routine [src [image!] minloc [pair!] return: [pair!]
+/local 
+		stride 
+		bmp 
+		data 
+		w 
+		x 
+		y 
+		h 
+		pos
+		r 
+		g
+		b
+		v
+		mini  
+		locmin 
+] [
+	stride: 0
+    bmp: OS-image/lock-bitmap as-integer src/node no
+    data: OS-image/get-data bmp :stride   
+
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    x: 0
+    y: 0
+    mini: (255 << 16) or (255 << 8) or 255
+    locmin: as red-pair! minloc; stack/arguments
+    
+    while [y < h][
+        while [x < w][
+            pos: stride >> 2 * y + x + 1
+            r: data/pos and 00FF0000h >> 16
+            g: data/pos and FF00h >> 8
+            b: data/pos and FFh
+            v: (r << 16 ) OR (g << 8) OR b 
+            if v < mini [mini: v locmin/x: x locmin/y: y]
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    OS-image/unlock-bitmap as-integer src/node bmp
+    as red-pair! stack/set-last as cell! locmin 
+]
+
+_rcvMaxLoc: routine [src [image!] maxloc [pair!] return: [pair!]
+/local 
+		stride 
+		bmp 
+		data 
+		w 
+		x 
+		y 
+		h 
+		pos
+		r 
+		g
+		b
+		v
+		maxi  
+		locmax 
+] [
+	stride: 0
+    bmp: OS-image/lock-bitmap as-integer src/node no
+    data: OS-image/get-data bmp :stride   
+
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    x: 0
+    y: 0
+    maxi: 0
+    locmax: as red-pair! maxloc; stack/arguments
+    
+    while [y < h][
+        while [x < w][
+            pos: stride >> 2 * y + x + 1
+            r: data/pos and 00FF0000h >> 16
+            g: data/pos and FF00h >> 8
+            b: data/pos and FFh
+            v: (r << 16 ) OR (g << 8) OR b 
+            if v > maxi [maxi: v locmax/x: x locmax/y: y]
+            x: x + 1
+        ]
+        x: 0
+        y: y + 1
+    ]
+    OS-image/unlock-bitmap as-integer src/node bmp
+    as red-pair! stack/set-last as cell! locmax 
+]
+
+
+
+;***************** STATISTICAL ROUTINES ON MATRIX ***********************
+
+_rcvCountMat: routine [mat [vector!] return: [integer!]
+	/local
+	int svalue  tail unit
+	s n
+	
+] [
+    svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail: vector/rs-tail mat
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	n: 0
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		if (int > 0) [n: n + 1] 
+		svalue: svalue + unit 
+	]
+	n
+]
+
+
+_rcvSumMat: routine [mat [vector!] return: [integer!]
+	/local
+	int svalue  tail unit
+	s sum
+	
+] [
+    svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail: vector/rs-tail mat
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	sum: 0
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		sum: sum + int
+		svalue: svalue + unit 
+	]
+	sum
+]
+
+_rcvMeanMat: routine [mat [vector!] return: [integer!]
+	/local
+	int svalue  tail unit
+	s sum
+	n
+] [
+    svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail: vector/rs-tail mat
+    n: vector/rs-length? mat
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	sum: 0
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		sum: sum + int
+		svalue: svalue + unit 
+	]
+	sum / n
+]
+
+
+_rcvStdMat: routine [mat [vector!] return: [integer!]
+	/local
+	int svalue  tail unit
+	s sum sum2 m e f
+	n
+] [
+    svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail: vector/rs-tail mat
+    n: vector/rs-length? mat
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	sum: 0 
+	sum2: 0
+	; mean
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		sum: sum + int
+		svalue: svalue + unit 
+	]
+	m: sum / n
+	svalue: vector/rs-head mat 
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		e: int - m
+		sum2: sum + (e * e)
+		svalue: svalue + unit 
+	]
+	; std
+	f: sqrt as float! (sum2 / (n - 1))
+	as integer! f
+]
+
+
+_rcvMaxLocMat: routine [mat [vector!] matSize [pair!] maxloc [pair!] return: [pair!]
+	/local 
+	int svalue  tail s unit
+	w h x y
+	maxi locmax
+		
+] [
+	svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail: vector/rs-tail mat
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	w: matSize/x
+    h: matSize/y
+    x: 0
+    y: 0
+    maxi: 0
+    locmax: as red-pair! maxloc; stack/arguments
+    while [y < h] [	
+       	while [x < w][
+    		int: vector/get-value-int as int-ptr! svalue unit
+    		if int > maxi [maxi: int locmax/x: x locmax/y: y]
+       		svalue: svalue + 1 
+        	x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    as red-pair! stack/set-last as cell! locmax 
+]
+
+_rcvMinLocMat: routine [mat [vector!] matSize [pair!] minloc [pair!] return: [pair!]
+	/local 
+	int svalue s unit
+	w h x y
+	mini locmin
+		
+] [
+	svalue: vector/rs-head mat ; get pointer address of the matrice
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	w: matSize/x
+    h: matSize/y
+    x: 0
+    y: 0
+    
+    switch unit [
+       			1 [mini: 255 or FFh]						
+       			2 [mini: 255 or FFFFh]		
+       			4 [mini: 255 or FFFFFFh]	
+       		]
+    
+    locmin: as red-pair! minloc; stack/arguments
+    while [y < h] [	
+       	while [x < w][
+    		int: vector/get-value-int as int-ptr! svalue unit
+    		if int < mini [mini: int locmin/x: x locmin/y: y]
+       		svalue: svalue + 1 
+        	x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    as red-pair! stack/set-last as cell! locmin
+]
+

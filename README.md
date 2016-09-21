@@ -12,10 +12,17 @@ Developped under Mac OSX 10.11.6
 Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
+### NEW SEPTEMBER 21 2016
+
+Statitical functions are rewritten to be used with images and matrices.
+
+rcvMinLoc and rcvMaxLoc functions added: Finds global minimum or maximum location in array.
+
+Doc updataed.
 
 ### NEW SEPTEMBER 19 2016
 
-Split and Merge function for matrices are added.
+Split and Merge functions for matrices are added.
 
 
 ### NEW SEPTEMBER 12 2016
