@@ -12,24 +12,31 @@ img3: rcvCreateImage img1/size
 
 
 ; uses 16-bit matrices to avoid rounding effects
-mat1: rcvCreateMat 'integer!  8 img1/size
+mat1: rcvCreateMat 'integer! 8 img1/size
 mat2: rcvCreateMat 'integer! 16 img1/size
 mat3: rcvCreateMat 'integer! 16 img1/size
 mat4: rcvCreateMat 'integer! 16 img1/size
 
-rcvImage2Mat img1 mat1 							; Converts  image to 8-bit matrix [0..255]
+rcvImage2Mat img1 mat1 							; Converts  image to 1 Channel matrix [0..255]
 rcvMat82Image mat1 img1							; to Red image
 
 
-rcvConvertMatScale/fast mat1 mat2 255 32768		; converts scale 8-> 16-bit
+rcvConvertMatScale/normal mat1 mat2 255 32768		 ; converts scale
 
-rcvRandomMat mat3 32768							; random 16-bit mat
+rcvRandomMat mat3 32768							; random mat
 rcvMat162Image mat3 img2						; to Red Image
 
 
-mat4: rcvAddMat mat2 mat3 						; add both 16-bit matrices
-
+mat4: rcvAddMat mat2 mat3 						; add both matrices
+;rcvAddMat mat2 mat3 mat4
 rcvMat162Image mat4 img3						; from matrix to red image
+
+probe mat1/1
+probe mat2/1
+probe mat3/1
+probe mat4/1
+
+
 
 s1: rcvNamedWindow "Source Matrix"
 s2: rcvNamedWindow "Random Matrix"

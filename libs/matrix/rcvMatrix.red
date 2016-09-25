@@ -90,13 +90,13 @@ rcvMat322Image: function [mat [vector!] dst [image!]
 	_rcvMat2Image mat dst 4
 ]
 
-rcvSplit: function [src [image!] mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  
+rcvSplit2Mat: function [src [image!] mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  
 "Split an image to 4 8-bit matrices"
 ] [
 	_rcvSplit2Mat src mat0 mat1 mat2 mat3
 ]
 
-rcvMerge: function [ mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  dst [image!]
+rcvMerge2Image: function [ mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  dst [image!]
 "Merge 4 8-bit matrices to image"
 ] [
 	_rcvMerge2Image mat0 mat1 mat2 mat3 dst
@@ -107,6 +107,7 @@ rcvConvolveMat: function [src [vector!] dst [vector!] mSize[pair!] kernel [block
 ] [
 	_rcvConvolveMat src dst mSize kernel factor delta 
 ]
+
 
 rcvConvertMatScale: function [src [vector!] dst [vector!] srcScale [number!] dstScale [number!] /fast /normal
 "Converts Matrix Scale"
@@ -127,11 +128,20 @@ rcvConvertMatScale: function [src [vector!] dst [vector!] srcScale [number!] dst
 
 
 ;***********************Matrices Operations *********************
+__rcvAddMat: function [src1 [vector!] src2 [vector!] dst [vector!]
+"dst: src1 +  src2"
+][
+	dst: src2 + src1
+	print [ "tempo " dst/1]
+	dst
+]
+
 rcvAddMat: function [src1 [vector!] src2 [vector!] return: [vector!]
 "dst: src1 +  src2"
 ][
 	src1 + src2
 ]
+
 
 rcvSubMat: function [src1 [vector!] src2 [vector!] return: [vector!]
 "dst: src1 -  src2"

@@ -284,6 +284,45 @@ _rcvMaxLoc: routine [src [image!] maxloc [pair!] return: [pair!]
 
 
 
+
+_rcvHisto: routine [
+    src  	[image!]
+    histo  	[vector!]
+    op	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        handle1  h w x y
+        tvalue base
+        r g b a
+][
+    handle1: 0
+    pix1: image/acquire-buffer src :handle1
+    tvalue: as int-ptr! vector/rs-head histo
+	base: tvalue
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+       	a: pix1/value >>> 24
+       	r: pix1/value and 00FF0000h >> 16 
+        g: pix1/value and FF00h >> 8 
+        b: pix1/value and FFh 
+        switch op [
+            1 [tvalue: base + r + 1 tvalue/value: tvalue/value + 1 ]	;Red Channel
+            2 [tvalue: base + g + 1 tvalue/value: tvalue/value + 1] 	;Green Channel 
+            3 [tvalue: base + b + 1 tvalue/value: tvalue/value + 1] 	;blue Channel
+        ]
+        x: x + 1
+        pix1: pix1 + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+]
+
 ;***************** STATISTICAL ROUTINES ON MATRIX ***********************
 
 _rcvCountMat: routine [mat [vector!] return: [integer!]
@@ -442,5 +481,27 @@ _rcvMinLocMat: routine [mat [vector!] matSize [pair!] minloc [pair!] return: [pa
        y: y + 1
     ]
     as red-pair! stack/set-last as cell! locmin
+]
+
+; for 8-bit matrix
+_rcvHistoMat: routine [mat [vector!] histo [vector!]
+	/local
+	int svalue  tail unit
+	tvalue base
+	s
+	
+] [
+    svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail: vector/rs-tail mat
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	tvalue: as int-ptr! vector/rs-head histo
+	base: tvalue
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		tvalue: base + int + 1
+		tvalue/value: tvalue/value + 1
+		svalue: svalue + unit 
+	]
 ]
 

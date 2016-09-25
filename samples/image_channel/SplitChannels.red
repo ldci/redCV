@@ -20,6 +20,7 @@ view win: layout [
 		button 50 "Red"  	[rcvSplit/red img1 dst]
 		button 50 "Green"	[rcvSplit/green img1 dst]
 		button 50 "Blue"  	[rcvSplit/blue img1 dst]
+		button 50 "Alpha"  	[rcvSplit/alpha img1 dst]
 		button 80 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
 		canvas: base 512x512 dst	

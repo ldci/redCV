@@ -177,10 +177,10 @@ _rcvChannel: routine [
         switch op [
         	0 [pixD/value: pix1/value]
             1 [pixD/value: ((a << 24) OR (r << 16 ) OR (r << 8) OR r)]	;Red Channel
-            2 [pixD/value: ((a << 24) OR (g << 16 ) OR (g << 8) OR g)] ;Green Channel 
-            3 [pixD/value: ((a << 24) OR (b << 16 ) OR (b << 8) OR b)] ;blue Channel
+            2 [pixD/value: ((a << 24) OR (g << 16 ) OR (g << 8) OR g)] 	;Green Channel 
+            3 [pixD/value: ((a << 24) OR (b << 16 ) OR (b << 8) OR b)] 	;blue Channel
+            4 [pixD/value: ((a << 24) OR (a << 16 ) OR (a << 8) OR a)] 	;alpha Channel
         ]
-        ;pixD/value: ((a << 24) OR (r << 16 ) OR (r << 8) OR r)
         x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1

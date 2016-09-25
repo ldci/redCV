@@ -7,11 +7,20 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 
 #### You need the lastest Red master version.
 
-Developped under Mac OSX 10.11.6
+Developped under Mac OSX 10.12
 
 Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
+
+### NEW SEPTEMBER 25 2016
+
+Histogram functions for matrices and color images added.
+
+New samples added.
+
+Doc updated.
+
 ### NEW SEPTEMBER 21 2016
 
 Statistical functions are rewritten to be used with images and matrices.

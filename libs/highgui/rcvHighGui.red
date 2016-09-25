@@ -16,7 +16,7 @@ rcvNamedWindow: function [title [string!] return: [window!]
 ][
 	win: layout [
 		title title
-		canvas: base 256x256 black
+		canvas: image 256x256 black
 	]
 	view/no-wait win
 	win

@@ -29,6 +29,9 @@ _getMatValue: routine [
 
 
 ; converts Integer Matrix scale
+; 8 -> 16-bits pbs
+; 8 -> 32-bits OK
+; 16 -> 32-bits OK
 
 _convertMatScale: routine [
 	src			[vector!]
@@ -36,20 +39,23 @@ _convertMatScale: routine [
 	srcScale	[float!] ; eg FFh
 	dstScale	[float!] ; eg FFFFh	
 	/local
-	svalue tail int v 
-	s	 [series!]
-	unit [integer!]
+	svalue 		[byte-ptr!]
+	tail 		[byte-ptr!]
+	int 		[integer!]
+	v			[float!]
+	s	 		[series!]
+	unit 		[integer!]
 ][
-	svalue: vector/rs-head src  ; get a byte-pointer address of the source matrix first value
-	tail: vector/rs-tail src	; last
+	svalue: vector/rs-head src  ; get a pointer address of the source matrix first value
+	tail:  vector/rs-tail src	; last
 	vector/rs-clear dst 		; clears destination for append calculated value
 	s: GET_BUFFER(src)
 	unit: GET_UNIT(s)
 	while [svalue < tail][
 		int: vector/get-value-int as int-ptr! svalue unit
-		v: (as float! int) / srcScale * dstScale 
+		v: ((as float! int) / srcScale) * dstScale 
 		vector/rs-append-int dst as integer! v
-		svalue: svalue + 2 ;?? should be 1
+		svalue: svalue + unit
 	]
 ]
 

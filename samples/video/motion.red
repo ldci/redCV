@@ -14,10 +14,8 @@ rep., Carnegie Mellon University, Pittsburg, PA (2000)}
 ; all we need for computer vision with red
 #include %../../libs/redcv.red ; for red functions
 
-
-;live?: system/view/auto-sync?: no
-
-rimg: rcvCreateImage 320x240
+iSize: 320x240
+rimg: rcvCreateImage iSize
 prevImg: rcvCloneImage rimg
 currImg: rcvCloneImage rimg
 nextImg: rcvCloneImage rimg
@@ -48,7 +46,7 @@ view win: layout [
 			rcvReleaseImage r2
 			quit]
 		return
-		cam: camera 320x240
+		cam: camera iSize
 		canvas: base 320x240 rimg rate 0:0:1 on-time [
 			rcvAbsdiff  prevImg currImg d1
 			rcvAbsdiff  currImg nextImg d2
@@ -58,7 +56,6 @@ view win: layout [
 			prevImg: currImg	
 			currImg: nextImg
 			nextImg: to-image cam
-			
 		]
 		return
 		text 50 "Select" 
@@ -73,12 +70,13 @@ view win: layout [
 					canvas/image: black
 				][
 					cam/selected: cam-list/selected
-					canvas/rate: 0:0:0.04; 1/25 fps in ms
-					motion/rate: 0:0:0.04				]
+					canvas/rate: 0:0:0.10;  max 1/25 fps in ms
+					motion/rate: 0:0:0.10				
+					]
 			]
-		text "Filter" 22
-		sl1: slider 255 [filter/text: to-text sl1/data threshold: to integer! filter/data ]
-		filter: field 25 "32" 
+		text "Filter" 30
+		sl1: slider 250 [filter/text: to-text sl1/data threshold: to integer! filter/data ]
+		filter: field 20 "32" 
 		do [cam-list/selected: 1 motion/rate: canvas/rate: none sl1/data: 0.32 ]
 ]
 	
