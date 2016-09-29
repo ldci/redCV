@@ -503,5 +503,53 @@ _rcvSetAlpha: routine [
     image/release-buffer dst handleD yes
 ]
 
+;********** SUB-ARRAYS ************************
+
+_rcvInRange: routine [
+	src1  	[image!]
+    dst   	[image!]
+    lowr 	[integer!]
+    lowg 	[integer!]
+    lowb 	[integer!]
+    upr 	[integer!]
+    upg 	[integer!]
+    upb 	[integer!]
+    /local
+	pix1 	[int-ptr!]
+    pixD 	[int-ptr!]
+    handle1 handleD 
+    h w x y r g b a
+][
+	handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    
+    while [y < h] [
+       while [x < w][
+       		a: pix1/value >>> 24
+       		r: pix1/value and 00FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh 
+        	either ((r <= lowr) and (r < upr)) and ((g <= lowg) and (g < upg)) and ((b <= lowb) and (b < upb))
+        	[pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)] 
+       		[pixD/value: ((a << 24) OR (r << 0 ) OR (g << 0) OR 0)]
+           	x: x + 1
+           	pix1: pix1 + 1
+           	pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
 
 

@@ -13,6 +13,14 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW SEPTEMBER 29 2016
+
+New color space conversions added.
+
+rcvInRange function added: Extracts sub array from image according to lower and upper rgb values.
+
+Samples and documentation updated.
+
 ### NEW SEPTEMBER 25 2016
 
 Histogram functions for matrices and color images added.
