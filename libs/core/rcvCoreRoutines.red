@@ -14,7 +14,9 @@ Red [
 ;***************** IMAGE CONVERSION ROUTINES *****************
 ;exported as functions in /libs/core/rcvCore.red 
 
-
+_rcvReleaseImage: routine [src [image!]] [
+	image/delete src
+]
 
 _rcvCopy: routine [
     src1 [image!]
@@ -536,9 +538,9 @@ _rcvInRange: routine [
        		r: pix1/value and 00FF0000h >> 16 
         	g: pix1/value and FF00h >> 8 
         	b: pix1/value and FFh 
-        	either ((r <= lowr) and (r < upr)) and ((g <= lowg) and (g < upg)) and ((b <= lowb) and (b < upb))
-        	[pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)] 
-       		[pixD/value: ((a << 24) OR (r << 0 ) OR (g << 0) OR 0)]
+        	either (((r > lowr) and (r <= upr)) and ((g > lowg) and (g <= upg)) and ((b > lowb) and (b <= upb)))
+        	[r: FFh g: FFh b: FFh][r: 0 g: 0 b: 0] 
+       		pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
            	x: x + 1
            	pix1: pix1 + 1
            	pixD: pixD + 1

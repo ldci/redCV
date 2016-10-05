@@ -68,7 +68,7 @@ rcvColorMat: function [mat [vector!] value [integer!]
 ]
 
 rcvImage2Mat: function [src	[image!] mat [vector!]
-"Red Image to a 8-bit 2-D Matrice "
+"Red Image to a 8-bit 2-D Matrix "
 ] [
 	_rcvImage2Mat src mat
 ]
@@ -118,11 +118,23 @@ rcvConvertMatScale: function [src [vector!] dst [vector!] srcScale [number!] dst
 		normal  [n: length? src
 					i: 1
 					while [i <= n] [
+						
 						dst/(i): to integer! (to float! src/(i) / srcScale * dstScale)
 	 					i: i + 1]
 	 				]
 		fast	[_convertMatScale src dst srcScale dstScale]
 	]	
+]
+
+rcvMatInt2Float: function [src [vector!] dst [vector!] srcScale [float!]
+"Converts Integer Matrix to Float [0..1] matrix"	
+][
+	n: length? src
+	i: 1
+	while [i <= n] [
+					dst/(i): to float! (src/(i)) / srcScale 
+	 				i: i + 1
+	]
 ]
 
 
@@ -201,19 +213,19 @@ rcvRemSMat: function [src [vector!] value [integer!]
 
 ;**********************Logical ************************************
 
-rcvAndMat: function [src1 [vector!] src2 [vector!] return: [vector!]
+rcvANDMat: function [src1 [vector!] src2 [vector!] return: [vector!]
 "dst: src1 AND  src2"
 ][
 	src1 AND src2
 ]
 
-rcvOrMat: function [src1 [vector!] src2 [vector!] return: [vector!]
+rcvORMat: function [src1 [vector!] src2 [vector!] return: [vector!]
 "dst: src1 OR src2"
 ][
 	src1 OR src2
 ]
 
-rcvXorMat: function [src1 [vector!] src2 [vector!] return: [vector!]
+rcvXORMat: function [src1 [vector!] src2 [vector!] return: [vector!]
 "dst: src1 XOR  src2"
 ][
 	src1 XOR src2
@@ -221,19 +233,19 @@ rcvXorMat: function [src1 [vector!] src2 [vector!] return: [vector!]
 
 ; Scalar operations directly modify vector
 
-rcvAndSMat: function [src [vector!] value [integer!]
+rcvANDSMat: function [src [vector!] value [integer!]
 "src AND  value"
 ][
 	src AND value
 ]
 
-rcvOrSMat: function [src [vector!] value [integer!]
+rcvORSMat: function [src [vector!] value [integer!]
 "src OR value"
 ][
 	src OR value
 ]
 
-rcvXorSMat: function [src [vector!] value [integer!]
+rcvXORSMat: function [src [vector!] value [integer!]
 "src XOR value"
 ][
 	src XOR value

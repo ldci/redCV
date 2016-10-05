@@ -13,6 +13,13 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW OCTOBER 5 2016
+
+RedCV Reference Manual replaces basic documentation.
+
+About 150 functions tested and are functional.
+
+
 ### NEW SEPTEMBER 29 2016
 
 New color space conversions added.

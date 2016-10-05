@@ -9,7 +9,6 @@ Red [
 ; last Red Master required!
 #include %../../libs/redcv.red ; for red functions
 margins: 10x10
-knl: rcvMakeGaussian 5x5
 img1: rcvCreateImage 512x512
 dst: rcvCreateImage 512x512
 
@@ -46,7 +45,7 @@ view win: layout [
 		
 		button 60 "No Filter" 	[rcvCopyImage img1 dst 
 								 rcvCopyImage img1 currentImage]						    								
-		button 60 "Filter +"	[rcvGaussianFilter currentImage dst knl 0
+		button 60 "Filter +"	[rcvGaussianFilter currentImage dst
 								rcvCopyImage dst currentImage]					
 		button 80 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		

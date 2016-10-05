@@ -11,10 +11,14 @@ Red [
 ]
 
 ;***************** COLORSPACE CONVERSIONS ************
+; Based on  OpenCV 3.0 implementation for 8-bit image
 
-_rcvRGBXYZ: routine [
+
+;RGB<=>CIE XYZ.Rec 709 with D65 white point
+_rcvXYZ: routine [
     src1 [image!]
     dst  [image!]
+    op	 [integer!]
     /local
         pix1 [int-ptr!]
         pixD [int-ptr!]
@@ -33,27 +37,24 @@ _rcvRGBXYZ: routine [
     while [y < h] [
        while [x < w][
        	a: pix1/value >>> 24
-       	r: pix1/value and 00FF0000h >> 16 
+       	r: pix1/value and FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
-        rf: (as float! r) / 255.0
-		gf: (as float! g) / 255.0
-		bf: (as float! b) / 255.0
-		either (rf > 0.04045) [rf: pow ((rf + 0.055) / 1.055) 2.4] [rf: rf / 12.92]
-		either (gf > 0.04045) [gf: pow ((gf + 0.055) / 1.055) 2.4] [gf: gf / 12.92]
-		either (bf > 0.04045) [bf: pow ((bf + 0.055) / 1.055) 2.4] [bf: bf / 12.92]
-		rf: rf * 100.0
-    	gf: gf * 100.0
-    	bf: bf * 100.0
-    	;Observer. = 2°, Illuminant = D65
-		xf: (rf * 0.4124) + (gf *  0.3576) + (bf * 0.1805)
-    	yf: (rf * 0.2126) + (gf *  0.7152) + (bf * 0.0722)
-    	zf: (rf * 0.0193) + (gf *  0.1192) + (bf * 0.9505)
-    	r: as integer! xf
-    	g: as integer! yf
-    	b: as integer! zf
-
-    	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
+        
+        rf: as float! r 
+		gf: as float! g 
+		bf: as float! b
+    	
+		xf: (rf * 0.412453) + (gf *  0.357580) + (bf * 0.180423)
+    	yf: (rf * 0.212671) + (gf *  0.715160) + (bf * 0.072169)
+    	zf: (rf * 0.019334) + (gf *  0.119193) + (bf * 0.950227)
+    	
+    	switch op [
+    		1 [r: as integer! zf g: as integer! yf b: as integer! xf] ;rgb
+    		2 [r: as integer! xf g: as integer! yf b: as integer! zf] ;bgr
+    	]
+    	
+    	pixD/value: ((a << 24) OR (b << 16 ) OR (g << 8) OR r)	
         x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1
@@ -85,19 +86,16 @@ _rcvXYZRGB: routine [
     y: 0
     while [y < h] [
        while [x < w][
-       	a: pix1/value >>> 24
-       	r: pix1/value and 00FF0000h >> 16 
-        g: pix1/value and FF00h >> 8 
-        b: pix1/value and FFh 
-        xf: (as float! r) / 100.0 
-		yf: (as float! g) / 100.0
-		zf: (as float! b) / 100.0
-		rf: (xf * 3.2406) + (yf * -1.5372) + (zf * -0.4986)			
-		gf: (xf * -0.9689) + (yf * 1.8758) + (zf * 0.0415)
-		bf: (xf * 0.05557)+ (yf * -0.2040) + (zf * 1.0570)
-		either (rf > 0.0031308) [rf: (1.055 * (pow rf 1.0 / 2.4)) - 0.055] [rf: rf * 12.92]
-		either (gf > 0.0031308) [gf: (1.055 * (pow gf 1.0 / 2.4)) - 0.055] [gf: gf * 12.92]
-		either (bf > 0.0031308) [bf: (1.055 * (pow bf 1.0 / 2.4)) - 0.055] [bf: bf * 12.92]
+       	a: pix1/value >>> 24				; 
+       	r: pix1/value and FF0000h >> 16	; X  
+        g: pix1/value and FF00h >> 8 		; Y  
+        b: pix1/value and FFh 				; Z 
+        xf: as float! r
+		yf: as float! g
+		zf: as float! b
+		rf: (xf * 3.240479) + (yf * -1.53715) + (zf * -0.498535)			
+		gf: (xf * -0.969256) + (yf * 1.875991) + (zf * 0.041556)
+		bf: (xf * 0.055648)+ (yf * -0.204043) + (zf * 1.057311)
 		r: as integer! (xf * 255.0) 
     	g: as integer! (yf * 255.0) 
     	b: as integer! (zf * 255.0)
@@ -112,6 +110,341 @@ _rcvXYZRGB: routine [
     image/release-buffer src1 handle1 no
     image/release-buffer dst handleD yes
 ]
+
+
+;RGB<=>YCrCb JPEG (a.k.a. YCC)
+_rcvYCrCb: routine [
+    src1 [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD h w x y
+        r g b a rf gf bf 
+        yy cr cb
+        delta
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    Yy: 0.0
+	cr: 0.0
+	cb: 0.0
+    delta: 128.0; for 8-bit image 
+    while [y < h] [
+       while [x < w][
+       	a: pix1/value >>> 24
+       	r: pix1/value and FF0000h >> 16 
+        g: pix1/value and FF00h >> 8 
+        b: pix1/value and FFh 
+        rf: (as float! r) 
+		gf: (as float! g)
+		bf: (as float! b)
+		Yy: (0.299 * rf) + (0.587 * gf) + (0.114 * bf) 
+		cr: ((rf - Yy) * 0.713) + delta
+		cb: ((bf - Yy) * 0.514) + delta 
+		switch op [
+			1 [r: as integer! Yy g: as integer! cr b: as integer! cb]
+			2 [r: as integer! cb g: as integer! cr b: as integer! Yy]
+		]
+		
+		pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
+        x: x + 1
+        pix1: pix1 + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+;RGB<=>HSV
+
+_rcvHSV: routine [
+    src1 [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD h w x y
+        r g b a rf gf bf 
+        mini maxi
+        hh s v
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    hh: 0.0
+	s: 0.0
+	v: 0.0
+	mini: 0.0
+	maxi: 0.0
+    while [y < h] [
+       while [x < w][
+       	a: pix1/value >>> 24
+       	r: pix1/value and FF0000h >> 16 
+        g: pix1/value and FF00h >> 8 
+        b: pix1/value and FFh 
+        rf: (as float! r) / 255.0
+		gf: (as float! g) / 255.0
+		bf: (as float! b) / 255.0
+		
+		either rf < gf [mini: rf] [mini: gf]
+		if bf < mini [mini: bf] 
+		either rf > gf [maxi: rf] [maxi: gf]
+		if bf > maxi [maxi: bf]
+		
+		v: maxi
+		
+		; either grayscale no chroma ... or color chromatic data
+		either (maxi - mini = 0.0) [s: 0.0 hh: 0.0] 
+			[s: (v - mini) / v
+			if v = rf [hh: (gf - bf) * 60 / s ]
+			if v = gf [hh: 180.0 + (bf - rf) * 60 / s ]
+			if v = bf [hh: 240.0 + (rf - gf) * 60 / s ]]
+		
+		if hh < 0.0 [ hh: hh + 360.0]
+		
+		switch op [
+			1 [r: as integer! hh / 2 g: as integer! s * 255 b: as integer! v * 255]
+			2 [r: as integer! v * 255 g: as integer! s * 255 b: as integer! hh / 2 ]
+		]
+    	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
+        x: x + 1
+        pix1: pix1 + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
+;RGB<=>HLS
+_rcvHLS: routine [
+    src1 [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD h w x y
+        r g b a rf gf bf 
+        mini maxi l
+        hh s
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    hh: 0.0
+	s: 0.0
+	mini: 0.0
+	maxi: 0.0
+	l: 0.0
+    while [y < h] [
+       while [x < w][
+       	a: pix1/value >>> 24
+       	r: pix1/value and FF0000h >> 16 
+        g: pix1/value and FF00h >> 8 
+        b: pix1/value and FFh 
+        rf: (as float! r) / 255.0
+		gf: (as float! g) / 255.0
+		bf: (as float! b) / 255.0
+		
+		either rf < gf [mini: rf] [mini: gf]
+		if bf < mini [mini: bf] 
+		either rf > gf [maxi: rf] [maxi: gf]
+		if bf > maxi [maxi: bf]
+		l: (maxi + mini) / 2
+		
+		either l < 0.5 [s: (maxi - mini ) / (maxi + mini)]
+				[ s: (maxi - mini ) / (2.0 - (maxi + mini))]
+		if maxi = rf [hh: (gf - bf) * 60 / s]
+		if maxi = gf [hh: 180.0 + (bf - rf) * 60 / s]	
+		if maxi = bf [hh: 240.0 + (rf - gf) * 60 / s]	
+		
+		if hh < 0.0 [ hh: hh + 360.0]
+		
+		switch op [
+			1 [r: as integer! hh / 2 g: as integer! l * 255 b: as integer! s * 255]
+			2 [r: as integer! s * 255 g: as integer! l * 255 b: as integer! hh / 2 ]
+		]
+    	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
+        x: x + 1
+        pix1: pix1 + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+; A REVOIR
+;RGB<=>CIE L*a*b* 
+_rcvLab: routine [
+    src1 [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD h w x y
+        r g b a rf gf bf xf yf zf l aa bb
+        delta ratio ratio2
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    delta: 128.0
+    ratio: 1.0 / 3.0
+    ratio2: 16.0 / 116.0
+    while [y < h] [
+       while [x < w][
+       	a: pix1/value >>> 24
+       	r: pix1/value and FF0000h >> 16 
+        g: pix1/value and FF00h >> 8 
+        b: pix1/value and FFh 
+        
+        rf: as float! r / 255.0
+		gf: as float! g / 255.0
+		bf: as float! b / 255.0
+    	
+		xf: (rf * 0.412453) + (gf *  0.357580) + (bf * 0.180423)
+    	yf: (rf * 0.212671) + (gf *  0.715160) + (bf * 0.072169)
+    	zf: (rf * 0.019334) + (gf *  0.119193) + (bf * 0.950227)
+    	
+    	xf: xf / 0.950456
+    	zf: zf / 1.088754
+    	
+    
+    	either yf > 0.008856 [l: 116.0 *  (pow yf ratio)] [l: 903.3 * yf]
+    				
+    	either yf > 0.008856 [aa: 500.0 * ((pow xf ratio) - (pow yf ratio)) + delta
+    						bb: 200.0 * ((pow yf ratio) - (pow zf ratio)) + delta] 
+    				[aa: 500.0 * ((7787.0 * xf + ratio2) - (7787.0 * yf + ratio2))
+    				 bb: 200.0 * ((7787.0 * yf + ratio2) - (7787.0 * zf + ratio2))
+    				]
+    	
+		l: l * 255.0 / 100.0
+		aa: aa + 128.0
+		bb: bb + 128.0
+    	switch op [
+    		1 [r: as integer! l g: as integer! aa b: as integer! bb] ;rgb
+    		2 [r: as integer! bb g: as integer! aa b: as integer! l] ;bgr
+    	]
+    	
+    	pixD/value: ((a << 24) OR (b << 16 ) OR (g << 8) OR r)	
+        x: x + 1
+        pix1: pix1 + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+_rcvLuv: routine [
+    src1 [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD h w x y
+        r g b a rf gf bf xf yf zf 
+        l u v uu vv 
+       ratio
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    ratio: 1.0 / 3.0
+    while [y < h] [
+       while [x < w][
+       	a: pix1/value >>> 24
+       	r: pix1/value and FF0000h >> 16 
+        g: pix1/value and FF00h >> 8 
+        b: pix1/value and FFh 
+        
+        ; convert R,G,B to CIE XYZ
+        rf: as float! r / 255.0
+		gf: as float! g / 255.0
+		bf: as float! b / 255.0
+		xf: (rf * 0.412453) + (gf *  0.357580) + (bf * 0.180423)
+    	yf: (rf * 0.212671) + (gf *  0.715160) + (bf * 0.072169)
+    	zf: (rf * 0.019334) + (gf *  0.119193) + (bf * 0.950227)
+    	
+    	either yf > 0.008856 [l: (116.0 * (pow yf ratio)) - 16.00] 
+    				[l: 903.3 * yf]
+    	
+    	;convert XYZ to CIE Luv
+    	uu: (4.0 * xf) / (xf + 15.00 * yf + 3.0 * zf)			
+    	vv: (9.0 * yf) / (xf + 15.00 * yf + 3.0 * zf)
+    	u: 13.00 * l * (uu - 0.19793943)
+		v: 13.00 * l * (vv - 0.46831096)
+		l: l / 100.0 * 255.0
+		u: (u + 134.0)  / 354.0 * 255.0
+		v: (v + 140.0)  / 266.0 * 255.0
+    	 
+    	switch op [
+    		1 [r: as integer! l g: as integer! u b: as integer! v] ;rgb
+    		2 [r: as integer! v g: as integer! u b: as integer! l] ;bgr
+    	]
+    	
+    	pixD/value: ((a << 24) OR (b << 16 ) OR (g << 8) OR r)	
+        x: x + 1
+        pix1: pix1 + 1
+        pixD: pixD + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 
 ;***************** IMAGE TRANSFORMATION ROUTINES ***********************
 

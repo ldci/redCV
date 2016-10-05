@@ -22,6 +22,7 @@ histobc: make vector! 256
 
 loadImage: does [
 	canvas1/image: none
+	canvas2/draw: none
 	canvas2/image: black
 	tmp: request-file
 	if not none? tmp [
@@ -59,11 +60,11 @@ showPlot: does [
 	plotb: copy [line-width 1 pen blue line]
 	
 	i: 1 
-	while [i <= 256] [  coord: as-pair (i) (256 - historc/(i))
+	while [i <= 256] [  coord: as-pair (i) (250 - historc/(i))
 						append plotr coord
-						coord: as-pair (i) (256 - histogc/(i))
+						coord: as-pair (i) (250 - histogc/(i))
 						append plotg coord
-						coord: as-pair (i) (256 - histobc/(i))
+						coord: as-pair (i) (250 - histobc/(i))
 						append plotb coord
 						i: i + 1]				
 	canvas2/draw: reduce [plotr plotg plotb] 
