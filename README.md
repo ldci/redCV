@@ -15,6 +15,15 @@ You must compile samples since red routines are required.
 
 ### NEW OCTOBER 10 2016
 
+rcvScaleImage, rcvTranslateImage and rcvRotateImage are now RedCV Functions.
+
+See RedCV_Manual for details.
+
+Samples and documentation updated.
+
+
+### NEW OCTOBER 10 2016
+
 Scale, Translate and Rotate operators based on Red Draw Dialect added.
 
 New convolution samples added.
