@@ -13,6 +13,13 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW OCTOBER 10 2016
+
+Scale, Translate and Rotate operators based on Red Draw Dialect added.
+
+New convolution samples added.
+
+
 ### NEW OCTOBER 5 2016
 
 RedCV Reference Manual replaces basic documentation.
