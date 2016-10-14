@@ -13,6 +13,15 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW OCTOBER 24 2016
+
+New samples in /samples/Draw_DSL/ 
+
+This is an illustration of how Draw DSL can be used to create nice graphical applications.
+
+Enjoy 
+
+
 ### NEW OCTOBER 10 2016
 
 rcvScaleImage, rcvTranslateImage and rcvRotateImage are now RedCV Functions.
