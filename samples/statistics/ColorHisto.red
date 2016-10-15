@@ -19,6 +19,7 @@ historc: make vector! 256
 histogc: make vector! 256
 histobc: make vector! 256
 
+smooth: false
 
 loadImage: does [
 	canvas1/image: none
@@ -42,16 +43,20 @@ processMat: does [
 	sort tmp
 	maxi: last tmp
 	rcvConvertMatScale/normal histor historc  maxi 200 ; change scale
+	if smooth [tmp: rcvSmoothHistogram historc  historc: copy tmp]
 	
 	tmp: copy histog
 	sort tmp
 	maxi: last tmp
 	rcvConvertMatScale/normal histog histogc  maxi 200 ; change scale
 	
+	if smooth [tmp: rcvSmoothHistogram histogc histogc: copy tmp]
+	
 	tmp: copy histob
 	sort tmp
 	maxi: last tmp
 	rcvConvertMatScale/normal histob histobc  maxi 200 ; change scale
+	if smooth [tmp: rcvSmoothHistogram histobc histobc: copy tmp]
 ]
 
 showPlot: does [
@@ -77,6 +82,7 @@ view win: layout [
 		title "Histogram Tests"
 		origin margins space margins
 		button 100 "Load Image" 		[loadImage processMat showPlot]
+		check 150 "Smooth Histogram" 	[smooth: face/data processMat showPlot]
 		button 40 "Quit" 				[rcvReleaseImage img1 Quit]
 		return
 		canvas1: base msize img1

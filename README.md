@@ -13,7 +13,11 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
-### NEW OCTOBER 24 2016
+### NEW OCTOBER 15 2016
+
+Statistical functions improved. See RedCV_Manual documentation for details.
+
+### NEW OCTOBER 14 2016
 
 New samples in /samples/Draw_DSL/ 
 
