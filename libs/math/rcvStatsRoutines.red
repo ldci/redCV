@@ -483,27 +483,74 @@ _rcvMinLocMat: routine [mat [vector!] matSize [pair!] minloc [pair!] return: [pa
     as red-pair! stack/set-last as cell! locmin
 ]
 
-; for 8-bit matrix
+; Only for 8-bit matrix images 
+
+; calculate histogram -> OK
 _rcvHistoMat: routine [mat [vector!] histo [vector!]
 	/local
-	int svalue  tail unit
-	tvalue base
-	s
+	int svalue  tail
+	dvalue base s unit
 	
 ] [
     svalue: vector/rs-head mat ; get pointer address of the matrice
     tail: vector/rs-tail mat
     s: GET_BUFFER(mat)
 	unit: GET_UNIT(s)
-	tvalue: as int-ptr! vector/rs-head histo
-	base: tvalue
+	dvalue: as int-ptr! vector/rs-head histo
+	base: dvalue
 	while [svalue < tail][
-		int: vector/get-value-int as int-ptr! svalue unit
-		tvalue: base + int + 1
-		tvalue/value: tvalue/value + 1
-		svalue: svalue + unit 
+		;int: vector/get-value-int as int-ptr! svalue unit
+		int: as integer! svalue/value  		; int value 0..255
+		dvalue: base + int					; position in histogram 
+		dvalue/value: dvalue/value + 1  	; increment number of value occurence
+		svalue: svalue + unit 				; next value in matrice
 	]
 ]
+
+; calculate the cumulative sum of histogram -> OK
+; this is the cumulative-density function for the pixel value n
+_rcvSumHisto: routine [histo [vector!] sumHisto [vector!]
+	/local
+	int svalue tail
+    s unit 
+    sum
+] [
+    svalue: vector/rs-head histo ; get pointer address of the matrice
+    tail: vector/rs-tail histo
+	sum: 0
+	s: GET_BUFFER(histo)
+	unit: GET_UNIT(s)
+	vector/rs-clear sumHisto 
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit	; value in histo/(i)	
+		sum: sum + int										; increment sum	
+		vector/rs-append-int sumHisto sum					;store cumulative sum		
+		svalue: svalue + unit			    				; next value
+	]
+]
+
+_rcvEqualizeHisto: routine [mat [vector!] sumHisto [vector!] constant [float!]
+	/local
+	int int2 svalue dvalue tail unit s base k
+] [
+	svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail:  vector/rs-tail mat
+    dvalue: as int-ptr! vector/rs-head sumHisto
+    base: dvalue
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		dvalue: base + int 
+		int2: dvalue/value
+		k:  (as float! int2) * constant
+		int2: as integer! k
+		svalue/value: as byte! int2
+		svalue: svalue + unit
+	]
+]
+
+
 
 
 

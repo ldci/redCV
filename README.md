@@ -13,6 +13,12 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW OCTOBER 18 2016
+
+rcvHistogramEqualization function added in library. 
+
+This very fast function is useful for improving contrast in low-contrasted images or simply modifying the contrast of image.
+
 ### NEW OCTOBER 15 2016
 
 Statistical functions improved. See RedCV_Manual documentation for details.
