@@ -13,6 +13,10 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW NOVEMBER 4 2016
+
+Morphological operators for color images added.
+
 ### NEW OCTOBER 18 2016
 
 rcvHistogramEqualization function added in library. 
