@@ -13,6 +13,12 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW NOVEMBER 9 2016
+
+Extended morphological operators  and samples added.
+
+Documentation updated.
+
 ### NEW NOVEMBER 4 2016
 
 Morphological operators for color images added.

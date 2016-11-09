@@ -974,4 +974,78 @@ _rcvDilate: routine [
 ]
 
 
+_rcvMMean: routine [
+    src  	[image!]
+    dst  	[image!]
+    cols	[integer!]
+    rows	[integer!]
+    kernel 	[block!] 
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        idx2	[int-ptr!]
+        idxD	[int-ptr!]
+        handle1 handleD h w x y i j
+        maxi
+        count
+        k  imx imy imx2 imy2
+       	radiusX radiusY
+		kBase 
+		kValue  
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx:  pix1
+    idx2: pix1
+    idxD: pixD
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+	radiusX: cols / 2
+	radiusY: rows / 2
+    x: radiusX
+    y: radiusY
+    j: 0
+    i: 0
+    while [y < (h - radiusY)] [
+       while [x < (w - radiusX)][
+       		idx: pix1 + (y * w) + x  
+       		kValue: kBase
+        	j: 0 
+        	maxi: 0
+        	count: 0
+        	; process neightbour
+        	while [j < rows][
+        		i: 0
+        		while [i < cols][
+        			imx2: x + i - radiusX
+        			imy2: y + j - radiusY
+        			idx2: pix1 + (imy2 * w) + imx2
+        			k: as red-integer! kValue
+        			
+        			if k/value = 1 [
+        				count: count + 1
+        				maxi: maxi + idx2/value
+        			]
+        			kValue: kBase + (j * cols + i + 1)
+        			i: i + 1
+        		]
+        		j: j + 1
+        	]
+       		pixD: idxD + (y * w) + x
+           	pixD/value: maxi / count
+           	x: x + 1
+       ]
+       x: 0
+       y: y + 1 
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 
