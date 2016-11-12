@@ -13,6 +13,19 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW NOVEMNBER 12 2016
+
+WARNING: some exe are reported with "TR/Crypt.XPACK.Gen2" infection by Github.
+
+Puzzling since exe are compiled under MacOS, but to avoid any problems all exe are suppressed.
+
+You'll need to compile samples with following command:
+
+red -c -t Windows filename.red
+
+Very easy to do :)
+
+
 ### NEW NOVEMBER 9 2016
 
 Extended morphological operators  and samples added.
