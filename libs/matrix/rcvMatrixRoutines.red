@@ -409,10 +409,8 @@ _rcvSobelMat: routine [
         sum
 ][
     ;get mat size will be improved in future with matrix! type
-    
     w: mSize/x
     h: mSize/y
-   
 	svalue: vector/rs-head src   ; get byte pointer address of the source matrix first value
 	dvalue: vector/rs-head dst	; a byte ptr
 	vector/rs-clear dst 		; clears destination matrix
@@ -437,3 +435,154 @@ _rcvSobelMat: routine [
        y: y + 1
     ]
 ]
+
+
+; ******************* morphological Operations**************************
+; for 8-bits matrices
+_rcvMorpho: routine [
+   	src  	[vector!]
+    dst  	[vector!]
+    mSize	[pair!]
+    cols	[integer!]
+    rows	[integer!]
+    kernel 	[block!] 
+    op		[integer!]
+    /local
+        svalue 	[byte-ptr!]
+        dvalue 	[byte-ptr!]
+        idx	 	[byte-ptr!]
+        idx2	[byte-ptr!]
+        idxD	[byte-ptr!]
+        h w x y i j
+        maxi
+        k  imx imy imx2 imy2
+       	radiusX radiusY
+		kBase 
+		kValue  
+][
+    w: mSize/x
+    h: mSize/y
+    svalue: vector/rs-head src   ; get byte pointer address of the source matrix first value
+	dvalue: vector/rs-head dst	; a byte ptr
+	vector/rs-clear dst 		; clears destination matrix
+    idx:  svalue
+    idx2: svalue
+    idxD: dvalue
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+	radiusX: cols / 2
+	radiusY: rows / 2
+    x: radiusX
+    y: radiusY
+    j: 0
+    i: 0
+    while [y < (h - radiusY)] [
+       while [x < (w - radiusX)][
+       		idx: svalue + (y * w) + x  
+       		kValue: kBase
+        	j: 0 
+        	switch op [
+        		1	[maxi: as byte! 0] ; dilatation
+        		2	[maxi: as byte! 255]	; erosion
+        	 ]
+        	
+        	; process neightbour
+        	while [j < rows][
+        		i: 0
+        		while [i < cols][
+        			imx2: x + i - radiusX
+        			imy2: y + j - radiusY
+        			idx2: svalue + (imy2 * w) + imx2
+        			k: as red-integer! kValue
+        			if k/value = 1 [
+        				switch op [
+        					1	[if idx2/value > maxi [maxi: idx2/value]] ; dilatation
+        					2	[if idx2/value < maxi [maxi: idx2/value]]	; erosion
+        	 			]	
+        			]
+        			kValue: kBase + (j * cols + i + 1)
+        			i: i + 1
+        		]
+        		j: j + 1
+        	]
+       		dValue: idxD + (y * w) + x
+           	dValue/value: maxi
+           	x: x + 1
+       ]
+       x: 0
+       y: y + 1 
+    ]
+]
+
+;*********************** Integral Matrices *************************
+; Only for 8-bit integer Matrices 
+_rcvIntegralMat: routine [
+   	src  	[vector!]
+    dst1  	[vector!]
+    dst2	[vector!]
+    mSize	[pair!]
+    /local
+    svalue 	[byte-ptr!]
+    d1value [byte-ptr!]
+    d2value	[byte-ptr!]
+    idx1 	[byte-ptr!]
+    idxD1	[byte-ptr!]
+    idxD2	[byte-ptr!]
+    idx
+    s unit
+    x y w h
+    pindex val int
+    sum sqsum
+] [
+    svalue: vector/rs-head src  
+	d1value: vector/rs-head dst1	
+	d2value: vector/rs-head dst2
+	s: GET_BUFFER(src)
+	unit: GET_UNIT(s)
+	idx1:  svalue
+    idxD1: d1value
+    idxD2: d2value
+    w: mSize/x
+    h: mSize/y
+    x: 0
+    while [x < w] [
+    	y: 0
+    	sum: 0
+    	sqsum: 0
+    	val: 0
+       	while [y < h][
+       		pindex: (x + (y * w)) * unit
+       		svalue: idx1 + pindex
+       		d1value: idxD1 + pindex
+       		d2value: idxD2 + pindex 
+       		val: _getMatValue as integer! svalue unit  ; 8-bit
+       		;int: as red-value! val
+       		;probe int
+       		;vector/set-value D1value as red-value! val unit
+       		;D1value/value: as byte! val 
+       		sum: sum + val                             
+       		sqsum: sqsum + (val * val)
+       		either (x = 0) [
+       					 d1value/value: as byte! sum 
+       					 d2value/value: as byte! sqsum
+       					 ] 
+       					 [
+       					 ;sum
+       					 d1value: d1value - 1
+       					 val: _getMatValue as integer! d1value unit
+       					 d1value: d1value + 1
+       					 d1value/value: as byte! (sum + val)
+       					 ; square sum
+       					 d2value: d2value - 1
+       					 val: _getMatValue as integer! d2value unit
+       					 d2value: d2value + 1
+       					 d2value/value:  as byte! (sqsum + val)
+       					 ]
+       		y: y + 1
+       	]
+    x: x + 1   	
+    ]
+]
+
+
+
+

@@ -13,6 +13,13 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW NOVEMBER 14 2016
+
+Integral for matrices and images are added.
+
+See RedCV manual for details.
+
+
 ### NEW NOVEMNBER 12 2016
 
 WARNING: some exe are reported with "TR/Crypt.XPACK.Gen2" infection by Github.

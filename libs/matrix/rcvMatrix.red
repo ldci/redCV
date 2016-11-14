@@ -250,3 +250,19 @@ rcvXORSMat: function [src [vector!] value [integer!]
 ][
 	src XOR value
 ]
+
+
+; ******************* morphological Operations**************************
+rcvErodeMat: function [ src [vector!] dst [vector!] mSize [pair!] kSize [pair!] kernel [block!]
+"Erodes matrice by using structuring element"
+] [
+	_rcvMorpho src dst mSize kSize/x kSize/y kernel 2
+]
+
+rcvDilateMat: function [ src [vector!] dst [vector!] mSize [pair!] kSize [pair!] kernel [block!]
+"Dilates matrice by using structuring element"
+] [
+	_rcvMorpho src dst mSize kSize/x kSize/y kernel 1 
+]
+
+
