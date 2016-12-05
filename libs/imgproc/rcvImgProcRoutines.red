@@ -833,6 +833,68 @@ _rcvFastFilter2D: routine [
     image/release-buffer dst handleD yes
 ]
 
+
+; integral image
+
+_rcvIntegral: routine [
+    src  [image!]
+    dst  [image!]
+    dst2 [image!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        pixD2 	[int-ptr!]
+        idxD	[int-ptr!]
+        idxD2	[int-ptr!]
+        handle1 handleD handleD2 h w x y pindex pindex2 val
+        sum sqsum     
+][
+    handle1: 0
+    handleD: 0
+    handleD2: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    pixD2: image/acquire-buffer dst2 :handleD2
+    idxD: pixD
+    idxD2: pixD2
+    pindex: 0
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    x: 0
+    while [x < w] [
+    	y: 0
+    	sum: 0
+    	sqsum: 0
+       	while [y < h][
+       		pindex: x + (y * w) 
+       		sum: sum + pix1/value
+       		sqsum: sqsum + (pix1/value * pix1/value)
+       		either x = 0 [pixD/value: sum pixD2/value: sqsum] 
+       					 [
+       					 ;sum
+       					 pixD: idxD + pindex - 1
+       					 val: pixD/value + sum
+       					 pixD: idxD + pindex
+       					 pixD/value: val
+       					 ; square sum
+       					 pixD2: idxD2 + pindex - 1
+       					 val: pixD2/value + sqsum
+       					 pixD2: idxD2 + pindex
+       					 pixD2/value: val
+       					 ]
+        	y: y + 1
+        	pix1: pix1 + 1
+       ]
+       x: x + 1
+       
+    ]
+    
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+    image/release-buffer dst2 handleD2 yes
+]
+
+
 ; ******************* morphological Operations**************************
 
 _rcvErode: routine [

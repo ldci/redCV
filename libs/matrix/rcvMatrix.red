@@ -33,15 +33,18 @@ rcvReleaseMat: function [mat [vector!]
 rcvCloneMat: function [src [vector!] return: [vector!]
 "Returns a copy of source matrix"
 ][
-	dst: make vector! reduce  [integer! length? src]
-	dst: copy src
+	t: _rcvGetMatType src
+	if t = 1 [dst: make vector! reduce  [integer! length? src] _rcvCopyMat src dst]
+	if t = 2 [dst: make vector! reduce  [float! length? src] _rcvCopyMatF src dst] 
 	dst
 ]
 
 rcvCopyMat: function [src [vector!] dst [vector!]
 "Copy source matrix to destination matrix"
 ][
-	dst: src
+	t: _rcvGetMatType src
+	if t = 1 [_rcvCopyMat src dst]
+	if t = 2 [_rcvCopyMatF src dst] 
 ]
 
 
@@ -66,6 +69,40 @@ rcvColorMat: function [mat [vector!] value [integer!]
 	;while [i <= n] [mat/(i): value i: i + 1]
 	forall mat [mat/1: value]
 ]
+
+
+; direct pixel access for 1 channel image
+; since image coordinates is 0x0 based -> + 1 in matrices 
+
+rcvGetInt2D: function [ src [vector!] mSize [pair!] coordinate [pair!] return: [integer!]
+"Get integer matrix value"
+] [
+	idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	src/(idx)
+]
+
+rcvGetReal2D: function [ src [vector!] mSize [pair!] coordinate [pair!] return: [float!]
+"Get float matrix value"
+] [
+	idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	src/(idx)
+]
+
+rcvSetInt2D: function [ dst [vector!] mSize [pair!] coordinate [pair!] val [integer!]
+"Set integer matrix value"
+] [
+	idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	dst/(idx): val
+]
+
+rcvSetReal2D: function [ dst [vector!] mSize [pair!] coordinate [pair!] val [float!]
+"Set float matrix value"
+] [
+	idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	dst/(idx): val
+]
+
+
 
 rcvImage2Mat: function [src	[image!] mat [vector!]
 "Red Image to a 8-bit 2-D Matrix "

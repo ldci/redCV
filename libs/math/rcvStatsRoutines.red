@@ -549,6 +549,24 @@ _rcvEqualizeHisto: routine [mat [vector!] sumHisto [vector!] constant [float!]
 		svalue: svalue + unit
 	]
 ]
+; affine transform
+_rcvEqualizeContrast: routine [mat [vector!] table [vector!]
+	/local
+	int svalue dvalue tail unit s base
+] [
+	svalue: vector/rs-head mat ; get pointer address of the matrice
+    tail:  vector/rs-tail mat
+    dvalue: as int-ptr! vector/rs-head table
+    base: dvalue
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		dvalue: base + int 
+		svalue/value: as byte! dvalue/value
+		svalue: svalue + unit
+	]	
+]
 
 
 

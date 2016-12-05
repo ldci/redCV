@@ -13,6 +13,14 @@ Tested with Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### NEW DECEMBER 5 2016
+
+Updated version for samples including B&W filters, histograms and integral image
+
+You have to compile samples with following command:
+
+red -c -t Windows filename.red
+
 ### NEW NOVEMBER 14 2016
 
 Integral for matrices and images are added.

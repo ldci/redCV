@@ -18,13 +18,107 @@ Red [
 
 ;**********************MATRICES**************************
 
-; gets matrix element value
+
+_rcvGetMatType: routine [
+	mat  	[vector!]
+	return: [integer!]
+	/local
+	s unit type
+] [
+	s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	; 1 integer/2 float
+	either unit <= 4 [type: 1] [type: 2] 
+	type
+]
+
+; integer matrices
+_rcvCopyMat: routine [
+   	src  	[vector!]
+    dst1  	[vector!]
+    /local
+    svalue 	[byte-ptr!]
+    tail 	[byte-ptr!]
+    d1value [byte-ptr!]
+    p4
+    s unit
+    val
+    ] [
+    svalue: vector/rs-head src  
+    tail: vector/rs-tail src
+	d1value: vector/rs-head dst1	
+	
+	s: GET_BUFFER(src)
+	unit: GET_UNIT(s)
+		
+   	while [svalue < tail][
+		val: vector/get-value-int as int-ptr! svalue unit
+		p4: as int-ptr! d1Value
+		p4/value: switch unit [
+					1 [val and FFh or (p4/value and FFFFFF00h)]
+					2 [val and FFFFh or (p4/value and FFFF0000h)]
+					4 [val]
+		]
+		svalue: svalue + unit
+		d1value: d1value + unit
+    ]
+]
+
+; float matrices
+_rcvCopyMatF: routine [
+   	src  	[vector!]
+    dst1  	[vector!]
+    /local
+    svalue 	[byte-ptr!]
+    tail 	[byte-ptr!]
+    d1value [byte-ptr!]
+    p
+    p32
+    s unit
+    val
+    ] [
+    svalue: vector/rs-head src  
+    tail: vector/rs-tail src
+	d1value: vector/rs-head dst1	
+	
+	s: GET_BUFFER(src)
+	unit: GET_UNIT(s)
+   	while [svalue < tail][
+		val: vector/get-value-float svalue unit
+		either unit = 8 [p: as pointer! [float!] d1Value  p/value: val]
+					    [p32: as pointer! [float32!] d1Value p32/value: as float32! val]
+		svalue: svalue + unit
+		d1value: d1value + unit
+    ]
+]
+
+
+
+
+
+; gets and sets integer matrix element value
 _getMatValue: routine [
-	p		[integer!] ; address of mat element
+	p		[integer!] ; address of mat element as integer
 	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
 	return:	[integer!]
 ] [
 	vector/get-value-int as int-ptr! p unit
+]
+
+
+_setMatValue: routine [
+	p		[integer!] ; address of mat element as integer
+	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
+	value	[integer!]
+	/local 
+	p4
+] [
+	 p4: as int-ptr! p
+     p4/value: switch unit [
+			1 [(value and FFh) or (p4/value and FFFFFF00h)]
+			2 [(value and FFFFh) or (p4/value and FFFF0000h)]
+			4 [value]
+	]
 ]
 
 
@@ -62,7 +156,7 @@ _convertMatScale: routine [
 
 
 ; Red Image -> 1 channel 2-D matrice with a grayscale 
-; conversion (only 8-bit matrices) 
+; conversion to 8 16 or 32-bit matrices 
 
 _rcvImage2Mat: routine [
 	src		[image!]
@@ -71,6 +165,7 @@ _rcvImage2Mat: routine [
 	pix1 	[int-ptr!]
 	dvalue 	[byte-ptr!]
 	handle1
+	unit s
 	h w x y 
 	r g b a
 ] [
@@ -81,6 +176,8 @@ _rcvImage2Mat: routine [
     x: 0
     y: 0 
     dvalue: vector/rs-head mat	; a byte ptr
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
    ; vector/rs-clear mat 
     while [y < h] [
        while [x < w][
@@ -89,10 +186,11 @@ _rcvImage2Mat: routine [
         	g: pix1/value and FF00h >> 8 
         	b: pix1/value and FFh 
         	; -> to Grayscale image
-			dvalue/value: as-byte (r + g + b) / 3
+        	_setMatValue as integer! dvalue unit (r + g + b) / 3
+			;dvalue/value: as-byte (r + g + b) / 3
            	x: x + 1
            	pix1: pix1 + 1
-           	dValue: dValue + 1
+           	dValue: dValue + unit
        ]
        x: 0
        y: y + 1
@@ -514,7 +612,7 @@ _rcvMorpho: routine [
 ]
 
 ;*********************** Integral Matrices *************************
-; Only for 8-bit integer Matrices 
+; integer Matrices 
 _rcvIntegralMat: routine [
    	src  	[vector!]
     dst1  	[vector!]
@@ -527,10 +625,10 @@ _rcvIntegralMat: routine [
     idx1 	[byte-ptr!]
     idxD1	[byte-ptr!]
     idxD2	[byte-ptr!]
-    idx
+    p4
     s unit
     x y w h
-    pindex val int
+    pindex val val2
     sum sqsum
 ] [
     svalue: vector/rs-head src  
@@ -549,33 +647,32 @@ _rcvIntegralMat: routine [
     	sum: 0
     	sqsum: 0
     	val: 0
+    	val2: 0
        	while [y < h][
-       		pindex: (x + (y * w)) * unit
+       		pindex: (x + (y * w)) * unit 
        		svalue: idx1 + pindex
        		d1value: idxD1 + pindex
        		d2value: idxD2 + pindex 
-       		val: _getMatValue as integer! svalue unit  ; 8-bit
-       		;int: as red-value! val
-       		;probe int
-       		;vector/set-value D1value as red-value! val unit
-       		;D1value/value: as byte! val 
+       		val: _getMatValue as integer! svalue unit 
        		sum: sum + val                             
        		sqsum: sqsum + (val * val)
        		either (x = 0) [
-       					 d1value/value: as byte! sum 
-       					 d2value/value: as byte! sqsum
+       					_setMatValue as integer! d1Value unit sum
+       					_setMatValue as integer! d2Value unit sqsum
        					 ] 
        					 [
        					 ;sum
-       					 d1value: d1value - 1
+       					 d1value: d1value - unit
        					 val: _getMatValue as integer! d1value unit
-       					 d1value: d1value + 1
-       					 d1value/value: as byte! (sum + val)
+       					 d1value: d1value + unit
+       					 val2: sum + val
+       					 _setMatValue as integer! d1Value unit val2
        					 ; square sum
-       					 d2value: d2value - 1
+       					 d2value: d2value - unit
        					 val: _getMatValue as integer! d2value unit
-       					 d2value: d2value + 1
-       					 d2value/value:  as byte! (sqsum + val)
+       					 d2value: d2value + unit
+       					 val2: sqsum + val
+       					 _setMatValue as integer! d2Value unit val2
        					 ]
        		y: y + 1
        	]
