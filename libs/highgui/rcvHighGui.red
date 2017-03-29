@@ -11,12 +11,20 @@ Red [
 
 ; some highgui functions for RedCV quick test
 ; routines are not required
+; under progress ...
+;show window is OK for Win10 but not for mac OS???
+; so we use a window resize to update changes
+
+
+screenSize: system/view/screens/1/size
+winBorder: 20x40 ; OK mac OS
+
 rcvNamedWindow: function [title [string!] return: [window!]
-"Creates a window"
+"Creates and returns a window"
 ][
 	win: layout [
 		title title
-		canvas: image 256x256 black
+		image 256x256
 	]
 	view/no-wait win
 	win
@@ -39,7 +47,7 @@ rcvResizeWindow: function [window [face!] wSize [pair!]
 "Sets window size"
 ][
 	window/pane/1/size: wSize
-	window/size: window/pane/1/size + 20x20
+	window/size: window/pane/1/size + winBorder
 ]
 
 rcvMoveWindow: function [window [face!] position [pair!]
@@ -48,11 +56,18 @@ rcvMoveWindow: function [window [face!] position [pair!]
 	window/offset: position
 ]
 
-rcvShowImage: function [window [face!] image [image!]
+rcvShowImage: function [window [face!] image [image!] /full
 "Shows image in window"
 ] [
 	window/pane/1/image: image
-	show window
+	window/size: window/pane/1/size + winBorder
+]
+
+rcvDrawPlot: function [window [face!] plot [block!] /clear
+"Draws in window"
+] [
+	if clear [window/pane/1/image: black]
+	window/pane/1/draw: plot
 ]
 
 

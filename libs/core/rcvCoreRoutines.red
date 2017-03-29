@@ -46,7 +46,7 @@ _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
 ]
 
 
-_rcvSetPixel: routine [src1 [image!] coordinate [pair!] t [tuple!]
+_rcvSetPixel: routine [src1 [image!] coordinate [pair!] val [integer!]
 	/local 
 		pix1 [int-ptr!]
 		handle1 
@@ -55,18 +55,16 @@ _rcvSetPixel: routine [src1 [image!] coordinate [pair!] t [tuple!]
 		y 
 		h 
 		pos
-		tp
 ][
     handle1: 0
     pix1: image/acquire-buffer src1 :handle1
-	tp: as red-tuple! t
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: coordinate/x
     y: coordinate/y
     pos: (y * w) + x
     pix1: pix1 + pos
-    pix1/Value: as integer! tp
+    pix1/Value: FF000000h or val
     image/release-buffer src1 handle1 yes
 ]
 
@@ -516,10 +514,10 @@ _rvcLogical: routine [
 			switch op [
 				1 [pixD/value: FF000000h or pix1/Value AND pix2/value]
 				2 [pixD/value: FF000000h or pix1/Value OR pix2/Value]
-				3 [pixD/value: FF000000h or (pix1/Value XOR pix2/Value)]
-				4 [pixD/value: FF000000h or NOT (pix1/Value AND pix2/Value)]
-				5 [pixD/value: FF000000h or NOT (pix1/Value OR pix2/Value)]
-				6 [pixD/value: FF000000h or NOT (pix1/Value XOR pix2/Value)]
+				3 [pixD/value: FF000000h or pix1/Value XOR pix2/Value]
+				4 [pixD/value: FF000000h or NOT pix1/Value AND pix2/Value]
+				5 [pixD/value: FF000000h or NOT pix1/Value OR pix2/Value]
+				6 [pixD/value: FF000000h or NOT pix1/Value XOR pix2/Value]
 				7 [either pix1/Value > pix2/Value [pixD/value: pix2/Value][pixD/value: FF000000h or pix1/Value]]
            		8 [either pix1/Value > pix2/Value [pixD/value: pix1/Value] [pixD/value: FF000000h or pix2/Value]]
 			]
