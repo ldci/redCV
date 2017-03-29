@@ -7,11 +7,19 @@ Only for Windows for the moment. Available for OSX and Linux ASAP.
 
 #### You need the lastest Red master version.
 
-Developped under Mac OSX 10.12
+Developped under MacOS 10.12
 
-Tested with Windows XP and Windows 10.
+Tested with MacOs, Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
+
+### NEW MARCH 29 2017
+
+RedCV can be used with Red 0.6.2.
+
+New samples added such as clipping functions
+
+
 
 ### NEW DECEMBER 5 2016
 
