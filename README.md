@@ -13,6 +13,11 @@ Tested with MacOs, Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+### APRIL 1 2017
+
+ImageClip.red and libs updated.
+
+
 ### NEW MARCH 29 2017
 
 RedCV can be used with Red 0.6.2.
