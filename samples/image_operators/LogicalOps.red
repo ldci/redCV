@@ -17,20 +17,24 @@ dst: rcvCreateImage img1/size
 view win: layout [
 		title "Logical Tests"
 		origin margins space margins
-		button 35 "SRC" [rcvCopyImage img1 dst ]		
-		button 35 "NOT" [rcvNot img1 dst ]
-		button 35 "AND" [rcvAND img1 img2 dst]
-		button 35 "OR"  [rcvOR img1 img2 dst]
-		button 35 "XOR" [rcvXOR img1 img2 dst]
-		button 35 "NAND"[rcvNAND img1 img2 dst]
-		button 35 "NOR" [rcvNOR img1 img2 dst]
-		button 35 "NXOR"[rcvNXOR img1 img2 dst]
-		button 35 "MIN" [rcvMIN img1 img2 dst]
-		button 35 "MAX" [rcvMAX img1 img2 dst]
+		button 70 "SRC" [rcvCopyImage img1 dst ]		
+		button 70 "NOT" [rcvNot img1 dst ]
+		button 70 "AND" [rcvAND img1 img2 dst]
+		button 70 "OR"  [rcvOR img1 img2 dst]
+		button 70 "XOR" [rcvXOR img1 img2 dst]
+		
 		button 80 "Quit" [	rcvReleaseImage img1 
 							rcvReleaseImage img2 
 							rcvReleaseImage dst 
 							Quit]
+		return
+		
+		button 70 "NAND"[rcvNAND img1 img2 dst]
+		button 70 "NOR" [rcvNOR img1 img2 dst]
+		button 70 "NXOR"[rcvNXOR img1 img2 dst]
+		button 70 "MIN" [rcvMIN img1 img2 dst]
+		button 70 "MAX" [rcvMAX img1 img2 dst]
+		
 		return 
 		text 35 "AND"
 		button 35 "R" [rcvANDS img1 dst 255.0.0.0]

@@ -6,10 +6,8 @@ Red [
 ]
 
 ;A basic Canny filter by subtraction (smoothed image - original image)
-;it's works because Gaussian filter + delta Å Laplacian of Gaussian
+;it's works because Gaussian filter + delta function Å Laplacian of Gaussian
 
-
-; last Red Master required!
 #include %../../libs/redcv.red ; for redCV functions
 margins: 10x10
 defSize: 512x512
@@ -18,7 +16,7 @@ img2: rcvCreateImage defSize
 dst:  rcvCreateImage defSize
 gray: rcvCreateImage defSize
 
-knl: rcvMakeGaussian 3x3  ; you can play with kernel size
+knl: rcvMakeGaussian 5x5  ; you can play with kernel size
 
 delta: 0
 isFile: false
@@ -48,7 +46,7 @@ loadImage: does [
 		; update faces
 		if img1/size/x >= defSize/x [
 			win/size/x: img1/size/x + 20
-			win/size/y: img1/size/y + 70
+			win/size/y: img1/size/y + 90
 		] 
 		canvas/size/x: img1/size/x
 		canvas/size/y: img1/size/y
@@ -63,22 +61,21 @@ loadImage: does [
 view win: layout [
 		title "Simple Canny Filter by Subtraction"
 		origin margins space margins
-		button 45 "Load" 		[loadImage]	
+		button 60 "Load" 		[loadImage]	
 		 
-		check 25 [gScale: face/data]	
-		text 55 "Grayscale?"						
-		sl: slider 256 [ if isFile [
-							delta: to integer! sl/data * 64
+		check "Grayscale" [gScale: face/data]	
+							
+		sl: slider 240[ if isFile [
+							delta: to integer! sl/data * 255
 							vf/data: form delta
 							either gScale [
 								if not gScaleLoad [rcv2Gray/average img1 gray] 
-								rcvGaussianFilter gray img2 knl delta
+								rcvFilter2D gray img2 knl delta
 								rcvSub img2 gray dst]
 								[
-								rcvGaussianFilter img1 img2 knl delta
-								rcvSub img2 img1 dst]		 	
-						]
-								 
+								rcvFilter2D img1 img2 knl delta
+								rcvSub img2 img1 dst]	 	
+						]				 
 		]
 		
 		vf: field 30 "0"						

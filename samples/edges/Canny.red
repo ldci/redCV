@@ -21,20 +21,20 @@ delta: 8
 view win: layout [
 		title "Simple Canny Filter by Subtraction"
 		origin margins space margins
-		button 60 "Source" 		[
+		button 70 "Source" 		[
 			rcv2Gray/average img1 gray 
 			rcvCopyImage gray dst
 			]	
 		 
 									
-		button "Canny" 		[rcvGaussianFilter gray img2 knl delta
-						     rcvSub img2 gray dst
+		button 70 "Canny" 		[rcvGaussianFilter gray img2 knl delta
+						     	rcvSub img2 gray dst
 		]
 		
 							
 		
 		
-		button 60 "Quit" 		[rcvReleaseImage img1 
+		button 70 "Quit" 		[rcvReleaseImage img1 
 								rcvReleaseImage img2
 								rcvReleaseImage gray
 								rcvReleaseImage dst Quit]

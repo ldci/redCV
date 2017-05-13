@@ -97,7 +97,9 @@ _rcvCopyMatF: routine [
 
 
 ; gets and sets integer matrix element value
-_getMatValue: routine [
+; p address must be passed as integer! since red routine doesn't know byte-ptr!
+
+_getIntValue: routine [
 	p		[integer!] ; address of mat element as integer
 	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
 	return:	[integer!]
@@ -106,17 +108,17 @@ _getMatValue: routine [
 ]
 
 
-_setMatValue: routine [
+_setIntValue: routine [
 	p		[integer!] ; address of mat element as integer
-	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
 	value	[integer!]
+	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
 	/local 
-	p4
+	p4		[int-ptr!]
 ] [
 	 p4: as int-ptr! p
      p4/value: switch unit [
-			1 [(value and FFh) or (p4/value and FFFFFF00h)]
-			2 [(value and FFFFh) or (p4/value and FFFF0000h)]
+			1 [value and FFh or (p4/value and FFFFFF00h)]
+			2 [value and FFFFh or (p4/value and FFFF0000h)]
 			4 [value]
 	]
 ]
@@ -155,6 +157,7 @@ _convertMatScale: routine [
 
 
 
+
 ; Red Image -> 1 channel 2-D matrice with a grayscale 
 ; conversion to 8 16 or 32-bit matrices 
 
@@ -167,7 +170,7 @@ _rcvImage2Mat: routine [
 	handle1
 	unit s
 	h w x y 
-	r g b a
+	r g b a grv
 ] [
 	handle1: 0
     pix1: image/acquire-buffer src :handle1
@@ -178,16 +181,17 @@ _rcvImage2Mat: routine [
     dvalue: vector/rs-head mat	; a byte ptr
     s: GET_BUFFER(mat)
 	unit: GET_UNIT(s)
-   ; vector/rs-clear mat 
+    ;vector/rs-clear mat 
     while [y < h] [
        while [x < w][
 			a: pix1/value >>> 24
-       		r: pix1/value and 00FF0000h >> 16 
+       		r: pix1/value and FF0000h >> 16 
         	g: pix1/value and FF00h >> 8 
         	b: pix1/value and FFh 
-        	; -> to Grayscale image
-        	_setMatValue as integer! dvalue unit (r + g + b) / 3
-			;dvalue/value: as-byte (r + g + b) / 3
+        	;OK RGBA are correct
+        	; -> to Grayscale mat
+        	grv: r + g + b / 3 
+        	_setIntValue as integer! dvalue grv unit
            	x: x + 1
            	pix1: pix1 + 1
            	dValue: dValue + unit
@@ -221,7 +225,7 @@ _rcvMat2Image: routine [
     value: vector/rs-head mat ; get pointer address of the matrice
     while [y < h] [
        while [x < w][
-       		i: _getMatValue as integer! value unit; get mat value as integer
+       		i: _getIntValue as integer! value unit; get mat value as integer
        		switch unit [
        			1 [v: as float! i]						; 8-bit
        			2 [v: (as float! i) / FFFFh * FFh]		; 16-bit -> 8-bit
@@ -295,6 +299,10 @@ _rcvSplit2Mat: routine [
 ]
 
 
+
+
+
+
 ; 1 channel 2-D matrice (grayscale) -> Red Image 
 
 _rcvMerge2Image: routine [
@@ -322,10 +330,10 @@ _rcvMerge2Image: routine [
     value3: vector/rs-head mat3
     while [y < h] [
        while [x < w][
-       		a: _getMatValue as integer! value0 1; get mat value as integer
-       		r: _getMatValue as integer! value1 1; get mat value as integer
-       		g: _getMatValue as integer! value2 1; get mat value as integer
-       		b: _getMatValue as integer! value3 1; get mat value as integer
+       		a: _getIntValue as integer! value0 1; get mat value as integer
+       		r: _getIntValue as integer! value1 1; get mat value as integer
+       		g: _getIntValue as integer! value2 1; get mat value as integer
+       		b: _getIntValue as integer! value3 1; get mat value as integer
        		pixD/value: ((255 << 24) OR (r << 16 ) OR (g << 8) OR b)
        		value0: value0 + 1
        		value1: value1 + 1
@@ -385,7 +393,7 @@ _rcvConvolveMat: routine [
             		mx:  (x + (i - (kWidth / 2)) + w ) % w 
         			my:  (y + (j - (kHeight / 2)) + h ) % h 
             		idx: value + (my * w) + mx  ; corrected pixel index
-           			v: _getMatValue as integer! idx 1; get mat value as 8-bit integer
+           			v: _getIntValue as integer! idx 1; get mat value as 8-bit integer
            			;get kernel values OK 
         			f: as red-float! kValue
         			; calculate weighted values
@@ -433,22 +441,22 @@ _xSMGradient: routine [
 	if y >= (h - 1) [y: 1]
     sum: 0
     idx: p + (y - 1 * w) + (x - 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum + v
     idx: p + (y * w) + (x - 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum + (v * 2)
     idx: p + (y + 1 * w) + (x - 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum + v
     idx: p + (y - 1 * w) + (x + 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum - v
     idx: p + (y  * w) + (x + 1)
-    v: _getMatValue idx 1 
+    v: _getIntValue idx 1 
     sum: sum - (v * 2)
     idx: p + (y + 1 * w) + (x + 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum - v
     sum 
 ]
@@ -475,22 +483,22 @@ _ySMGradient: routine [
 	if y >= (h - 1) [y: 1]
     sum: 0
     idx: p + (y - 1 * w) + (x - 1)
-    v: _getMatValue idx 1 
+    v: _getIntValue idx 1 
     sum: sum + v
     idx: p + (y - 1 * w) + x 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum + (v * 2)
     idx: p + (y - 1 * w) + (x + 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum + v
     idx: p + (y + 1 * w) + (x - 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum - v
     idx: p + (y + 1 * w) + x 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum - (v * 2)
     idx: p + (y + 1 * w) + (x + 1) 
-    v: _getMatValue idx 1
+    v: _getIntValue idx 1
     sum: sum - v
     sum
 ]
@@ -653,26 +661,26 @@ _rcvIntegralMat: routine [
        		svalue: idx1 + pindex
        		d1value: idxD1 + pindex
        		d2value: idxD2 + pindex 
-       		val: _getMatValue as integer! svalue unit 
+       		val: _getIntValue as integer! svalue unit 
        		sum: sum + val                             
        		sqsum: sqsum + (val * val)
        		either (x = 0) [
-       					_setMatValue as integer! d1Value unit sum
-       					_setMatValue as integer! d2Value unit sqsum
+       					_setIntValue as integer! d1Value sum unit
+       					_setIntValue as integer! d2Value sqsum unit
        					 ] 
        					 [
        					 ;sum
        					 d1value: d1value - unit
-       					 val: _getMatValue as integer! d1value unit
+       					 val: _getIntValue as integer! d1value unit
        					 d1value: d1value + unit
        					 val2: sum + val
-       					 _setMatValue as integer! d1Value unit val2
+       					 _setIntValue as integer! d1Value val2 unit
        					 ; square sum
        					 d2value: d2value - unit
-       					 val: _getMatValue as integer! d2value unit
+       					 val: _getIntValue as integer! d2value unit
        					 d2value: d2value + unit
        					 val2: sqsum + val
-       					 _setMatValue as integer! d2Value unit val2
+       					 _setIntValue as integer! d2Value val2 unit
        					 ]
        		y: y + 1
        	]
@@ -680,6 +688,69 @@ _rcvIntegralMat: routine [
     ]
 ]
 
+;************** matrices alpha blending ***********************
+_rcvBlendMat: routine [
+	mat1		[vector!]
+	mat2		[vector!]
+	dst			[vector!]
+	alpha		[float!]
+	/local
+	svalue1 	[byte-ptr!]
+	svalue2 	[byte-ptr!]
+	tail 		[byte-ptr!]
+	s	 		[series!]
+	unit 		[integer!]
+	int1 		[integer!]
+	int2 		[integer!]
+	v			[integer!]
+	calpha		[float!]
+][
+	calpha: 1.0 - alpha
+	svalue1: vector/rs-head mat1 
+	svalue2: vector/rs-head mat2 
+    tail: vector/rs-tail mat1
+    vector/rs-clear dst 
+    s: GET_BUFFER(mat1)
+	unit: GET_UNIT(s)
+    while [svalue1 < tail][
+		int1: vector/get-value-int as int-ptr! svalue1 unit
+		int2: vector/get-value-int as int-ptr! svalue2 unit
+		v: as integer! (alpha * int1 + calpha * int2)
+		vector/rs-append-int dst v
+		svalue1: svalue1 + unit
+		svalue2: svalue2 + unit
+	]
+]
 
+;Threshold
 
+_rcvInRangeMat: routine [
+	mat1		[vector!]
+	dst			[vector!]
+	lower		[integer!]
+	upper		[integer!]
+	op			[integer!]
+	/local
+	svalue1 	[byte-ptr!]
+	tail 		[byte-ptr!]
+	s	 		[series!]
+	unit 		[integer!]
+	int1 		[integer!]
+	v			[integer!]
+] [
+	vector/rs-clear dst
+	svalue1: vector/rs-head mat1
+	tail: vector/rs-tail mat1
+	s: GET_BUFFER(mat1)
+	unit: GET_UNIT(s)
+	while [svalue1 < tail][
+		int1: vector/get-value-int as int-ptr! svalue1 unit
+		either ((int1 >= lower) and (int1 <= upper)) [
+			if op = 0 [v: FFh]
+			if op = 1 [v: int1]
+		] [v: 0]
+		vector/rs-append-int dst v
+		svalue1: svalue1 + unit
+	]
+]
 

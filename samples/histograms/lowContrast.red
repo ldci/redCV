@@ -30,8 +30,8 @@ view win: layout [
 						
 			 ]
 		v: field 50 "1"
-		pad 472x0
-		button 40 "Quit" 				[rcvReleaseImage img1 rcvReleaseImage img2 Quit]
+		pad 452x0
+		button 60 "Quit" 				[rcvReleaseImage img1 rcvReleaseImage img2 Quit]
 		return
 		canvas1: base msize img1
 		canvas2: base msize img2

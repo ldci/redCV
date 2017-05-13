@@ -53,7 +53,7 @@ loadImage: does [
 		; update faces
 		if rimg/size/x >= 512 [
 			win/size/x: rimg/size/x + 20
-			win/size/y: rimg/size/y + 190
+			win/size/y: rimg/size/y + 210
 		] 
 		canvas/size/x: rimg/size/x
 		canvas/size/y: rimg/size/y
@@ -73,8 +73,8 @@ view win: layout [
 	title "Play with Kernel Values"
 	origin 10x10 space 10x10
 	style btn: button -1x22
-	btn 50 "Load" [loadImage]
-	btn 50 "Quit" [quit]
+	btn 60 "Load" [loadImage]
+	btn 60 "Quit" [quit]
 	return
 	
 	k1: field 50 k2: field 50 k3: field 50 

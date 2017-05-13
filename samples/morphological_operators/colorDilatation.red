@@ -9,7 +9,7 @@ Red [
 
 #include %../../libs/redcv.red ; for red functions
 
-knl: [0 0 1 0 0
+knl: 	[0 0 1 0 0
 		 0 1 1 1 0
 		 1 1 1 1 1
 		 0 1 1 1 0
@@ -49,15 +49,15 @@ loadImage: does [
 processMat: does [
 	rcvSplit2Mat img1 mat0 mat1 mat2 mat3				; split image
 	rcvSplit2Mat img1 mat4 mat5 mat6 mat7				; split image
-	if r [rcvDilateMat mat1 mat5 img1/size 5x5 knl]		; erode r channel
-	if g [rcvDilateMat mat2 mat6 img1/size 5x5 knl]		; erode g channel
-	if b [rcvDilateMat mat3 mat7 img1/size 5x5 knl]		; erode b channel
+	if r [rcvDilateMat mat1 mat5 img1/size 5x5 knl]		; dilate r channel
+	if g [rcvDilateMat mat2 mat6 img1/size 5x5 knl]		; dilate g channel
+	if b [rcvDilateMat mat3 mat7 img1/size 5x5 knl]		; dilate b channel
 	rcvMerge2Image mat0 mat5 mat6 mat7 imgD				; and merge matrices 
 ]
 
 ; ***************** Test Program ****************************
 view win: layout [
-		title "Channels Erosion"
+		title "Channels Dilatation"
 		origin margins space margins
 		button 100 "Load Image" 		[loadImage processMat]
 		button 100 "Quit" 				[rcvReleaseImage img1 rcvReleaseImage imgD Quit]

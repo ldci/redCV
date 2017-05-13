@@ -25,7 +25,7 @@ loadImage: does [
 		; update faces
 		if img1/size/x >= 512 [
 			win/size/x: img1/size/x + 20
-			win/size/y: img1/size/y + 70
+			win/size/y: img1/size/y + 90
 		] 
 		canvas/size/x: img1/size/x
 		canvas/size/y: img1/size/y
@@ -43,9 +43,9 @@ view win: layout [
 		title "Gaussian 2D Filter"
 		button 60 "Load" 		[loadImage]
 		
-		button 60 "No Filter" 	[rcvCopyImage img1 dst 
+		button 80 "No Filter" 	[rcvCopyImage img1 dst 
 								 rcvCopyImage img1 currentImage]						    								
-		button 60 "Filter +"	[rcvGaussianFilter currentImage dst
+		button 80 "Filter +"	[rcvGaussianFilter currentImage dst
 								rcvCopyImage dst currentImage]					
 		button 80 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		

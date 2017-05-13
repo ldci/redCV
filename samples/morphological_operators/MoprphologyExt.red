@@ -7,7 +7,7 @@ Red [
 
 ; last Red Master required!
 #include %../../libs/redcv.red ; for redCV functions
-margins: 10x10
+margins: 2x5
 img1: rcvLoadImage %../../images/lena.jpg
 clone: rcvCloneImage img1
 dst:  rcvCreateImage img1/size
@@ -19,12 +19,12 @@ knl: rcvCreateStructuringElement/rectangle knlSize
 view win: layout [
 		title "Morphological Operators: Morphology Extensions"
 		origin margins space margins
-		button 55 "Source" 		[f/text: face/text rcvCopyImage img1 dst clone: rcvCloneImage img1]									
-		button 70 "Gradient" 	[f/text: face/text clone: rcvCloneImage img1 rcvMGradient clone dst knlSize knl]
-		button 70 "Gradient/R" 	[f/text: face/text clone: rcvCloneImage img1 rcvMGradient/reverse clone dst knlSize knl]
-		button 70 "Top Hat" 	[f/text: face/text clone: rcvCloneImage img1 rcvTopHat clone dst knlSize knl]
-		button 70 "Black Hat" 	[f/text: face/text clone: rcvCloneImage img1 rcvBlackHat clone dst knlSize knl]	
-		f: field 70 "Source"
+		button 70 "Source" 		[f/text: face/text rcvCopyImage img1 dst clone: rcvCloneImage img1]									
+		button 75 "Gradient" 	[f/text: face/text clone: rcvCloneImage img1 rcvMGradient clone dst knlSize knl]
+		button 90 "Gradient/R" 	[f/text: face/text clone: rcvCloneImage img1 rcvMGradient/reverse clone dst knlSize knl]
+		button 90 "Top Hat" 	[f/text: face/text clone: rcvCloneImage img1 rcvTopHat clone dst knlSize knl]
+		button 90 "Black Hat" 	[f/text: face/text clone: rcvCloneImage img1 rcvBlackHat clone dst knlSize knl]	
+		
 		button 50 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return
 		text 60 "Shape" 	
@@ -44,5 +44,7 @@ view win: layout [
 			on-change [knlSize: to pair! face/text]	
 		return 
 		canvas: base 512x512 dst	
+		return 
+		f: field 512 "Source"
 		do [rcvCopyImage img1 dst clone: rcvCloneImage img1]
 ]

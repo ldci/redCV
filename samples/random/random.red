@@ -12,9 +12,9 @@ margins: 10x10
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Rand Tests"
-		button 40 "Uni"  [canvas/image: rcvRandomImage/uniform 512x512 255.255.255.0]
-		button 40 "Alea" [canvas/image: rcvRandomImage/alea 512x512 255.255.255.0]
-		button 40 "Quit" [quit]
+		button 80 "Uniform"  [canvas/image: rcvRandomImage/uniform 512x512 255.255.255.0]
+		button 80 "Random" [canvas/image: rcvRandomImage/alea 512x512 255.255.255.0]
+		button 50 "Quit" [quit]
 		return
 		canvas: base 512x512 black	
 ]

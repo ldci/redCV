@@ -17,11 +17,11 @@ dst:  rcvCreateImage img1/size
 view win: layout [
 		title "Flip Tests"
 		origin margins space margins
-		button 60 "Source" 		[rcvCopyImage img1 dst ]
-		button 60 "Left/Right" 	[rcvFlip/horizontal img1 dst] 
-		button 60 "Up/Down" 	[rcvFlip/vertical img1 dst]
-		button 60 "Both"  		[rcvFlip/both img1 dst]
-		button 60 "Quit" 		[rcvReleaseImage img1 dst Quit]
+		button 80 "Source" 		[rcvCopyImage img1 dst ]
+		button 80 "Left/Right" 	[rcvFlip/horizontal img1 dst] 
+		button 80 "Up/Down" 	[rcvFlip/vertical img1 dst]
+		button 80 "Both"  		[rcvFlip/both img1 dst]
+		button 80 "Quit" 		[rcvReleaseImage img1 dst Quit]
 		return 
 		canvas: base 512x512 dst	
 		do [rcvCopyImage img1 dst]

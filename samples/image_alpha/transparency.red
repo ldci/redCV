@@ -15,13 +15,12 @@ t: 255
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Alpha Tests"
-		sl: slider 420 [t: 255 - (to integer! sl/data * 255)
+		sl: slider 380 [t: 255 - (to integer! sl/data * 255)
 						vf/data: form t
-						;img1/argb: t
 						rcvSetAlpha img1 img2 t
 						]
 		vf: field 30 "255"
-		button 40 "Quit" [quit]
+		button 80 "Quit" [quit]
 		return
 		canvas: base 512x512 img2	
 		do [rcvSetAlpha img1 img2 255]

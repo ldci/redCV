@@ -48,8 +48,8 @@ showPlot: does [
 view win: layout [
 		title "Histogram Tests"
 		origin margins space margins
-		button 100 "Generate Matrix"	[processMat showPlot]
-		button 40 "Quit" 				[rcvReleaseImage img1 Quit]
+		button 120 "Generate Matrix"	[processMat showPlot]
+		button 60 "Quit" 				[rcvReleaseImage img1 Quit]
 		return
 		canvas1: base msize img1
 		canvas2: base black msize

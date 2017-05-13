@@ -25,7 +25,7 @@ loadImage: does [
 		rimg: load tmp	
 		; update faces
 		win/size/x: rimg/size/x + 20
-		win/size/y: rimg/size/y + 50
+		win/size/y: rimg/size/y + 70
 		canvas/size/x: rimg/size/x
 		canvas/size/y: rimg/size/y
 		canvas/image/size: canvas/size	
@@ -66,7 +66,7 @@ btnConv: make face! [
 
 
 btnQuit: make face! [
-	type: 'button text: "Close" offset: 470x10 size: 50x22
+	type: 'button text: "Close" offset: 470x10 size: 60x22
 	actors: object [
 			on-click: func [face [object!] event [event!]][quit]
 	]

@@ -25,14 +25,17 @@ loadImage: does [
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1
 		; update faces
-		if img1/size/x >= 512 [
-			win/size/x: img1/size/x + 20
-			win/size/y: img1/size/y + 70
-		] 
+		
 		iSize: img1/size
 		canvas/size: iSize
 		canvas/image/size: iSize	
+		
 		canvas/offset/x: (win/size/x - img1/size/x) / 2
+		
+		{if img1/size >= 256x256 [
+			win/size/x: iSize/x + 20
+			win/size/y: iSize/y + 100
+		] }
 		canvas/image: dst
 		f/data: form dst/size
 	]
@@ -44,21 +47,21 @@ loadImage: does [
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Pyramidal Sizing"
-		button 60 "Load" 			[loadImage]
+		button 80 "Load" 			[loadImage]
 		
 								    					    								
-		button 60 "Pyr Down"	   [
+		button 85 "Pyr Down"	   [
 									iSize: iSize / 2
 								    	if iSize > 5x5 [
 								    		f/data: form rcvResizeImage/gaussian dst canvas iSize
 										]
 								    ]	
-		button 60 "Pyr Up"	   		[
+		button 80 "Pyr Up"	   		[
 									iSize: iSize * 2
 									f/data: form rcvResizeImage/gaussian dst canvas iSize
 								    ]				
 								    
-		f: field 70x29						
+		f: field 80x29						
 		button 80 "Quit" 			[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		
 		return

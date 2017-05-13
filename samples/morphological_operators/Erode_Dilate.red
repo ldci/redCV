@@ -9,7 +9,7 @@ Red [
 ; last Red Master required!
 #include %../../libs/redcv.red ; for redCV functions
 margins: 10x10
-img1: rcvLoadImage %../../images/baboon.jpg
+img1: rcvLoadImage %../../images/lena.jpg;char.jpg; 
 clone: rcvCloneImage img1
 dst:  rcvCreateImage img1/size
 ; shapes for SE
@@ -27,7 +27,7 @@ custom: [0 0 1 0 0
 view win: layout [
 		title "Morphological Operators: Erosion & Dilatation"
 		origin margins space margins
-		button 60 "Source" 	[it: 0 iter/text: form it rcvCopyImage img1 dst clone: rcvCloneImage img1]									
+		button 70 "Source" 	[it: 0 iter/text: form it rcvCopyImage img1 dst clone: rcvCloneImage img1]									
 		button 90 "Erode" 	[it: it + 1 iter/text: form it rcvErode clone dst knlSize knl rcvCopyImage dst clone]
 		button 90 "Dilate" 	[it: it + 1 iter/text: form it rcvDilate clone dst knlSize knl rcvCopyImage dst clone]
 		text "Iterations" 

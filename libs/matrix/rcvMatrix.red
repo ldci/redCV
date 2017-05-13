@@ -174,6 +174,16 @@ rcvMatInt2Float: function [src [vector!] dst [vector!] srcScale [float!]
 	]
 ]
 
+rcvMatFloat2Int: function [src [vector!] dst [vector!]
+"Converts float matrix to integer [0..255] matrix"	
+][
+	n: length? src
+	i: 1
+	while [i <= n] [
+					dst/(i): to integer! (src/(i) * 255) 
+	 				i: i + 1
+	]
+]
 
 
 ;***********************Matrices Operations *********************
@@ -215,6 +225,13 @@ rcvRemMat: function [src1 [vector!] src2 [vector!] return: [vector!]
 ][
 	src1 % src2
 ]
+
+rcvMeanMats: function [src1 [vector!] src2 [vector!] return: [vector!]
+"dst: src1 + src2 / 2"
+][
+	(src1 + src2) / 2
+]
+
 
 ; ****************************scalars*******************************
 ; Scalar operations directly modify vector
@@ -302,4 +319,16 @@ rcvDilateMat: function [ src [vector!] dst [vector!] mSize [pair!] kSize [pair!]
 	_rcvMorpho src dst mSize kSize/x kSize/y kernel 1 
 ]
 
+;************** matrices alpha blending ***********************
 
+rcvBlendMat: function [ mat1 [vector!] mat2 [vector!] dst [vector!] alpha [float!] 
+"Computes the alpha blending of two matrices"
+][
+	_rcvBlendMat mat1 mat2 dst alpha
+]
+
+rcvInRangeMat: function [src [image!] dst [image!] lower [integer!] upper [integer!] op [integer!]
+"Extracts sub array from matrix according to lower and upper values "
+] [
+	_rcvInRangeMat src dst lower upper op
+]

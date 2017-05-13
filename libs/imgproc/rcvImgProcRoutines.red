@@ -29,7 +29,6 @@ _rcvXYZ: routine [
     handleD: 0
     pix1: image/acquire-buffer src1 :handle1
     pixD: image/acquire-buffer dst :handleD
-
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: 0
@@ -39,25 +38,21 @@ _rcvXYZ: routine [
        	a: pix1/value >>> 24
        	r: pix1/value and FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
-        b: pix1/value and FFh 
-        
+        b: pix1/value and FFh         
         rf: as float! r 
 		gf: as float! g 
-		bf: as float! b
-    	
+		bf: as float! b   	
 		xf: (rf * 0.412453) + (gf *  0.357580) + (bf * 0.180423)
     	yf: (rf * 0.212671) + (gf *  0.715160) + (bf * 0.072169)
-    	zf: (rf * 0.019334) + (gf *  0.119193) + (bf * 0.950227)
-    	
+    	zf: (rf * 0.019334) + (gf *  0.119193) + (bf * 0.950227)	
     	switch op [
     		1 [r: as integer! zf g: as integer! yf b: as integer! xf] ;rgb
     		2 [r: as integer! xf g: as integer! yf b: as integer! zf] ;bgr
-    	]
-    	
+    	] 	
     	pixD/value: ((a << 24) OR (b << 16 ) OR (g << 8) OR r)	
-        x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -79,7 +74,6 @@ _rcvXYZRGB: routine [
     handleD: 0
     pix1: image/acquire-buffer src1 :handle1
     pixD: image/acquire-buffer dst :handleD
-
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: 0
@@ -100,9 +94,9 @@ _rcvXYZRGB: routine [
     	g: as integer! (yf * 255.0) 
     	b: as integer! (zf * 255.0)
     	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
-        x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -153,11 +147,10 @@ _rcvYCrCb: routine [
 			1 [r: as integer! Yy g: as integer! cr b: as integer! cb]
 			2 [r: as integer! cb g: as integer! cr b: as integer! Yy]
 		]
-		
 		pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
-        x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -203,31 +196,26 @@ _rcvHSV: routine [
         rf: (as float! r) / 255.0
 		gf: (as float! g) / 255.0
 		bf: (as float! b) / 255.0
-		
 		either rf < gf [mini: rf] [mini: gf]
 		if bf < mini [mini: bf] 
 		either rf > gf [maxi: rf] [maxi: gf]
-		if bf > maxi [maxi: bf]
-		
-		v: maxi
-		
+		if bf > maxi [maxi: bf]	
+		v: maxi	
 		; either grayscale no chroma ... or color chromatic data
 		either (maxi - mini = 0.0) [s: 0.0 hh: 0.0] 
 			[s: (v - mini) / v
 			if v = rf [hh: (gf - bf) * 60 / s ]
 			if v = gf [hh: 180.0 + (bf - rf) * 60 / s ]
 			if v = bf [hh: 240.0 + (rf - gf) * 60 / s ]]
-		
 		if hh < 0.0 [ hh: hh + 360.0]
-		
 		switch op [
 			1 [r: as integer! hh / 2 g: as integer! s * 255 b: as integer! v * 255]
 			2 [r: as integer! v * 255 g: as integer! s * 255 b: as integer! hh / 2 ]
 		]
     	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
-        x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -273,29 +261,25 @@ _rcvHLS: routine [
         rf: (as float! r) / 255.0
 		gf: (as float! g) / 255.0
 		bf: (as float! b) / 255.0
-		
 		either rf < gf [mini: rf] [mini: gf]
 		if bf < mini [mini: bf] 
 		either rf > gf [maxi: rf] [maxi: gf]
 		if bf > maxi [maxi: bf]
 		l: (maxi + mini) / 2
-		
 		either l < 0.5 [s: (maxi - mini ) / (maxi + mini)]
 				[ s: (maxi - mini ) / (2.0 - (maxi + mini))]
 		if maxi = rf [hh: (gf - bf) * 60 / s]
 		if maxi = gf [hh: 180.0 + (bf - rf) * 60 / s]	
 		if maxi = bf [hh: 240.0 + (rf - gf) * 60 / s]	
-		
 		if hh < 0.0 [ hh: hh + 360.0]
-		
 		switch op [
 			1 [r: as integer! hh / 2 g: as integer! l * 255 b: as integer! s * 255]
 			2 [r: as integer! s * 255 g: as integer! l * 255 b: as integer! hh / 2 ]
 		]
     	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
-        x: x + 1
         pix1: pix1 + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -321,7 +305,6 @@ _rcvLab: routine [
     handleD: 0
     pix1: image/acquire-buffer src1 :handle1
     pixD: image/acquire-buffer dst :handleD
-
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: 0
@@ -334,40 +317,32 @@ _rcvLab: routine [
        	a: pix1/value >>> 24
        	r: pix1/value and FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
-        b: pix1/value and FFh 
-        
+        b: pix1/value and FFh  
         rf: as float! r / 255.0
 		gf: as float! g / 255.0
 		bf: as float! b / 255.0
-    	
 		xf: (rf * 0.412453) + (gf *  0.357580) + (bf * 0.180423)
     	yf: (rf * 0.212671) + (gf *  0.715160) + (bf * 0.072169)
     	zf: (rf * 0.019334) + (gf *  0.119193) + (bf * 0.950227)
-    	
     	xf: xf / 0.950456
     	zf: zf / 1.088754
-    	
-    
-    	either yf > 0.008856 [l: 116.0 *  (pow yf ratio)] [l: 903.3 * yf]
-    				
+    	either yf > 0.008856 [l: 116.0 *  (pow yf ratio)] [l: 903.3 * yf]			
     	either yf > 0.008856 [aa: 500.0 * ((pow xf ratio) - (pow yf ratio)) + delta
     						bb: 200.0 * ((pow yf ratio) - (pow zf ratio)) + delta] 
     				[aa: 500.0 * ((7787.0 * xf + ratio2) - (7787.0 * yf + ratio2))
     				 bb: 200.0 * ((7787.0 * yf + ratio2) - (7787.0 * zf + ratio2))
     				]
-    	
 		l: l * 255.0 / 100.0
 		aa: aa + 128.0
 		bb: bb + 128.0
     	switch op [
     		1 [r: as integer! l g: as integer! aa b: as integer! bb] ;rgb
     		2 [r: as integer! bb g: as integer! aa b: as integer! l] ;bgr
-    	]
-    	
-    	pixD/value: ((a << 24) OR (b << 16 ) OR (g << 8) OR r)	
-        x: x + 1
+    	]	
+    	pixD/value: (a << 24) OR (b << 16) OR (g << 8) OR r	
         pix1: pix1 + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -393,7 +368,6 @@ _rcvLuv: routine [
     handleD: 0
     pix1: image/acquire-buffer src1 :handle1
     pixD: image/acquire-buffer dst :handleD
-
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: 0
@@ -405,7 +379,6 @@ _rcvLuv: routine [
        	r: pix1/value and FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
-        
         ; convert R,G,B to CIE XYZ
         rf: as float! r / 255.0
 		gf: as float! g / 255.0
@@ -413,10 +386,8 @@ _rcvLuv: routine [
 		xf: (rf * 0.412453) + (gf *  0.357580) + (bf * 0.180423)
     	yf: (rf * 0.212671) + (gf *  0.715160) + (bf * 0.072169)
     	zf: (rf * 0.019334) + (gf *  0.119193) + (bf * 0.950227)
-    	
     	either yf > 0.008856 [l: (116.0 * (pow yf ratio)) - 16.00] 
-    				[l: 903.3 * yf]
-    	
+    				[l: 903.3 * yf]	
     	;convert XYZ to CIE Luv
     	uu: (4.0 * xf) / (xf + 15.00 * yf + 3.0 * zf)			
     	vv: (9.0 * yf) / (xf + 15.00 * yf + 3.0 * zf)
@@ -424,17 +395,15 @@ _rcvLuv: routine [
 		v: 13.00 * l * (vv - 0.46831096)
 		l: l / 100.0 * 255.0
 		u: (u + 134.0)  / 354.0 * 255.0
-		v: (v + 140.0)  / 266.0 * 255.0
-    	 
+		v: (v + 140.0)  / 266.0 * 255.0    	 
     	switch op [
     		1 [r: as integer! l g: as integer! u b: as integer! v] ;rgb
     		2 [r: as integer! v g: as integer! u b: as integer! l] ;bgr
-    	]
-    	
-    	pixD/value: ((a << 24) OR (b << 16 ) OR (g << 8) OR r)	
-        x: x + 1
+    	]	
+    	pixD/value: (a << 24) OR (b << 16 ) OR (g << 8) OR r	
         pix1: pix1 + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -442,8 +411,6 @@ _rcvLuv: routine [
     image/release-buffer src1 handle1 no
     image/release-buffer dst handleD yes
 ]
-
-
 
 
 ;***************** IMAGE TRANSFORMATION ROUTINES ***********************
@@ -474,11 +441,10 @@ _rcvFlipHV: routine [
             1 [idx: pix1 + (y * w) + (w - x) - 1] 		;left/right
             2 [idx: pix1 + (w * h) - (y * w) + x - w] 	; up/down
             3 [idx: pix1 + (w * h) - (y * w) - x - 1]	; both flips
-        ]
-        
+        ]  
         pixD/value: idx/value
-        x: x + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -578,9 +544,9 @@ _rcvConvolve: routine [
         if g > 255 [g: 255]
         if b < 0 [b: 0]
         if b > 255 [b: 255]				 
-        pixD/value: ((255 << 24) OR (r << 16 ) OR (g << 8) OR b)	
-        x: x + 1
+        pixD/value: (255 << 24) OR (r << 16 ) OR (g << 8) OR b
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -641,8 +607,6 @@ _rcvFastConvolve: routine [
 						2 [v: idx/value and FF00h >> 8 ]
 						3 [v: idx/value and FFh]
 					]
-            		
-            		
 					;get kernel values OK 
         			f: as red-float! kValue
         			; calculate weighted values
@@ -657,9 +621,9 @@ _rcvFastConvolve: routine [
     	v: v + as integer! delta
         if v < 0 [v: 0]
         if v > 255 [v: 255]
-        pixD/value: ((255 << 24) OR (v << 16 ) OR (v << 8) OR v)	
-        x: x + 1
+        pixD/value: (255 << 24) OR (v << 16 ) OR (v << 8) OR v	
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -740,7 +704,6 @@ _rcvFilter2D: routine [
         						 [g: as integer! (accG)]
         either (weightSum > 0.0) [b: as integer! (accB / weightSum)] 
         						 [b: as integer! (accB)]
-        
         r: r + delta
         g: g + delta
         b: b + delta
@@ -750,9 +713,9 @@ _rcvFilter2D: routine [
         if g > 255 [g: 255]
         if b < 0 [b: 0]
         if b > 255 [b: 255]				 
-        pixD/value: ((255 << 24) OR (r << 16 ) OR (g << 8) OR b)	
-        x: x + 1
+        pixD/value: (255 << 24) OR (r << 16 ) OR (g << 8) OR b
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -823,8 +786,8 @@ _rcvFastFilter2D: routine [
         either (weightSum > 0.0) [pixD/value: as integer! (weightAcc / weightSum)] 
         						 [pixD/value: as integer! (weightAcc)]
        
-        x: x + 1
         pixD: pixD + 1
+        x: x + 1
        ]
        x: 0
        y: y + 1
@@ -882,8 +845,8 @@ _rcvIntegral: routine [
        					 pixD2: idxD2 + pindex
        					 pixD2/value: val
        					 ]
-        	y: y + 1
         	pix1: pix1 + 1
+        	y: y + 1
        ]
        x: x + 1
        
@@ -1108,6 +1071,244 @@ _rcvMMean: routine [
     image/release-buffer dst handleD yes
 ]
 
+_rcvBlend: routine [
+    src1  	[image!]
+    src2  	[image!]
+    dst  	[image!]
+    alpha	[float!]
+    /local
+        pix1 	[int-ptr!]
+        pix2 	[int-ptr!]
+        pixD 	[int-ptr!]
+        handle1 handle2 handleD 
+        h w x y
+        a1 r1 g1 b1
+        a2 r2 g2 b2
+        a3 r3 g3 b3
+        calpha
+][
+	handle1: 0
+	handle2: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pix2: image/acquire-buffer src2 :handle1
+    pixD: image/acquire-buffer dst :handleD
+	w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    a3: 0
+    r3: 0
+    g3: 0
+    b3: 0
+    calpha: 1.0 - alpha
+    while [y < h] [
+		while [x < w][
+				a1: pix1/value >>> 24
+       			r1: pix1/value and 00FF0000h >> 16 
+        		g1: pix1/value and FF00h >> 8 
+        		b1: pix1/value and FFh 
+        		a2: pix2/value >>> 24
+       			r2: pix2/value and 00FF0000h >> 16 
+        		g2: pix2/value and FF00h >> 8 
+        		b2: pix2/value and FFh 
+        		a3: as integer! (alpha * a1) + (calpha * a2) 
+        		r3: as integer! (alpha * r1) + (calpha * r2) 
+        		g3: as integer! (alpha * g1) + (calpha * g2)
+        		b3: as integer! (alpha * b1) + (calpha * b2)
+        		pixD/value: (a3 << 24) OR (r3 << 16 ) OR (g3 << 8) OR b3
+				pix1: pix1 + 1
+				pix2: pix2 + 1
+				pixD: pixD + 1
+				x: x + 1
+		]
+		x: 0
+		y: y + 1
+	]
+	image/release-buffer src1 handle1 no
+	image/release-buffer src2 handle1 no
+	image/release-buffer dst handleD yes
+]
+
+; for edges detection
+;G= Sqrt Gx^2 +Gy^2
+
+_rcvMagnitude: routine [
+    src1  	[image!]
+    src2  	[image!]
+    dst  	[image!]
+    /local
+        pix1 	[int-ptr!]
+        pix2 	[int-ptr!]
+        pixD 	[int-ptr!]
+        handle1 handle2 handleD 
+        h w x y
+        r1 g1 b1
+        r2 g2 b2
+        r3 g3 b3
+][
+	handle1: 0
+	handle2: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pix2: image/acquire-buffer src2 :handle1
+    pixD: image/acquire-buffer dst :handleD
+	w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    r3: 0
+    g3: 0
+    b3: 0
+    while [y < h] [
+		while [x < w][
+       			r1: pix1/value and 00FF0000h >> 16 
+        		g1: pix1/value and FF00h >> 8 
+        		b1: pix1/value and FFh 
+       			r2: pix2/value and 00FF0000h >> 16 
+        		g2: pix2/value and FF00h >> 8 
+        		b2: pix2/value and FFh 
+        		r3: as integer! sqrt as float! ((r1 * r1) + (r2 * r2)) 
+        		g3: as integer! sqrt as float! ((g1 * g1) + (g2 * g2))
+        		b3: as integer! sqrt as float! ((b1 * b1) + (b2 * b2))
+        		pixD/value: (255 << 24) OR (r3 << 16 ) OR (g3 << 8) OR b3
+				pix1: pix1 + 1
+				pix2: pix2 + 1
+				pixD: pixD + 1
+				x: x + 1
+		]
+		x: 0
+		y: y + 1
+	]
+	image/release-buffer src1 handle1 no
+	image/release-buffer src2 handle1 no
+	image/release-buffer dst handleD yes
+]
+
+
+; atan Gy / Gx to be improved 
+_rcvDirection: routine [
+    src1  	[image!]
+    src2  	[image!]
+    dst  	[image!]
+    /local
+        pix1 	[int-ptr!]
+        pix2 	[int-ptr!]
+        pixD 	[int-ptr!]
+        handle1 handle2 handleD 
+        h w x y
+        r1 g1 b1
+        r2 g2 b2
+        r3 g3 b3
+][
+	handle1: 0
+	handle2: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pix2: image/acquire-buffer src2 :handle1
+    pixD: image/acquire-buffer dst :handleD
+	w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    r3: 0
+    g3: 0
+    b3: 0
+    while [y < h] [
+		while [x < w][
+       			r1: as float! pix1/value and 00FF0000h >> 16 
+        		g1: as float! pix1/value and FF00h >> 8 
+        		b1: as float! pix1/value and FFh 
+       			r2: as float! pix2/value and 00FF0000h >> 16 
+        		g2: as float! pix2/value and FF00h >> 8 
+        		b2: as float! pix2/value and FFh 
+        		either r1 > 0.0 [r3: as integer! atan (r2 / r1)]
+        		 			  [r3: 0]
+        		either g1 > 0.0 [g3: as integer! atan (g2 / g1)]
+        		     		  [g3: 0]
+        		either b1 > 0.0 [b3: as integer! atan (b2 / b1)]
+        					  [b3: 0]
+        		pixD/value: (255 << 24) OR (r3 << 16 ) OR (g3 << 8) OR b3
+				pix1: pix1 + 1
+				pix2: pix2 + 1
+				pixD: pixD + 1
+				x: x + 1
+		]
+		x: 0
+		y: y + 1
+	]
+	image/release-buffer src1 handle1 no
+	image/release-buffer src2 handle1 no
+	image/release-buffer dst handleD yes
+]
+
+
+
+
+;op= 1 ; rcvGradNeumann Computes the discrete gradient 
+;by forward finite differences and Neumann boundary conditions. 
+;op = 2 Computes the divergence by backward finite differences. 
+
+
+_rcvNeumann: routine [
+    src  	[image!]
+    dst1  	[image!]
+    dst2  	[image!]
+    op      [integer!]
+    /local
+    	stride1 
+		bmp1 
+		data1 
+		pos
+        pixD1 	[int-ptr!]
+        pixD2 	[int-ptr!]
+        handleD1 handleD2 
+        h w x y 
+        v1 v2 v3
+] [
+	
+	stride1: 0
+    bmp1: OS-image/lock-bitmap as-integer src/node no
+    data1: OS-image/get-data bmp1 :stride1   
+	handleD1: 0
+    handleD2: 0
+    pixD1: image/acquire-buffer dst1 :handleD1
+    pixD2: image/acquire-buffer dst2 :handleD2
+	w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size) 
+    y: 0 
+    x: 0
+    
+    ;im_out(i,j) = (im_in1(i,j)-im_in1(i-1,j)) + (im_in2(i,j)-im2(i,j-1))
+    while [y < h] [
+		while [x < w][
+				pos: stride1 >> 2 * y + x + 1
+			    v1: data1/pos
+			    v2: data1/pos
+			    v3: data1/pos
+			    
+			    switch op [
+			    	1 [ if x < (w - 1) [pos: stride1 >> 2 * y + x + 2 v2: data1/pos]
+			   			if y < (h - 1) [pos: stride1 >> 2 * (y + 1) + x + 1 v3: data1/pos]
+			    	]
+			    	
+			    	2 [ if x > 0 [pos: stride1 >> 2 * y + x v2: data1/pos]
+			    		if y > 0 [pos: stride1 >> 2 * (y - 1) + x + 1 v3: data1/pos]
+			    	]
+			    ]
+			    pixD1/value: v2 - v1
+			    pixD2/value: v3 - v1
+				pixD1: pixD1 + 1
+				pixD2: pixD2 + 1
+				x: x + 1
+		]
+		x: 0
+		y: y + 1
+	]
+	OS-image/unlock-bitmap as-integer src/node bmp1;
+	image/release-buffer dst1 handleD1 yes
+	image/release-buffer dst2 handleD2 yes
+]
 
 
 

@@ -28,7 +28,7 @@ custom: [0 0 1 0 0
 view win: layout [
 		title "Morphological Operators: Mean"
 		origin margins space margins
-		button 60 "Source" 	[it: 0 iter/text: form it rcvCopyImage img1 dst clone: rcvCloneImage img1]									
+		button 80 "Source" 	[it: 0 iter/text: form it rcvCopyImage img1 dst clone: rcvCloneImage img1]									
 		button 90 "Mean" 	[it: it + 1 iter/text: form it 
 							rcvMMean clone dst knlSize knl 
 							rcvCopyImage dst clone]

@@ -19,7 +19,7 @@ knl: rcvCreateStructuringElement/rectangle knlSize
 view win: layout [
 		title "Morphological Operators: Open & Close"
 		origin margins space margins
-		button 60 "Source" 	[rcvCopyImage img1 dst clone: rcvCloneImage img1]									
+		button 90 "Source" 	[rcvCopyImage img1 dst clone: rcvCloneImage img1]									
 		button 90 "Open" 	[rcvOpen clone dst knlSize knl]
 		button 90 "Close" 	[rcvClose clone dst knlSize knl]	
 		button 60 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]

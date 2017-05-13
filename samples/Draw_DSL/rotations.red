@@ -31,7 +31,7 @@ common: compose [
 				(_grad-color-1)
 				(_grad-color-2)
 				(_grad-color-3) 
-				transform (rot) (centerXY) 0.5 0.5 128x128
+				transform (rot) (centerXY) 0.5 0.5 (centerXY)
 ]
 
 ;square
@@ -65,7 +65,7 @@ view win: layout [
 		stimulus/draw: reduce [grad]
 	]
 	
-	check 100 "Anti Clockwise" [cw: face/data]   
+	check 120 "Anti Clockwise" [cw: face/data]   
 	button 100 "Quit" [Quit]
 	return
 	stimulus: base ssize  on-time [
@@ -74,4 +74,7 @@ view win: layout [
 		grad/23: rot
 	]
 	draw grad
+	return 
+	sl: slider 512 [stimulus/rate: 1 + to integer! face/data * 99] 
+	do [sl/data: 0.5]
 ]

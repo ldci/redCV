@@ -30,7 +30,6 @@ loadImage: does [
 		img1:  rcvLoadImage  tmp
 		canvas1/image: img1
 	]
-	show win
 ]
 
 
@@ -83,7 +82,7 @@ view win: layout [
 		origin margins space margins
 		button 100 "Load Image" 		[loadImage processMat showPlot]
 		check 150 "Smooth Histogram" 	[smooth: face/data processMat showPlot]
-		button 40 "Quit" 				[rcvReleaseImage img1 Quit]
+		button 60 "Quit" 				[rcvReleaseImage img1 Quit]
 		return
 		canvas1: base msize img1
 		canvas2: base black msize

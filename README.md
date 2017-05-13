@@ -13,6 +13,21 @@ Tested with MacOs, Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
+Use first -u compiler option to create a Red RT library and then just -c option which makes the compilation faster:
+
+*red -u -c FileName -> creates a specific LibRT*
+
+*then just red -c FileName -> Faster compilation*
+
+
+### NEW MAY 13 2017###
+
+Documentation is reorganized for a better comprehension and includes an **index** of all implemented functions.
+
+New RedCV functions added such as **logarithmic image processing model**.
+
+A lot of new edges filters added in library and in code samples.
+
 ### APRIL 1 2017
 
 ImageClip.red and libs updated.

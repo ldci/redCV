@@ -62,13 +62,10 @@ edges2: [-5.0 -5.0 -5.0
 		
 removal: [-1.0 -1.0 -1.0
 		  -1.0 9.0 -1.0 
-		 -1.0 -1.0 -1.0]
-		 
+		 -1.0 -1.0 -1.0]		 
 gaussian: [0.0 0.2 0.0
 		   0.2 0.2 0.2 
-		   0.0 0.2 0.0]
-		   
-		   
+		   0.0 0.2 0.0]		   
 cross: [0.0 1.0 -1.0 0.0]
 		   
 motion: [1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
@@ -100,7 +97,7 @@ loadImage: does [
 		; update faces
 		if rimg/size/x >= 512 [
 			win/size/x: rimg/size/x + 20
-			win/size/y: rimg/size/y + 50
+			win/size/y: rimg/size/y + 70
 		] 
 		canvas/size/x: rimg/size/x
 		canvas/size/y: rimg/size/y
@@ -189,7 +186,7 @@ img-convolve: func [num [integer!]] [
 		16 	[t1: now/time/precise
 			rcvConvolve rimg dst cross 1.0 0.0
 			sb1/data: third now/time/precise - t1
-		];
+		]
 	]
 ]
 

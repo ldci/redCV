@@ -10,7 +10,7 @@ Red [
 #include %../../libs/redcv.red ; for red functions
 
 margins: 5x5
-msize: 256x256
+msize: 512x512
 img1: rcvLoadImage %../../images/lena.jpg
 img2: rcvCreateImage img1/size
 mat: rcvCreateMat 'integer! 8 img1/size
@@ -31,7 +31,7 @@ view win: layout [
 		origin margins space margins
 		sl: slider 200 [p: to percent! face/data  v/data: form face/data processMat]
 		v: field 50 "0"
-		button 40 "Quit" 				[rcvReleaseImage img1 Quit]
+		button 80 "Quit" 				[rcvReleaseImage img1 Quit]
 		return
 		canvas1: base msize img1
 		canvas2: base msize img2

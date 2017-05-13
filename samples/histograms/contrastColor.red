@@ -35,7 +35,7 @@ view win: layout [
 		sl: slider 455 [p: to percent! face/data  v/data: form face/data processMat]
 		v: field 50 "0%"
 		pad 472x0
-		button 40 "Quit" 				[rcvReleaseImage img1 rcvReleaseImage img2 Quit]
+		button 60 "Quit" 				[rcvReleaseImage img1 rcvReleaseImage img2 Quit]
 		return
 		canvas1: base msize img1
 		canvas2: base msize img2

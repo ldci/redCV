@@ -61,6 +61,7 @@ rcvShowImage: function [window [face!] image [image!] /full
 ] [
 	window/pane/1/image: image
 	window/size: window/pane/1/size + winBorder
+	show window
 ]
 
 rcvDrawPlot: function [window [face!] plot [block!] /clear
@@ -68,6 +69,7 @@ rcvDrawPlot: function [window [face!] plot [block!] /clear
 ] [
 	if clear [window/pane/1/image: black]
 	window/pane/1/draw: plot
+	show window
 ]
 
 
