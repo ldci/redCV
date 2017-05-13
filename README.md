@@ -20,7 +20,7 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *then just red -c FileName -> Faster compilation*
 
 
-### NEW MAY 13 2017###
+### NEW MAY 13 2017
 
 Documentation is reorganized for a better comprehension and includes an **index** of all implemented functions.
 
