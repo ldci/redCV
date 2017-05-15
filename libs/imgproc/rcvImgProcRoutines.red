@@ -1126,7 +1126,7 @@ _rcvBlend: routine [
 		y: y + 1
 	]
 	image/release-buffer src1 handle1 no
-	image/release-buffer src2 handle1 no
+	image/release-buffer src2 handle2 no
 	image/release-buffer dst handleD yes
 ]
 
