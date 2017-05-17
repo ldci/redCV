@@ -12,7 +12,7 @@ Red [
 
 ;***************** COLORSPACE CONVERSIONS ************
 ; Based on  OpenCV 3.0 implementation for 8-bit image
-
+; exported as functions in /libs/imgproc/rcvImgProc.red
 
 ;RGB<=>CIE XYZ.Rec 709 with D65 white point
 _rcvXYZ: routine [
@@ -414,6 +414,7 @@ _rcvLuv: routine [
 
 
 ;***************** IMAGE TRANSFORMATION ROUTINES ***********************
+; exported as functions in /libs/imgproc/rcvImgProc.red
 
 _rcvFlipHV: routine [
     src  [image!]
@@ -454,6 +455,7 @@ _rcvFlipHV: routine [
 ]
 
 ; *************** IMAGE CONVOLUTION *************************
+; exported as functions in /libs/imgproc/rcvImgProc.red
 
 {The 2D convolution operation isn't extremely fast, 
 unless you use small filters. We'll usually be using 3x3 or 5x5 filters. 
@@ -633,7 +635,8 @@ _rcvFastConvolve: routine [
 ]
 
 
-; Similar to convolution but the sum of the weights is computed during the summation, and used to scale the result.
+; Similar to convolution but the sum of the weights is computed during the summation, 
+; and used to scale the result.
 
 _rcvFilter2D: routine [
     src  	[image!]
@@ -797,7 +800,8 @@ _rcvFastFilter2D: routine [
 ]
 
 
-; integral image
+; ****************integral image************************
+; exported as functions in /libs/imgproc/rcvImgProc.red
 
 _rcvIntegral: routine [
     src  [image!]
@@ -859,6 +863,7 @@ _rcvIntegral: routine [
 
 
 ; ******************* morphological Operations**************************
+; exported as functions in /libs/imgproc/rcvImgProc.red
 
 _rcvErode: routine [
     src  	[image!]
@@ -1092,7 +1097,7 @@ _rcvBlend: routine [
     handleD: 0
     pix1: image/acquire-buffer src1 :handle1
     pix2: image/acquire-buffer src2 :handle1
-    pixD: image/acquire-buffer dst :handleD
+    pixD: image/acquire-buffer dst  :handleD
 	w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: 0
@@ -1130,7 +1135,11 @@ _rcvBlend: routine [
 	image/release-buffer dst handleD yes
 ]
 
-; for edges detection
+
+
+
+; ************tools for edges detection***********
+; exported as functions in /libs/imgproc/rcvImgProc.red
 ;G= Sqrt Gx^2 +Gy^2
 
 _rcvMagnitude: routine [
@@ -1249,7 +1258,7 @@ _rcvDirection: routine [
 ;by forward finite differences and Neumann boundary conditions. 
 ;op = 2 Computes the divergence by backward finite differences. 
 
-
+; exported as functions in /libs/imgproc/rcvImgProc.red
 _rcvNeumann: routine [
     src  	[image!]
     dst1  	[image!]

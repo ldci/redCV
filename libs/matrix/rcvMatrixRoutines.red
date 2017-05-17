@@ -18,6 +18,7 @@ Red [
 
 ;**********************MATRICES**************************
 
+; exported as functions in /libs/matrix/rcvMatrixRoutines.red
 
 _rcvGetMatType: routine [
 	mat  	[vector!]
@@ -93,9 +94,6 @@ _rcvCopyMatF: routine [
 ]
 
 
-
-
-
 ; gets and sets integer matrix element value
 ; p address must be passed as integer! since red routine doesn't know byte-ptr!
 
@@ -154,8 +152,6 @@ _convertMatScale: routine [
 		svalue: svalue + unit
 	]
 ]
-
-
 
 
 ; Red Image -> 1 channel 2-D matrice with a grayscale 
@@ -544,6 +540,7 @@ _rcvSobelMat: routine [
 
 
 ; ******************* morphological Operations**************************
+; exported as functions in /libs/matrix/rcvMatrixRoutines.red
 ; for 8-bits matrices
 _rcvMorpho: routine [
    	src  	[vector!]
@@ -620,6 +617,7 @@ _rcvMorpho: routine [
 ]
 
 ;*********************** Integral Matrices *************************
+; exported as functions in /libs/matrix/rcvMatrixRoutines.red
 ; integer Matrices 
 _rcvIntegralMat: routine [
    	src  	[vector!]
@@ -689,6 +687,8 @@ _rcvIntegralMat: routine [
 ]
 
 ;************** matrices alpha blending ***********************
+; exported as functions in /libs/matrix/rcvMatrixRoutines.red
+
 _rcvBlendMat: routine [
 	mat1		[vector!]
 	mat2		[vector!]
@@ -722,7 +722,9 @@ _rcvBlendMat: routine [
 	]
 ]
 
-;Threshold
+;******************Threshold**************************
+; exported as functions in /libs/matrix/rcvMatrixRoutines.red
+
 
 _rcvInRangeMat: routine [
 	mat1		[vector!]

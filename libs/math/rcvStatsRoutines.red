@@ -282,9 +282,6 @@ _rcvMaxLoc: routine [src [image!] maxloc [pair!] return: [pair!]
     as red-pair! stack/set-last as cell! locmax 
 ]
 
-
-
-
 _rcvHisto: routine [
     src  	[image!]
     histo  	[vector!]
@@ -324,6 +321,7 @@ _rcvHisto: routine [
 ]
 
 ;***************** STATISTICAL ROUTINES ON MATRIX ***********************
+; exported as functions in /libs/math/rcvStats.red
 
 _rcvCountMat: routine [mat [vector!] return: [integer!]
 	/local

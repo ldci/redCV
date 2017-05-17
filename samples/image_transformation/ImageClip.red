@@ -25,7 +25,7 @@ drawRect: compose [line-width 2 pen green box 0x0 200x200]
 ; ***************** Test Program ****************************
 view/tight [
 		title "Clip Tests"
-		style rect: base glass 202x202 loose draw []
+		style rect: base 255.255.255.240 202x202 loose draw []
 		origin margins space margins
 		button 80 "Show Roi" [p1/draw: drawRect extrait/draw: drawBlk]
 		button 80 "Hide Roi" [p1/draw: [] extrait/draw: []]

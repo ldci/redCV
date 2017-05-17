@@ -275,7 +275,7 @@ _rcvMath: routine [
 	while [y < h] [
 		while [x < w][
 			switch op [
-				0 [pixD/value: pix1/Value ]
+				0 [pixD/value: pix1/Value]
 				1 [pixD/value: FF000000h or (pix1/Value + pix2/value)]
 				2 [pixD/value: FF000000h or (pix1/Value - pix2/Value)]
 				3 [pixD/value: FF000000h or (pix1/Value * pix2/Value)]
@@ -300,68 +300,6 @@ _rcvMath: routine [
 	image/release-buffer src2 handle2 no
 	image/release-buffer dst handleD yes
 ]
-
-
-;Logarithmic Image Processing Model for + and -
-_rcvLIP: routine [
-	src1 [image!]
-	src2 [image!]
-	dst	 [image!]
-	op [integer!]
-	/local 
-	pix1 [int-ptr!]
-	pix2 [int-ptr!]
-	pixD [int-ptr!]
-	handle1 handle2 handleD h w x y
-	a1 r1 g1 b1
-	a2 r2 g2 b2 
-	fa fr fg fb
-][
-	handle1: 0
-	handle2: 0
-	handleD: 0
-	pix1: image/acquire-buffer src1 :handle1
-	pix2: image/acquire-buffer src2 :handle2
-	pixD: image/acquire-buffer dst :handleD	
-	w: IMAGE_WIDTH(src1/size) 
-	h: IMAGE_HEIGHT(src1/size)
-	x: 0
-	y: 0
-	while [y < h] [
-		while [x < w][
-			a1: pix1/value >>> 24
-    		r1: pix1/value and 00FF0000h >> 16 
-    		g1: pix1/value and FF00h >> 8 
-    		b1: pix1/value and FFh 	
-    		a2: pix2/value >>> 24
-    		r2: pix2/value and 00FF0000h >> 16 
-    		g2: pix2/value and FF00h >> 8 
-    		b2: pix2/value and FFh
-			switch op [
-				1 [fr: (r1 + r2) - ((r1 * r2) / 256) 
-				   fg: (g1 + g2) - ((g1 * g2) / 256)
-			       fb: (b1 + b2) - ((b1 * b2) / 256)
-			    ]
-			    2 [ fr: (256 * (r1 - r2)) / (256 - r2)
-			    	fg: (256 * (g1 - g2)) / (256 - g2)
-			    	fb: (256 * (b1 - b2)) / (256 - b2)
-			    ]
-			]
-			pixD/value: (255 << 24) OR (fr << 16 ) OR (fg << 8) OR fb
-			pix1: pix1 + 1
-			pix2: pix2 + 1
-			pixD: pixD + 1
-			x: x + 1
-		]
-		x: 0
-		y: y + 1
-	]
-	image/release-buffer src1 handle1 no
-	image/release-buffer src2 handle2 no
-	image/release-buffer dst handleD yes
-]
-
-
 
 ; tuples
 _rcvMathT: routine [
@@ -483,15 +421,21 @@ _rcvMathF: routine [
     		g: pix1/value and FF00h >> 8 
     		b: pix1/value and FFh 	
 			switch op [
-				1 [ fr: as integer! (pow as float! r v)
+				1 [ fa: as integer! (pow as float! a v)
+					fr: as integer! (pow as float! r v)
 					fg: as integer! (pow as float! g v)
 					fb: as integer! (pow as float! b v)
 				  ]
-			    2 [fr: as integer! (sqrt as float! r >> as integer! v)
+			    2 [ fa: as integer! (sqrt as float! a >> as integer! v)
+			    	fr: as integer! (sqrt as float! r >> as integer! v)
 					fg: as integer! (sqrt as float! g >> as integer! v)
 					fb: as integer! (sqrt as float! b >> as integer! v)]
+				3  [fa: as integer! (v * a)
+					fr: as integer! (v * r)
+					fg: as integer! (v * g)
+					fb: as integer! (v * b)] ; for image intensity
 			]
-			pixD/value: (a << 24) OR (fr << 16 ) OR (fg << 8) OR fb
+			pixD/value: FF000000h or ((fa << 24) OR (fr << 16 ) OR (fg << 8) OR fb)
 			pix1: pix1 + 1
 			pixD: pixD + 1
 			x: x + 1
@@ -503,12 +447,70 @@ _rcvMathF: routine [
 	image/release-buffer dst handleD yes
 ]
 
+;*************Logarithmic Image Processing Model ************
+; exported as functions in /libs/core/rcvCore.red
 
+_rcvLIP: routine [
+	src1 [image!]
+	src2 [image!]
+	dst	 [image!]
+	op [integer!]
+	/local 
+	pix1 [int-ptr!]
+	pix2 [int-ptr!]
+	pixD [int-ptr!]
+	handle1 handle2 handleD h w x y
+	a1 r1 g1 b1
+	a2 r2 g2 b2 
+	fa fr fg fb
+][
+	handle1: 0
+	handle2: 0
+	handleD: 0
+	pix1: image/acquire-buffer src1 :handle1
+	pix2: image/acquire-buffer src2 :handle2
+	pixD: image/acquire-buffer dst :handleD	
+	w: IMAGE_WIDTH(src1/size) 
+	h: IMAGE_HEIGHT(src1/size)
+	x: 0
+	y: 0
+	while [y < h] [
+		while [x < w][
+			a1: pix1/value >>> 24
+    		r1: pix1/value and 00FF0000h >> 16 
+    		g1: pix1/value and FF00h >> 8 
+    		b1: pix1/value and FFh 	
+    		a2: pix2/value >>> 24
+    		r2: pix2/value and 00FF0000h >> 16 
+    		g2: pix2/value and FF00h >> 8 
+    		b2: pix2/value and FFh
+			switch op [
+				1 [fr: (r1 + r2) - ((r1 * r2) / 256) 
+				   fg: (g1 + g2) - ((g1 * g2) / 256)
+			       fb: (b1 + b2) - ((b1 * b2) / 256)
+			    ]
+			    2 [ fr: (256 * (r1 - r2)) / (256 - r2)
+			    	fg: (256 * (g1 - g2)) / (256 - g2)
+			    	fb: (256 * (b1 - b2)) / (256 - b2)
+			    ]
+			]
+			pixD/value: (255 << 24) OR (fr << 16 ) OR (fg << 8) OR fb
+			pix1: pix1 + 1
+			pix2: pix2 + 1
+			pixD: pixD + 1
+			x: x + 1
+		]
+		x: 0
+		y: y + 1
+	]
+	image/release-buffer src1 handle1 no
+	image/release-buffer src2 handle2 no
+	image/release-buffer dst handleD yes
+]
 
 
 ;***************** LOGICAL OPERATOR ON IMAGE ROUTINES ************
 ; exported as functions in /libs/core/rcvCore.red
-
 
 _rcvNot: routine [
     src1 [image!]
@@ -592,32 +594,35 @@ _rvcLogical: routine [
 
 
 ; ********* Image Alpha **********
+; exported as functions in /libs/core/rcvCore.red
 
 _rcvSetAlpha: routine [
-	src1  	[image!]
+	src  	[image!]
     dst   	[image!]
     alpha 	[integer!]
     /local
 	pix1 	[int-ptr!]
     pixD 	[int-ptr!]
-    handle1 handleD 
+    handleS handleD 
     h w x y r g b a
 ][
-	handle1: 0
+	handleS: 0
     handleD: 0
-    pix1: image/acquire-buffer src1 :handle1
+    pix1: image/acquire-buffer src :handleS
     pixD: image/acquire-buffer dst :handleD
-    w: IMAGE_WIDTH(src1/size)
-    h: IMAGE_HEIGHT(src1/size)
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
     x: 0
     y: 0
     while [y < h] [
        while [x < w][
-       		r: pix1/value and 00FF0000h >> 16 
+       		;a: pix1/value >>> 24
+       		r: pix1/value and FF0000h >> 16 
         	g: pix1/value and FF00h >> 8 
         	b: pix1/value and FFh 
         	a: alpha
-       		pixD/value: (a << 24) OR (r << 16) OR (g << 8) OR b
+       		;pixD/value: (alpha << 24) OR (r << 16) OR (g << 8) OR b
+       		pixD/value: pix1/value and 00FFFFFFh OR (alpha << 24)
            	pix1: pix1 + 1
            	pixD: pixD + 1
            	x: x + 1
@@ -625,11 +630,12 @@ _rcvSetAlpha: routine [
        x: 0
        y: y + 1
     ]
-    image/release-buffer src1 handle1 no
+    image/release-buffer src handleS no
     image/release-buffer dst handleD yes
 ]
 
 ;********** SUB-ARRAYS ************************
+; exported as functions in /libs/core/rcvCore.red
 
 _rcvInRange: routine [
 	src1  	[image!]
