@@ -16,14 +16,11 @@ tmp1: rcvCreateImage img1/size
 tmp2: rcvCreateImage img2/size
 alpha: 0.5
 
-blending: function [src1 [image!] src2 [image!] dst [image!] alpha	[float!]
-][
-	rcvSetIntensity src1 tmp1 alpha 
-	rcvSetIntensity src2 tmp2  1.0 - alpha 
+blending: function [] [
+	rcvSetIntensity img1 tmp1 alpha 
+	rcvSetIntensity img2 tmp2  1.0 - alpha 
 	rcvAdd tmp1 tmp2 dst
 ]
-
-
 
 ; ***************** Test Program ****************************
 view win: layout [
@@ -33,7 +30,7 @@ view win: layout [
 		sl: slider 170 [alpha: face/data * 1.0
 					f1/text: form alpha
 					f2/text: form (1 - alpha)
-					blending img1 img2 dst alpha
+					blending
 					]
 		text 60 "Image 2" 
 		f2: field 50  "0.5"
@@ -45,5 +42,5 @@ view win: layout [
 							Quit]
 		return
 		canvas: base 512x512 dst
-		do [sl/data: alpha blending img1 img2 dst alpha]
+		do [sl/data: alpha blending]
 ]
