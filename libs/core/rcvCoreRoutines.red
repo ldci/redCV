@@ -22,7 +22,7 @@ _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
 		r g b a
 ][
     stride1: 0
-    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    bmp1: OS-image/lock-bitmap src1 no
     data1: OS-image/get-data bmp1 :stride1   
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
@@ -33,7 +33,7 @@ _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
     r: data1/pos and 00FF0000h >> 16
     g: data1/pos and FF00h >> 8
     b: data1/pos and FFh
-    OS-image/unlock-bitmap as-integer src1/node bmp1
+    OS-image/unlock-bitmap src1 bmp1
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
 
