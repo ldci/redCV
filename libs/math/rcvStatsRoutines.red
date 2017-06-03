@@ -29,7 +29,7 @@ _rcvCount: routine [src1 [image!] return: [integer!]
 		n
 ][
     stride1: 0
-    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    bmp1: OS-image/lock-bitmap src1 no
     data1: OS-image/get-data bmp1 :stride1   
 
     w: IMAGE_WIDTH(src1/size)
@@ -49,7 +49,7 @@ _rcvCount: routine [src1 [image!] return: [integer!]
         x: 0
         y: y + 1
     ]
-    OS-image/unlock-bitmap as-integer src1/node bmp1;
+    OS-image/unlock-bitmap src1 bmp1;
     n
 ]
 
@@ -78,7 +78,7 @@ _rcvStdInt: routine [src1 [image!] return: [integer!]
 		e
 ][
     stride1: 0
-    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    bmp1: OS-image/lock-bitmap src1 no
     data1: OS-image/get-data bmp1 :stride1   
 
     w: IMAGE_WIDTH(src1/size)
@@ -136,7 +136,7 @@ _rcvStdInt: routine [src1 [image!] return: [integer!]
     r: as integer! fr
     g: as integer! fg
     b: as integer! fb
-    OS-image/unlock-bitmap as-integer src1/node bmp1;
+    OS-image/unlock-bitmap src1 bmp1;
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
 
@@ -160,7 +160,7 @@ _rcvMeanInt: routine [src1 [image!] return: [integer!]
 		sa
 ][
     stride1: 0
-    bmp1: OS-image/lock-bitmap as-integer src1/node no
+    bmp1: OS-image/lock-bitmap src1 no
     data1: OS-image/get-data bmp1 :stride1   
 
     w: IMAGE_WIDTH(src1/size)
@@ -187,7 +187,7 @@ _rcvMeanInt: routine [src1 [image!] return: [integer!]
     r: sr / (w * h)
     g: sg / (w * h)
     b: sb / (w * h)
-    OS-image/unlock-bitmap as-integer src1/node bmp1;
+    OS-image/unlock-bitmap src1 bmp1;
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
 
@@ -210,7 +210,7 @@ _rcvMinLoc: routine [src [image!] minloc [pair!] return: [pair!]
 		locmin 
 ] [
 	stride: 0
-    bmp: OS-image/lock-bitmap as-integer src/node no
+    bmp: OS-image/lock-bitmap src no
     data: OS-image/get-data bmp :stride   
 
     w: IMAGE_WIDTH(src/size)
@@ -233,7 +233,7 @@ _rcvMinLoc: routine [src [image!] minloc [pair!] return: [pair!]
         x: 0
         y: y + 1
     ]
-    OS-image/unlock-bitmap as-integer src/node bmp
+    OS-image/unlock-bitmap src bmp
     as red-pair! stack/set-last as cell! locmin 
 ]
 
@@ -255,7 +255,7 @@ _rcvMaxLoc: routine [src [image!] maxloc [pair!] return: [pair!]
 		locmax 
 ] [
 	stride: 0
-    bmp: OS-image/lock-bitmap as-integer src/node no
+    bmp: OS-image/lock-bitmap src no
     data: OS-image/get-data bmp :stride   
 
     w: IMAGE_WIDTH(src/size)
@@ -278,7 +278,7 @@ _rcvMaxLoc: routine [src [image!] maxloc [pair!] return: [pair!]
         x: 0
         y: y + 1
     ]
-    OS-image/unlock-bitmap as-integer src/node bmp
+    OS-image/unlock-bitmap src bmp
     as red-pair! stack/set-last as cell! locmax 
 ]
 
