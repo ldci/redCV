@@ -1277,7 +1277,10 @@ _rcvNeumann: routine [
 ] [
 	
 	stride1: 0
+<<<<<<< HEAD
     ;bmp1: OS-image/lock-bitmap as-integer src/node no
+=======
+>>>>>>> origin/master
     bmp1: OS-image/lock-bitmap src no
     data1: OS-image/get-data bmp1 :stride1   
 	handleD1: 0
@@ -1315,8 +1318,12 @@ _rcvNeumann: routine [
 		x: 0
 		y: y + 1
 	]
+<<<<<<< HEAD
 	;OS-image/unlock-bitmap as-integer src/node bmp1;
 	OS-image/unlock-bitmap src bmp1; MB
+=======
+	OS-image/unlock-bitmap src bmp1;
+>>>>>>> origin/master
 	image/release-buffer dst1 handleD1 yes
 	image/release-buffer dst2 handleD2 yes
 ]
