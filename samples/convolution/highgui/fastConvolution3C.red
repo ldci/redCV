@@ -5,13 +5,12 @@ Red [
 	Needs:	 'View
 ]
 
-mask: [-1.0 0.0 -1.0
-		0.0 4.0 0.0 
-	   -1.0 0.0 -1.0]
 
+#include %../../../libs/redcv.red ; for redCV functions
+;a quick laplacian mask
+mask: [-1.0 0.0 -1.0 0.0 4.0 0.0 -1.0 0.0 -1.0]
 
-#include %../../libs/redcv.red ; for redCV functions
-img1: rcvLoadImage %../../images/lena.jpg
+img1: rcvLoadImage %../../../images/lena.jpg
 img2: rcvCreateImage img1/size
 img3: rcvCreateImage img1/size
 img4: rcvCreateImage img1/size

@@ -1,55 +1,1 @@
-Red [
-	Title:   "Matrix tests "
-	Author:  "Francois Jouen"
-	File: 	 %AddMatrices.red
-	Needs:	 'View
-]
-
-#include %../../libs/redcv.red ; for redCV functions
-img1: rcvLoadImage %../../images/lena.jpg ;cross.png;
-img2: rcvCreateImage img1/size
-img3: rcvCreateImage img1/size
-
-
-; uses 16-bit matrices to avoid rounding effects
-mat1: rcvCreateMat 'integer! 8 img1/size
-mat2: rcvCreateMat 'integer! 16 img1/size
-mat3: rcvCreateMat 'integer! 16 img1/size
-mat4: rcvCreateMat 'integer! 16 img1/size
-
-rcvImage2Mat img1 mat1 							; Converts  image to 1 Channel matrix [0..255]
-rcvMat82Image mat1 img1							; to Red image
-
-
-rcvConvertMatScale/normal mat1 mat2 255 32768		 ; converts scale
-
-rcvRandomMat mat3 32768							; random mat
-rcvMat162Image mat3 img2						; to Red Image
-
-
-mat4: rcvAddMat mat2 mat3 						; add both matrices
-;rcvAddMat mat2 mat3 mat4
-rcvMat162Image mat4 img3						; from matrix to red image
-
-probe mat1/1
-probe mat2/1
-probe mat3/1
-probe mat4/1
-
-
-
-s1: rcvNamedWindow "Source Matrix"
-s2: rcvNamedWindow "Random Matrix"
-d:  rcvNamedWindow " -> Red Image"
-
-
-rcvMoveWindow s1 100x100
-rcvMoveWindow s2 400x100
-rcvMoveWindow d  700x100
-
-
-rcvShowImage s1 img1
-rcvShowImage s2 img2
-rcvShowImage d img3
-
-do-events
+Red [	Title:   "Matrix tests "	Author:  "Francois Jouen"	File: 	 %addMatrices.red	Needs:	 'View]#include %../../libs/redcv.red ; for redCV functionsisize: 256x256bitSize: 32img1: rcvCreateImage isizeimg2: rcvCreateImage isizeimg3: rcvCreateImage isizeisFile: false; loads any supported Red image loadImage: does [	isFile: false	canvas1/image/rgb: black	canvas2/image/rgb: black	canvas3/image/rgb: black	tmp: request-file	if not none? tmp [		img1: rcvLoadImage tmp		img2: rcvCreateImage img1/size					img3: rcvCreateImage img1/size		mat1: rcvCreateMat 'integer! bitSize img1/size		mat2: rcvCreateMat 'integer! bitSize img1/size		mat3: rcvCreateMat 'integer! bitSize img1/size		canvas1/image: img1		rcvImage2Mat img1 mat1		isFile: true	]]; generate random imagegenerate: does [	if isFile [		rcvRandomMat mat2 127		rcvMat2Image mat2 img2		canvas2/image: img2		mat3: rcvAddMat mat1 mat2		rcvMat2Image mat3 img3		canvas3/image: img3	]]; Clean App QuitquitApp: does [	rcvReleaseImage img1 	rcvReleaseImage img2	rcvReleaseImage img3	if isFile [		rcvReleaseMat mat1		rcvReleaseMat mat2		rcvReleaseMat mat3	]	Quit]; ***************** Test Program ****************************view win: layout [		title "Add Matrices"		button "Load" [loadImage]		button "Generate" [generate]		button "Quit" [quitApp]		return		text 100 "Source" 		pad 156x0 text 100 "Random image"		pad 156x0 text "Result"		return		canvas1: base isize img1		canvas2: base isize img2		canvas3: base isize img3]

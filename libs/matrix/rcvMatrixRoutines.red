@@ -18,8 +18,10 @@ Red [
 
 ;**********************MATRICES**************************
 
-; exported as functions in /libs/matrix/rcvMatrixRoutines.red
+; exported as functions in /libs/matrix/rcvMatrix.red
 
+; some useful routines
+; integer or float matrix type
 _rcvGetMatType: routine [
 	mat  	[vector!]
 	return: [integer!]
@@ -28,69 +30,20 @@ _rcvGetMatType: routine [
 ] [
 	s: GET_BUFFER(mat)
 	unit: GET_UNIT(s)
-	; 1 integer/2 float
+	; 1 integer 2 float
 	either unit <= 4 [type: 1] [type: 2] 
 	type
 ]
 
-; integer matrices
-_rcvCopyMat: routine [
-   	src  	[vector!]
-    dst1  	[vector!]
-    /local
-    svalue 	[byte-ptr!]
-    tail 	[byte-ptr!]
-    d1value [byte-ptr!]
-    p4
-    s unit
-    val
-    ] [
-    svalue: vector/rs-head src  
-    tail: vector/rs-tail src
-	d1value: vector/rs-head dst1	
-	
-	s: GET_BUFFER(src)
-	unit: GET_UNIT(s)
-		
-   	while [svalue < tail][
-		val: vector/get-value-int as int-ptr! svalue unit
-		p4: as int-ptr! d1Value
-		p4/value: switch unit [
-					1 [val and FFh or (p4/value and FFFFFF00h)]
-					2 [val and FFFFh or (p4/value and FFFF0000h)]
-					4 [val]
-		]
-		svalue: svalue + unit
-		d1value: d1value + unit
-    ]
-]
-
-; float matrices
-_rcvCopyMatF: routine [
-   	src  	[vector!]
-    dst1  	[vector!]
-    /local
-    svalue 	[byte-ptr!]
-    tail 	[byte-ptr!]
-    d1value [byte-ptr!]
-    p
-    p32
-    s unit
-    val
-    ] [
-    svalue: vector/rs-head src  
-    tail: vector/rs-tail src
-	d1value: vector/rs-head dst1	
-	
-	s: GET_BUFFER(src)
-	unit: GET_UNIT(s)
-   	while [svalue < tail][
-		val: vector/get-value-float svalue unit
-		either unit = 8 [p: as pointer! [float!] d1Value  p/value: val]
-					    [p32: as pointer! [float32!] d1Value p32/value: as float32! val]
-		svalue: svalue + unit
-		d1value: d1value + unit
-    ]
+; matrix bit size
+_rcvGetMatBitSize: routine [
+	mat  	[vector!]
+	return: [integer!]
+	/local
+	s  
+] [
+	s: GET_BUFFER(mat)
+	GET_UNIT(s)
 ]
 
 
@@ -111,7 +64,7 @@ _setIntValue: routine [
 	value	[integer!]
 	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
 	/local 
-	p4		[int-ptr!]
+	p4		
 ] [
 	 p4: as int-ptr! p
      p4/value: switch unit [
@@ -122,8 +75,60 @@ _setIntValue: routine [
 ]
 
 
+
+; copy integer matrices
+_rcvCopyMat: routine [
+   	src  	[vector!]
+    dst  	[vector!]
+    /local
+    svalue tail dvalue p4 	; byte-ptr!
+    unit val				; integer!
+][
+    svalue: vector/rs-head src  	
+    tail: vector/rs-tail src		
+	dvalue: vector/rs-head dst			
+	unit: _rcvGetMatBitSize src 
+   	while [svalue < tail][
+		;val: vector/get-value-int as int-ptr! svalue unit
+		val: _getIntValue as integer! svalue unit
+		p4: as int-ptr! dvalue
+		p4/value: switch unit [
+					1 [val and FFh or (p4/value and FFFFFF00h)]
+					2 [val and FFFFh or (p4/value and FFFF0000h)]
+					4 [val]
+		]
+		svalue: svalue + unit
+		dvalue: dvalue + unit
+    ]
+]
+
+; copy float matrices
+_rcvCopyMatF: routine [
+   	src  	[vector!]
+    dst  	[vector!]
+    /local
+    svalue tail dvalue 	;byte-ptr!
+    p p32 				;float ptr
+    unit 				;integer
+    val					;float!
+] [
+    svalue: vector/rs-head src	  
+    tail: vector/rs-tail src	
+	dvalue: vector/rs-head dst	
+	unit: _rcvGetMatBitSize src
+   	while [svalue < tail][
+		val: vector/get-value-float svalue unit
+		either unit = 8 [p: as pointer! [float!] dvalue  p/value: val]
+					    [p32: as pointer! [float32!] dvalue p32/value: as float32! val]
+		svalue: svalue + unit
+		dvalue: dvalue + unit
+    ]
+]
+
+
+
 ; converts Integer Matrix scale
-; 8 -> 16-bits pbs
+; 8 -> 16-bits OK (for 8-bit -127..+127)
 ; 8 -> 32-bits OK
 ; 16 -> 32-bits OK
 
@@ -133,22 +138,26 @@ _convertMatScale: routine [
 	srcScale	[float!] ; eg FFh
 	dstScale	[float!] ; eg FFFFh	
 	/local
-	svalue 		[byte-ptr!]
-	tail 		[byte-ptr!]
-	int 		[integer!]
-	v			[float!]
-	s	 		[series!]
-	unit 		[integer!]
+	svalue tail ;byte-ptr!
+	int unit	;integer!
+	v			;float!
 ][
 	svalue: vector/rs-head src  ; get a pointer address of the source matrix first value
 	tail:  vector/rs-tail src	; last
 	vector/rs-clear dst 		; clears destination for append calculated value
-	s: GET_BUFFER(src)
-	unit: GET_UNIT(s)
+	unit: _rcvGetMatBitSize src ; bit size
 	while [svalue < tail][
 		int: vector/get-value-int as int-ptr! svalue unit
-		v: ((as float! int) / srcScale) * dstScale 
-		vector/rs-append-int dst as integer! v
+		switch unit [
+			1 [int: int and FFh]
+			2 [int: int and FFFFh]
+			3 [int: int]
+		]
+		
+		v: as float! int
+		v: (v / srcScale) * dstScale 
+		int: as integer! v
+		vector/rs-append-int dst int
 		svalue: svalue + unit
 	]
 ]
@@ -156,6 +165,7 @@ _convertMatScale: routine [
 
 ; Red Image -> 1 channel 2-D matrice with a grayscale 
 ; conversion to 8 16 or 32-bit matrices 
+; values are in 0..255 range for Char! matrix
 
 _rcvImage2Mat: routine [
 	src		[image!]
@@ -164,9 +174,9 @@ _rcvImage2Mat: routine [
 	pix1 	[int-ptr!]
 	dvalue 	[byte-ptr!]
 	handle1
-	unit s
+	unit
 	h w x y 
-	r g b a grv
+	r g b a rgb
 ] [
 	handle1: 0
     pix1: image/acquire-buffer src :handle1
@@ -175,9 +185,7 @@ _rcvImage2Mat: routine [
     x: 0
     y: 0 
     dvalue: vector/rs-head mat	; a byte ptr
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
-    ;vector/rs-clear mat 
+	unit: _rcvGetMatBitSize mat ; bit size
     while [y < h] [
        while [x < w][
 			a: pix1/value >>> 24
@@ -186,8 +194,8 @@ _rcvImage2Mat: routine [
         	b: pix1/value and FFh 
         	;OK RGBA are correct
         	; -> to Grayscale mat
-        	grv: r + g + b / 3 
-        	_setIntValue as integer! dvalue grv unit
+        	rgb: r + g + b / 3
+        	_setIntValue as integer! dvalue rgb unit
            	x: x + 1
            	pix1: pix1 + 1
            	dValue: dValue + unit
@@ -200,15 +208,18 @@ _rcvImage2Mat: routine [
 
 
 ; 1 channel 2-D matrice (grayscale) -> Red Image 
-; 8 16 and 32-bit matrices 
+; 8 16 and 32-bit integer matrices can be used
+; for 8-bit -127..+127 values are transformed in 0..255 values
+; for 8-bit byte matrix values remain unchnaged
+
 _rcvMat2Image: routine [
 	mat		[vector!]
 	dst		[image!]
-	unit	[integer!] ; 1 2 or 4
 	/local
 	pixD 	[int-ptr!]
-	handle
-	i v value  
+	handle	[integer!]
+	unit   ; 1 2 or 4
+	i value  
 	h w x y
 	
 ] [
@@ -219,15 +230,12 @@ _rcvMat2Image: routine [
     x: 0
     y: 0
     value: vector/rs-head mat ; get pointer address of the matrice
+    unit: _rcvGetMatBitSize mat ; bit size
     while [y < h] [
        while [x < w][
+       		;i: vector/get-value-int as int-ptr! value unit
        		i: _getIntValue as integer! value unit; get mat value as integer
-       		switch unit [
-       			1 [v: as float! i]						; 8-bit
-       			2 [v: (as float! i) / FFFFh * FFh]		; 16-bit -> 8-bit
-       			4 [v: (as float! i) / FFFFFFh * FFh ]	; 32-bit -> 8-bit
-       		]
-       		i: as integer! v
+       		if unit = 1 [i: i and FFh] ; for 8-bit values [-127 .. 127]
        		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
        		value: value + unit
            	pixD: pixD + 1
@@ -258,7 +266,7 @@ _rcvSplit2Mat: routine [
 	dvalue3 	[byte-ptr!]
 	handle1
 	h w x y 
-	r g b a
+	unit
 ] [
 	handle1: 0
     pix1: image/acquire-buffer src :handle1
@@ -266,6 +274,7 @@ _rcvSplit2Mat: routine [
     h: IMAGE_HEIGHT(src/size) 
     x: 0
     y: 0 
+    unit: _rcvGetMatBitSize mat0
     dvalue0: vector/rs-head mat0	; a byte ptr
     dvalue1: vector/rs-head mat1	; a byte ptr
     dvalue2: vector/rs-head mat2	; a byte ptr
@@ -273,20 +282,16 @@ _rcvSplit2Mat: routine [
    ; vector/rs-clear mat 
     while [y < h] [
        while [x < w][
-			a: pix1/value >>> 24
-       		r: pix1/value and 00FF0000h >> 16 
-        	g: pix1/value and FF00h >> 8 
-        	b: pix1/value and FFh 
-        	dvalue0/value: as-byte a
-			dvalue1/value: as-byte r
-			dvalue2/value: as-byte g
-			dvalue3/value: as-byte b
+        	_setIntValue as integer! dvalue0 pix1/value >>> 24 unit
+        	_setIntValue as integer! dvalue1 pix1/value and 00FF0000h >> 16 unit
+        	_setIntValue as integer! dvalue2 pix1/value and FF00h >> 8 unit
+        	_setIntValue as integer! dvalue3 pix1/value and FFh unit
            	x: x + 1
            	pix1: pix1 + 1
-           	dValue0: dValue0 + 1
-           	dValue1: dValue1 + 1
-           	dValue2: dValue2 + 1
-           	dValue3: dValue3 + 1
+           	dValue0: dValue0 + unit
+           	dValue1: dValue1 + unit
+           	dValue2: dValue2 + unit
+           	dValue3: dValue3 + unit
        ]
        x: 0
        y: y + 1
@@ -295,11 +300,7 @@ _rcvSplit2Mat: routine [
 ]
 
 
-
-
-
-
-; 1 channel 2-D matrice (grayscale) -> Red Image 
+; 3 1 channel 2-D matrices (grayscale) -> Red Image 
 
 _rcvMerge2Image: routine [
 	mat0		[vector!]
@@ -312,6 +313,7 @@ _rcvMerge2Image: routine [
 	handle
 	a r g b value0 value1 value2 value3  
 	h w x y
+	unit
 	
 ] [
 	handle: 0
@@ -320,21 +322,22 @@ _rcvMerge2Image: routine [
     h: IMAGE_HEIGHT(dst/size) 
     x: 0
     y: 0
+	unit: _rcvGetMatBitSize mat0
     value0: vector/rs-head mat0 ; get pointer address of the matrice
     value1: vector/rs-head mat1 
     value2: vector/rs-head mat2
     value3: vector/rs-head mat3
     while [y < h] [
        while [x < w][
-       		a: _getIntValue as integer! value0 1; get mat value as integer
-       		r: _getIntValue as integer! value1 1; get mat value as integer
-       		g: _getIntValue as integer! value2 1; get mat value as integer
-       		b: _getIntValue as integer! value3 1; get mat value as integer
-       		pixD/value: ((255 << 24) OR (r << 16 ) OR (g << 8) OR b)
-       		value0: value0 + 1
-       		value1: value1 + 1
-       		value2: value2 + 1
-       		value3: value3 + 1
+       		a: _getIntValue as integer! value0 unit; get mat value as integer
+       		r: _getIntValue as integer! value1 unit; get mat value as integer
+       		g: _getIntValue as integer! value2 unit; get mat value as integer
+       		b: _getIntValue as integer! value3 unit; get mat value as integer
+       		pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
+       		value0: value0 + unit
+       		value1: value1 + unit
+       		value2: value2 + unit
+       		value3: value3 + unit
            	pixD: pixD + 1
            	x: x + 1
        ]
@@ -345,7 +348,13 @@ _rcvMerge2Image: routine [
 ]
 
 
-; Convolution on matrix (only 8-bit matrices)
+
+
+{ Convolution on matrices:  Non normalized convolution 
+includes a  filter values < 0: 0 and values > 255: 255
+can be used with 8,16 and 32-bit matrices
+factor and delta modify convolution result
+}
 
 _rcvConvolveMat: routine [
     src  	[vector!]
@@ -356,30 +365,30 @@ _rcvConvolveMat: routine [
     delta	[float!]
     /local
         h w x y i j
-        value dvalue idx 
-        accV v f 
+        svalue dvalue idx 
+        weightAcc
+        v f vc
         mx my 
-		kWidth 
-		kHeight 
-		kBase 
-		kValue  
+		kWidth kHeight kBase kValue  
+		unit
 ][
     ;get mat size will be improved in future
-    
     w: mSize/x
     h: mSize/y
     ; get Kernel dimension (e.g. 3, 5 ...)
     kWidth: as integer! (sqrt as float! (block/rs-length? kernel))
 	kHeight: kWidth
 	kBase: block/rs-head kernel ; get pointer address of the kernel first value
-	value: vector/rs-head src   ; get pointer address of the source matrix first value
+	svalue: vector/rs-head src   ; get pointer address of the source matrix first value
 	dvalue: vector/rs-head dst	; a byte ptr
-	vector/rs-clear dst 		; clears destination matrix
+	;vector/rs-clear dst 		; clears destination matrix
+	unit: _rcvGetMatBitSize src
     x: 0
     y: 0
+    v: 0
     while [y < h] [
        while [x < w][
-    	accV: 0.0
+    	weightAcc: 0.0
    		j: 0
 		kValue: kBase
 		while [j < kHeight][
@@ -388,24 +397,134 @@ _rcvConvolveMat: routine [
             		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
             		mx:  (x + (i - (kWidth / 2)) + w ) % w 
         			my:  (y + (j - (kHeight / 2)) + h ) % h 
-            		idx: value + (my * w) + mx  ; corrected pixel index
-           			v: _getIntValue as integer! idx 1; get mat value as 8-bit integer
+            		idx: svalue + (((my * w) + mx) * unit)  ; corrected pixel index
+           			v: _getIntValue as integer! idx unit 
+           			if unit = 1 [v: v and FFh] ; for 8-bit image
            			;get kernel values OK 
         			f: as red-float! kValue
         			; calculate weighted values
-        			accV: accV + ((as float! v) * f/value)
+        			weightAcc: weightAcc + (f/value * v)
         			kValue: kBase + (j * kWidth + i + 1)
            			i: i + 1
             	]
             	j: j + 1 
         ]
         
-        v: as integer! (accv * factor) 						 			 
-    	v: v + as integer! delta
-        if v < 0 [v: 0] ; for unsigned integer 
-		dvalue/value: as-byte v ; only 0..255
-        value: value + 1 
-        dvalue: dvalue + 2 ;?? should be 1
+        vc: (weightAcc * factor) + delta						 			 
+    	; classical convolution cut off
+    	if vc < 0.0 [vc: 0.0]
+    	if vc > 255.0 [vc: 255.0]
+        _setIntValue as integer! dvalue as integer! vc unit
+        dvalue: dvalue + unit
+        x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+]
+
+{ Convolution on matrices:  Normalized convolution 
+two-pass : first looks for maxi and mini 
+can be used with 8,16 and 32-bit matrices
+}
+
+_rcvConvolveMat2: routine [
+    src  	[vector!]
+    dst  	[vector!]
+    mSize	[pair!]
+    kernel 	[block!] 
+    factor 	[float!]
+    delta	[float!]
+    /local
+        h w x y i j
+        svalue dvalue idx scale
+        weightAcc
+        v f vc vcc
+        mx my 
+		kWidth kHeight kBase kValue  
+		unit
+		mini maxi
+][
+    ;get mat size will be improved in future
+    w: mSize/x
+    h: mSize/y
+    ; get Kernel dimension (e.g. 3, 5 ...)
+    kWidth: as integer! (sqrt as float! (block/rs-length? kernel))
+	kHeight: kWidth
+	kBase: block/rs-head kernel ; get pointer address of the kernel first value
+	svalue: vector/rs-head src   ; get pointer address of the source matrix first value
+	dvalue: vector/rs-head dst	; a byte ptr
+	unit: _rcvGetMatBitSize src
+    x: 0
+    y: 0
+    v: 0
+    maxi: -16777215.0
+    mini: 16777215.0
+    while [y < h] [
+       while [x < w][
+    	weightAcc: 0.0
+   		j: 0
+		kValue: kBase
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		mx:  (x + (i - (kWidth / 2)) + w ) % w 
+        			my:  (y + (j - (kHeight / 2)) + h ) % h 
+            		idx: svalue + (((my * w) + mx) * unit)  ; corrected pixel index
+           			v: _getIntValue as integer! idx unit 
+           			if unit = 1 [v: v and FFh] ; for 8-bit image
+           			;get kernel values OK 
+        			f: as red-float! kValue
+        			; calculate weighted values
+        			weightAcc: weightAcc + (f/value * v)
+        			kValue: kBase + (j * kWidth + i + 1)
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+        
+       	vc: (weightAcc * factor) + delta					 			 
+    	if vc > maxi [maxi: vc] 
+    	if vc <= mini [mini: vc]
+        x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    
+    scale: 255.0 / (maxi - mini) 
+    
+    x: 0
+    y: 0
+    v: 0
+    while [y < h] [
+       while [x < w][
+    	weightAcc: 0.0
+   		j: 0
+		kValue: kBase
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		mx:  (x + (i - (kWidth / 2)) + w ) % w 
+        			my:  (y + (j - (kHeight / 2)) + h ) % h 
+            		idx: svalue + (((my * w) + mx) * unit)  ; corrected pixel index
+           			v: _getIntValue as integer! idx unit 
+           			if unit = 1 [v: v and FFh] ; for 8-bit image
+           			;get kernel values OK 
+        			f: as red-float! kValue
+        			; calculate weighted values
+        			weightAcc: weightAcc + (f/value * v)
+        			kValue: kBase + (j * kWidth + i + 1)
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+    
+    	vcc: (((weightAcc * factor) + delta) - mini) * scale 						 			 
+        _setIntValue as integer! dvalue as integer! vcc unit
+        dvalue: dvalue + unit
         x: x + 1
        ]
        x: 0
@@ -414,8 +533,8 @@ _rcvConvolveMat: routine [
 ]
 
 
-; Fast Sobel Detector on Matrix
 
+; Fast Sobel Detector on Matrix
 ; Computes the x component of the gradient vector
 ; at a given point in a matrix.
 ; returns gradient in the x direction
@@ -499,6 +618,7 @@ _ySMGradient: routine [
     sum
 ]
 
+
 ; Sobel Edges detector
 _rcvSobelMat: routine [
     src  	[vector!]
@@ -509,13 +629,15 @@ _rcvSobelMat: routine [
         svalue dvalue idx 
         gX gY v f 
         sum
+        unit
 ][
     ;get mat size will be improved in future with matrix! type
     w: mSize/x
     h: mSize/y
 	svalue: vector/rs-head src   ; get byte pointer address of the source matrix first value
 	dvalue: vector/rs-head dst	; a byte ptr
-	vector/rs-clear dst 		; clears destination matrix
+	;vector/rs-clear dst 		; clears destination matrix
+	unit: _rcvGetMatBitSize src
     x: 0
     y: 0
     gX: 0
@@ -525,12 +647,12 @@ _rcvSobelMat: routine [
        	while [x < w][
     		gx: _xSMGradient as integer! svalue mSize x y
     		gy: _ySMGradient as integer! svalue mSize x y
-    		;sum: gX + gY ; faster approximation but requires absolute difference
-    		sum: as integer! (sqrt ((as float! gx * gx) + (as float! gy * gy)))
-    		if sum < 0 [sum: 0]
+    		sum: gX + gY ; faster approximation but requires absolute difference
+    		;sum: as integer! (sqrt ((as float! gx * gx) + (as float! gy * gy)))
+    		if sum < 0 [sum:  0]
+    		if sum > 255 [sum: 255]
     		dvalue/value: as-byte sum
-       		svalue: svalue + 1 
-        	dvalue: dvalue + 2 ; ?? 2 should be 1
+        	dvalue: dvalue + unit
         	x: x + 1
        ]
        x: 0
@@ -617,7 +739,7 @@ _rcvMorpho: routine [
 ]
 
 ;*********************** Integral Matrices *************************
-; exported as functions in /libs/matrix/rcvMatrixRoutines.red
+; exported as functions in /libs/matrix/rcvMatrix.red
 ; integer Matrices 
 _rcvIntegralMat: routine [
    	src  	[vector!]
@@ -632,7 +754,7 @@ _rcvIntegralMat: routine [
     idxD1	[byte-ptr!]
     idxD2	[byte-ptr!]
     p4
-    s unit
+    unit
     x y w h
     pindex val val2
     sum sqsum
@@ -640,8 +762,7 @@ _rcvIntegralMat: routine [
     svalue: vector/rs-head src  
 	d1value: vector/rs-head dst1	
 	d2value: vector/rs-head dst2
-	s: GET_BUFFER(src)
-	unit: GET_UNIT(s)
+	unit: _rcvGetMatBitSize src
 	idx1:  svalue
     idxD1: d1value
     idxD2: d2value
@@ -687,7 +808,7 @@ _rcvIntegralMat: routine [
 ]
 
 ;************** matrices alpha blending ***********************
-; exported as functions in /libs/matrix/rcvMatrixRoutines.red
+; exported as functions in /libs/matrix/rcvMatrix.red
 
 _rcvBlendMat: routine [
 	mat1		[vector!]
@@ -698,7 +819,6 @@ _rcvBlendMat: routine [
 	svalue1 	[byte-ptr!]
 	svalue2 	[byte-ptr!]
 	tail 		[byte-ptr!]
-	s	 		[series!]
 	unit 		[integer!]
 	int1 		[integer!]
 	int2 		[integer!]
@@ -710,8 +830,7 @@ _rcvBlendMat: routine [
 	svalue2: vector/rs-head mat2 
     tail: vector/rs-tail mat1
     vector/rs-clear dst 
-    s: GET_BUFFER(mat1)
-	unit: GET_UNIT(s)
+	unit: _rcvGetMatBitSize mat1
     while [svalue1 < tail][
 		int1: vector/get-value-int as int-ptr! svalue1 unit
 		int2: vector/get-value-int as int-ptr! svalue2 unit
@@ -723,7 +842,7 @@ _rcvBlendMat: routine [
 ]
 
 ;******************Threshold**************************
-; exported as functions in /libs/matrix/rcvMatrixRoutines.red
+; exported as functions in /libs/matrix/rcvMatrix.red
 
 
 _rcvInRangeMat: routine [
@@ -735,7 +854,6 @@ _rcvInRangeMat: routine [
 	/local
 	svalue1 	[byte-ptr!]
 	tail 		[byte-ptr!]
-	s	 		[series!]
 	unit 		[integer!]
 	int1 		[integer!]
 	v			[integer!]
@@ -743,8 +861,7 @@ _rcvInRangeMat: routine [
 	vector/rs-clear dst
 	svalue1: vector/rs-head mat1
 	tail: vector/rs-tail mat1
-	s: GET_BUFFER(mat1)
-	unit: GET_UNIT(s)
+	unit: _rcvGetMatBitSize mat1
 	while [svalue1 < tail][
 		int1: vector/get-value-int as int-ptr! svalue1 unit
 		either ((int1 >= lower) and (int1 <= upper)) [

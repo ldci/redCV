@@ -5,18 +5,18 @@ Red [
 	Needs:	 'View
 ]
 
-mask: [-1.0 0.0 -1.0
-		0.0 4.0 0.0 
-	   -1.0 0.0 -1.0]
+
+#include %../../../libs/redcv.red ; for redCV functions
+;a quick laplacian mask
+mask: [-1.0 0.0 -1.0 0.0 4.0 0.0 -1.0 0.0 -1.0]
 
 
-#include %../../libs/redcv.red ; for redCV functions
-img1: rcvLoadImage %../../images/building.jpg
+img1: rcvLoadImage %../../../images/building.jpg
 img2: rcvCreateImage img1/size
 img3: rcvCreateImage img1/size
 channel: 1
 rcv2Gray/average img1 img2								; Grayscaled image
-rcvFastConvolve img2 img3 channel mask 1.0 5.0			; fast convolution on channel 1
+rcvFastConvolve img2 img3 channel  mask 1.0 5.0			; fast convolution on channel 1
 
 s1: rcvNamedWindow "Source"
 s2: rcvNamedWindow "Gray"

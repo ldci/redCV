@@ -79,25 +79,25 @@ motion: [1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
 		0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0]
 
 
-;rimg: make image!  reduce [512x512 black]
-rimg: rcvCreateImage 512x512
+rimg: make image!  reduce [512x512 black]
 dst: rcvCreateImage 512x512
 
 loadImage: does [
 	sb1/data: ""
 	isFile: false
 	canvas/image/rgb: black
-	canvas/size: 0x0
+	;canvas/size: 0x0
 	tmp: request-file
 	if not none? tmp [
 		fileName: to string! to-local-file tmp
 		win/text: fileName
-		rimg: load tmp
-		dst: load tmp
+		rimg: rcvLoadImage tmp
+		;rcvCopyImage rimg dst ; verifier
+		dst: rcvLoadImage tmp
 		; update faces
 		if rimg/size/x >= 512 [
 			win/size/x: rimg/size/x + 20
-			win/size/y: rimg/size/y + 70
+			win/size/y: rimg/size/y + 90
 		] 
 		canvas/size/x: rimg/size/x
 		canvas/size/y: rimg/size/y
@@ -195,7 +195,7 @@ view win: layout [
 	title "Red view"
 	origin 10x10 space 10x10
 
-	style btn: button -1x22
+	style btn: button 50;-1x22
 	style drop-d: drop-down 120x24 on-create [face/selected: 1]
 
 	btn "Load" [loadImage]

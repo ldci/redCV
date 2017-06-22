@@ -80,7 +80,7 @@ view win: layout [
 	title "Red view"
 	origin 10x10 space 10x10
 
-	style btn: button -1x22
+	style btn: button 50;-1x22
 	style drop-d: drop-down 120x24 on-create [face/selected: 1]
 
 	btn "Load" [loadImage]

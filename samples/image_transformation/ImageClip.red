@@ -18,8 +18,7 @@ end: start + 200
 poffset: negate start
 ;drawBlk: compose [translate (poffset) clip (start) (end) image img1]
 
-drawBlk: rcvClipImage poffset start end 
-append drawBlk [img1] ; append to Draw block! the image instance
+drawBlk: rcvClipImage poffset start end img1
 drawRect: compose [line-width 2 pen green box 0x0 200x200]
 
 ; ***************** Test Program ****************************
