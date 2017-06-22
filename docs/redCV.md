@@ -29,10 +29,8 @@
 * **rcvBlendMat**: Computes the alpha blending of two matrices
 
 ##Format conversion
-* **rcvImage2Mat**: Converts Red Image to 8-bit 2-D Matrix
-* **rcvMat82Image**: 8-bit Matrix to Red Image
-* **rcvMat162Image**: 16-bit Matrix to Red Image
-* **rcvMat322Image**: 32-bit Matrix to Red Image
+* **rcvImage2Mat**: Converts Red Image to integer 2-D Matrix
+* **rcvMat2Image**: Integer [8, 16 or 32-bit] Matrix to Red Image
 * **rcvConvertMatScale**: Converts matrix scale to another bit size
 * **rcvMatInt2Float**: Converts integer matrix to Float [0..1] matrix
 * **rcvMatFloat2Int**: Converts float matrix to integer [0..255] matrix
@@ -161,6 +159,7 @@ Using Draw DSL
 * **rcvGaussianFilter**: Fast Gaussian 2D filter
 * **rcvConvolve**: Convolves an image with the kernel
 * **rcvConvolveMat**: Convolves a 2-D matrix with the kernel
+* **rcvConvolveNormalizedMat**: Convolves a normalized 2-D matrix with the kernel
 * **rcvFastConvolve**: Convolves 8-bit and 1-channel image with the kernel
 * **rcvFilter2D**: Basic convolution filter
 * **rcvFastFilter2D**: Fast convolution filter
