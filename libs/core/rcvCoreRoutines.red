@@ -22,7 +22,8 @@ _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
 		r g b a
 ][
     stride1: 0
-    bmp1: OS-image/lock-bitmap src1 no
+    ;bmp1: OS-image/lock-bitmap as-integer src1/node no ;0.6.2
+    bmp1: OS-image/lock-bitmap src1 no	; master branch
     data1: OS-image/get-data bmp1 :stride1   
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
@@ -33,7 +34,8 @@ _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
     r: data1/pos and 00FF0000h >> 16
     g: data1/pos and FF00h >> 8
     b: data1/pos and FFh
-    OS-image/unlock-bitmap src1 bmp1
+    ;OS-image/unlock-bitmap as-integer src1/node bmp1
+    OS-image/unlock-bitmap src1 bmp1 ; master branch
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
 
@@ -601,14 +603,15 @@ _rcvSetAlpha: routine [
     dst   	[image!]
     alpha 	[integer!]
     /local
-	pix1 	[int-ptr!]
+	pixS 	[int-ptr!]
     pixD 	[int-ptr!]
     handleS handleD 
-    h w x y r g b a
+    h w x y 
+    r g b 
 ][
 	handleS: 0
     handleD: 0
-    pix1: image/acquire-buffer src :handleS
+    pixS: image/acquire-buffer src :handleS
     pixD: image/acquire-buffer dst :handleD
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
@@ -616,14 +619,12 @@ _rcvSetAlpha: routine [
     y: 0
     while [y < h] [
        while [x < w][
-       		;a: pix1/value >>> 24
-       		r: pix1/value and FF0000h >> 16 
-        	g: pix1/value and FF00h >> 8 
-        	b: pix1/value and FFh 
-        	a: alpha
-       		;pixD/value: (alpha << 24) OR (r << 16) OR (g << 8) OR b
-       		pixD/value: pix1/value and 00FFFFFFh OR (alpha << 24)
-           	pix1: pix1 + 1
+       		r: pixS/value and 00FF0000h >> 16 
+    		g: pixS/value and FF00h >> 8 
+    		b: pixS/value and FFh 	
+       		;pixD/value: 00FFFFFFh AND pixS/value  OR (alpha << 24) ; pbs macOS 
+       		pixD/value: (alpha << 24) OR (r << 16 ) OR (g << 8) OR b ; pbs macOS
+           	pixS: pixS + 1
            	pixD: pixD + 1
            	x: x + 1
        ]

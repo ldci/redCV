@@ -20,7 +20,8 @@ _grad-color-3: blue ; this can be modified for playing with colors
 
 rot: 0.0
 cw: false
-common: compose [
+;old
+{common: compose [
 				anti-alias on
 				pen red
 				line 256x0 256x512
@@ -32,7 +33,28 @@ common: compose [
 				(_grad-color-2)
 				(_grad-color-3) 
 				transform (rot) (centerXY) 0.5 0.5 (centerXY)
+]}
+
+sFactor: 0.5
+transl: 240x240
+
+common: compose [
+				anti-alias on
+				pen red
+				line 256x0 256x512
+				line 0x256 512x256
+				fill-pen linear (_grad-offset) 
+			    (_grad-start-rng) (_grad-stop-rng) (_grad-angle)
+				(_grad-scale-x) (_grad-scale-y) 
+				(_grad-color-1)
+				(_grad-color-2)
+				(_grad-color-3) 
+				scale (sFactor) (sFactor) 
+				translate (transl)
+				rotate (rot) (centerXY) 
 ]
+
+
 
 ;square
 gradS: copy common
@@ -71,7 +93,7 @@ view win: layout [
 	stimulus: base ssize  on-time [
 	either cw [ rot: rot - 1] [rot: rot + 1]
 		if any [rot = 360 rot = -360] [rot: 0.0]
-		grad/23: rot
+		grad/28: rot
 	]
 	draw grad
 	return 

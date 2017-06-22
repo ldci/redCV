@@ -465,11 +465,11 @@ The sum of all elements of the filter should be 1 if you want the resulting imag
 If the sum of the elements is larger than 1, the result will be a brighter image
 If it's smaller than 1, a darker image. 
 If the sum is 0, the resulting image isn't necessarily completely black, but it'll be very dark
-Apart from using a kernel matrix, it also has a multiplier factor and a bias. 
+Apart from using a kernel matrix, it also has a multiplier factor and a delta. 
 After applying the filter, the factor will be multiplied with the result, and the bias added to it. 
 So if you have a filter with an element 0.25 in it, but the factor is set to 2, all elements of the filter 
 are  multiplied by two so that element 0.25 is actually 0.5. 
-The bias can be used if you want to make the resulting image brighter. 
+The delta can be used if you want to make the resulting image brighter. 
 }
 
 _rcvConvolve: routine [
@@ -525,28 +525,25 @@ _rcvConvolve: routine [
            			;get kernel values OK 
         			f: as red-float! kValue
         			; calculate weighted values
-        			accR: accR + ((as float! r) * f/value)
-        			accG: accG + ((as float! g) * f/value)
-        			accB: accB + ((as float! b) * f/value)
+        			accR: accR + (f/value * r)
+        			accG: accG + (f/value * g)
+        			accB: accB + (f/value * b)
         			kValue: kBase + (j * kWidth + i + 1)
            			i: i + 1
             	]
             	j: j + 1 
         ]
         
-        r: as integer! (accR * factor)						 
-        g: as integer! (accG * factor)	
-        b: as integer! (accB * factor)					 
-    	r: r + as integer! delta
-    	g: g + as integer! delta
-    	b: b + as integer! delta
-        if r < 0 [r: 0]
+        r: as integer! ((accR * factor) + delta)				 
+        g: as integer! ((accG * factor) + delta)
+        b: as integer! ((accB * factor) + delta)				 
+        if r < 0   [r: 0]
         if r > 255 [r: 255]
-        if g < 0 [g: 0]
+        if g < 0   [g: 0]
         if g > 255 [g: 255]
-        if b < 0 [b: 0]
+        if b < 0   [b: 0]
         if b > 255 [b: 255]				 
-        pixD/value: (255 << 24) OR (r << 16 ) OR (g << 8) OR b
+        pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
         pixD: pixD + 1
         x: x + 1
        ]
@@ -556,6 +553,13 @@ _rcvConvolve: routine [
     image/release-buffer src handle1 no
     image/release-buffer dst handleD yes
 ]
+
+
+
+;-2147483648 to 2147483647
+
+
+
 
 ; only for 1-channel image (8-bit)
 _rcvFastConvolve: routine [
@@ -1277,10 +1281,7 @@ _rcvNeumann: routine [
 ] [
 	
 	stride1: 0
-<<<<<<< HEAD
     ;bmp1: OS-image/lock-bitmap as-integer src/node no
-=======
->>>>>>> origin/master
     bmp1: OS-image/lock-bitmap src no
     data1: OS-image/get-data bmp1 :stride1   
 	handleD1: 0
@@ -1318,12 +1319,8 @@ _rcvNeumann: routine [
 		x: 0
 		y: y + 1
 	]
-<<<<<<< HEAD
 	;OS-image/unlock-bitmap as-integer src/node bmp1;
 	OS-image/unlock-bitmap src bmp1; MB
-=======
-	OS-image/unlock-bitmap src bmp1;
->>>>>>> origin/master
 	image/release-buffer dst1 handleD1 yes
 	image/release-buffer dst2 handleD2 yes
 ]

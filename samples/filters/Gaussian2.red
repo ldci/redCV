@@ -17,12 +17,12 @@ dst:  rcvCreateImage img1/size
 view win: layout [
 		title "Gaussian Filter"
 		origin margins space margins
-		button 80 "Source" 		[rcvCopyImage img1 dst]	
-		button 60 "3x3" 	   	[knl: rcvMakeGaussian 3x3 rcvFilter2D img1 dst knl 0] 
-		button 60 "5x5" 		[knl: rcvMakeGaussian 5x5 rcvFilter2D img1 dst knl 0]
-		button 60 "7x7"  		[knl: rcvMakeGaussian 7x7 rcvFilter2D img1 dst knl 0]
-		button 60 "9x9"  		[knl: rcvMakeGaussian 9x9 rcvFilter2D img1 dst knl 0]
-		button 70 "11x11"  		[knl: rcvMakeGaussian 11x11 rcvFilter2D img1 dst knl 0]
+		button 60 "Source" 		[rcvCopyImage img1 dst]	
+		button 50 "3x3" 	   	[knl: rcvMakeGaussian 3x3 rcvFilter2D img1 dst knl 0] 
+		button 50 "5x5" 		[knl: rcvMakeGaussian 5x5 rcvFilter2D img1 dst knl 0]
+		button 50 "7x7"  		[knl: rcvMakeGaussian 7x7 rcvFilter2D img1 dst knl 0]
+		button 50 "9x9"  		[knl: rcvMakeGaussian 9x9 rcvFilter2D img1 dst knl 0]
+		button 60 "11x11"  		[knl: rcvMakeGaussian 11x11 rcvFilter2D img1 dst knl 0]
 		button 60 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
 		canvas: base 512x512 dst	

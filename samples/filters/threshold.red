@@ -8,7 +8,7 @@ Red [
 
 ; last Red Master required!
 #include %../../libs/redcv.red ; for redCV functions
-margins: 5x10
+margins: 3x10
 img1: rcvLoadImage %../../images/baboon.jpg
 dst:  rcvCreateImage img1/size
 thresh: 127
@@ -20,13 +20,13 @@ maxValue: 255
 view win: layout [
 		title "BW thresholding Tests"
 		origin margins space margins
-		button 80 "Source" 		[rcvCopyImage img1 dst]
-		button 80 "Binary" 		[rcvThreshold/binary img1 dst thresh maxValue];
-		button 85 "Binary Inv" 	[rcvThreshold/binaryInv img1 dst thresh maxValue];
-		button 80 "Truncate" 	[rcvThreshold/trunc img1 dst thresh maxValue];
-		button 80 "To 0" 		[rcvThreshold/toZero img1 dst thresh maxValue];
-		button 80 "To 0 Inv" 	[rcvThreshold/toZeroInv img1 dst thresh maxValue];
-		button 70 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
+		button 55 "Source" 		[rcvCopyImage img1 dst]
+		button 50 "Binary" 		[rcvThreshold/binary img1 dst thresh maxValue];
+		button 75 "Binary Inv" 	[rcvThreshold/binaryInv img1 dst thresh maxValue];
+		button 75 "Truncate" 	[rcvThreshold/trunc img1 dst thresh maxValue];
+		button 45 "To 0" 		[rcvThreshold/toZero img1 dst thresh maxValue];
+		button 65 "To 0 Inv" 	[rcvThreshold/toZeroInv img1 dst thresh maxValue];
+		button 50 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return
 		text "Threshold" 
 		p1: field [if error? try [thresh: to integer! p1/data] [thresh: 127]]

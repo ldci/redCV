@@ -105,27 +105,19 @@ rcvSetReal2D: function [ dst [vector!] mSize [pair!] coordinate [pair!] val [flo
 
 
 rcvImage2Mat: function [src	[image!] mat [vector!]
-"Red Image to a 8-bit 2-D Matrix "
+"Red Image to integer or char 2-D Matrix "
 ] [
 	_rcvImage2Mat src mat
 ]
-rcvMat82Image: function [mat [vector!] dst [image!] 
-"8-bit Matrice to Red Image"
+
+
+
+rcvMat2Image: function [mat [vector!] dst [image!]
+"Matrix to Red Image"
 ] [
-	_rcvMat2Image mat dst 1
+	_rcvMat2Image mat dst
 ]
 
-rcvMat162Image: function [mat [vector!] dst [image!] 
-"16-bit Matrice to Red Image"
-] [
-	_rcvMat2Image mat dst 2
-]
-
-rcvMat322Image: function [mat [vector!] dst [image!] 
-"32-bit Matrice to Red Image"
-] [
-	_rcvMat2Image mat dst 4
-]
 
 rcvSplit2Mat: function [src [image!] mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  
 "Split an image to 4 8-bit matrices"
@@ -140,32 +132,38 @@ rcvMerge2Image: function [ mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [ve
 ]
 
 rcvConvolveMat: function [src [vector!] dst [vector!] mSize[pair!] kernel [block!] factor [float!] delta [float!]
-"Fast matrix convolution"
+"Classical matrix convolution"
 ] [
 	_rcvConvolveMat src dst mSize kernel factor delta 
 ]
 
 
-rcvConvertMatScale: function [src [vector!] dst [vector!] srcScale [number!] dstScale [number!] /fast /normal
+rcvConvolveNormalizedMat: function [src [vector!] dst [vector!] mSize[pair!] kernel [block!] factor [float!] delta [float!]
+"Normalized fast matrix convolution"
+] [
+	_rcvConvolveMat2 src dst mSize kernel factor delta 
+]
+
+rcvConvertMatScale: function [src [vector!] dst [vector!] srcScale [number!] dstScale [number!] /fast /std
 "Converts Matrix Scale"
 ][
 	if type? srcScale = integer! [srcScale: to float! srcScale]
 	if type? dstScale = integer! [dstScale: to float! dstScale]
 	case [
-		normal  [n: length? src
+		std  [n: length? src
 					i: 1
 					while [i <= n] [
-						
-						dst/(i): to integer! (to float! src/(i) / srcScale * dstScale)
+						dst/(i): to integer! ((src/(i) / srcScale) * dstScale)
 	 					i: i + 1]
 	 				]
 		fast	[_convertMatScale src dst srcScale dstScale]
 	]	
 ]
 
-rcvMatInt2Float: function [src [vector!] dst [vector!] srcScale [float!]
+rcvMatInt2Float: function [src [vector!] dst [vector!] srcScale [number!]
 "Converts Integer Matrix to Float [0..1] matrix"	
 ][
+	if type? srcScale = integer! [srcScale: to float! srcScale]
 	n: length? src
 	i: 1
 	while [i <= n] [
@@ -185,13 +183,18 @@ rcvMatFloat2Int: function [src [vector!] dst [vector!]
 	]
 ]
 
+rcvMatFastSobel: function [src [vector!] dst [vector!] iSize [pair!] 
+"Fast Sobel on Matrix"
+][
+	_rcvSobelMat src dst iSize
+]
+
 
 ;***********************Matrices Operations *********************
 __rcvAddMat: function [src1 [vector!] src2 [vector!] dst [vector!]
 "dst: src1 +  src2"
 ][
 	dst: src2 + src1
-	print [ "tempo " dst/1]
 	dst
 ]
 

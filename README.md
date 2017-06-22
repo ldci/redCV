@@ -3,9 +3,9 @@
 ### This library needs View 
 
 
-Only for Windows for the moment. Available for OSX and Linux ASAP.
+For Windows and macOS. Available for Linux ASAP.
 
-#### You need the lastest Red master version.
+### You need the lastest Red master version.
 
 Developped under MacOS 10.12
 
@@ -18,6 +18,12 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+
+### NEW JUNE 22 2017
+
+Most of code (libs and sample) is updated according to Red modifications for Image! datatype. 
+
+New edges detection fast operators are also added.  
 
 
 ### NEW MAY 13 2017
