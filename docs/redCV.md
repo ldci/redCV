@@ -132,7 +132,8 @@
 * **rcvSortImage**: Ascending image sorting
 * **rcvHistogram**: Calculates array histogram
 * **rcvSmoothHistogram**: This function smoothes the input histogram by a moving average
-* **rcvIntegral**: Calculates integral images
+* **rcvIntegral**: Calculates integral images
+* **rcvQuickHull**: Finds the convex hull of a point set
 ##Geometrical transformations
 Using Draw DSL
 

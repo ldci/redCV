@@ -7,7 +7,7 @@ For Windows and macOS. Available for Linux ASAP.
 
 ### You need the lastest Red master version.
 
-Developped under MacOS 10.12
+Developped under macOS 10.12
 
 Tested with MacOs, Windows XP and Windows 10.
 
@@ -18,6 +18,11 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+### NEW JULY 1 2017
+Quick Convex Hull algorithm added to RedCV.
+
+Samples and documentation updated. 
+
 
 ### NEW JUNE 22 2017
 
