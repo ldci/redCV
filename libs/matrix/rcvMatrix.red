@@ -330,7 +330,7 @@ rcvBlendMat: function [ mat1 [vector!] mat2 [vector!] dst [vector!] alpha [float
 	_rcvBlendMat mat1 mat2 dst alpha
 ]
 
-rcvInRangeMat: function [src [image!] dst [image!] lower [integer!] upper [integer!] op [integer!]
+rcvInRangeMat: function [src [vector!] dst [vector!] lower [integer!] upper [integer!] op [integer!]
 "Extracts sub array from matrix according to lower and upper values "
 ] [
 	_rcvInRangeMat src dst lower upper op
