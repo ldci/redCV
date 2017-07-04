@@ -9,7 +9,7 @@ For Windows and macOS. Available for Linux ASAP.
 
 Developped under macOS 10.12
 
-Tested with MacOs, Windows XP and Windows 10.
+Tested with macOS, Windows XP and Windows 10.
 
 You must compile samples since red routines are required.
 
@@ -18,6 +18,9 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+
+### NEW JULY 4 2017
+Added rcvContourArea function and new samples
 ### NEW JULY 1 2017
 Quick Convex Hull algorithm added to RedCV.
 
