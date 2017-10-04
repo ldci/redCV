@@ -18,6 +18,13 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+### NEW OCTOBER 4 2017
+
+General update for Red 0.6.3
+
+New samples for distance maps
+
+Documentation is updated
 
 ### NEW JULY 4 2017
 Added rcvContourArea function and new samples

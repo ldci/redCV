@@ -21,7 +21,7 @@ Red/System [
 
 ; adapt libraries paths for your own use :)
 #switch OS [
-    MacOSX  [
+    macOS  [
         #define cvVideocapture "/usr/local/lib32/xcode/libcameraLib.dylib"
     ]
     Windows [

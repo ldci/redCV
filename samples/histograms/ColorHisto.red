@@ -41,20 +41,20 @@ processMat: does [
 	tmp: copy histor
 	sort tmp
 	maxi: last tmp
-	rcvConvertMatScale/normal histor historc  maxi 200 ; change scale
+	rcvConvertMatScale/std histor historc  maxi 200 ; change scale
 	if smooth [tmp: rcvSmoothHistogram historc  historc: copy tmp]
 	
 	tmp: copy histog
 	sort tmp
 	maxi: last tmp
-	rcvConvertMatScale/normal histog histogc  maxi 200 ; change scale
+	rcvConvertMatScale/std histog histogc  maxi 200 ; change scale
 	
 	if smooth [tmp: rcvSmoothHistogram histogc histogc: copy tmp]
 	
 	tmp: copy histob
 	sort tmp
 	maxi: last tmp
-	rcvConvertMatScale/normal histob histobc  maxi 200 ; change scale
+	rcvConvertMatScale/std histob histobc  maxi 200 ; change scale
 	if smooth [tmp: rcvSmoothHistogram histobc histobc: copy tmp]
 ]
 

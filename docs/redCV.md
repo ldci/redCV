@@ -143,7 +143,21 @@ Using Draw DSL
 * **rcvScaleImage**: Sets the scale factors: Returns a Draw block 
 * **rcvTranslateImage**: Sets the origin for drawing commands : Returns a Draw block 
 * **rcvRotateImage**: Sets the clockwise rotation about a given point, in degrees : Returns a Draw block
-* **rcvSkewImage**: Sets a coordinate system skewed from the original by the given number of degrees
+* **rcvSkewImage**: Sets a coordinate system skewed from the original by the given number of degrees
+
+Using RedCV Routines
+## Distances
+
+* **rcvMakeGradient**: Makes a gradient matrix for contour detection (similar to Sobel) and returns max gradient value
+* **rcvMakeBinaryGradient**: Makes a binary [0 1] matrix for contour detection
+* **rcvFlowMat**: Calculates the distance map to binarized gradient
+* **rcvnormalizeFlow**: Normalizes distance into 0..255 range according to scale value
+* **rcvGradient&Flow**: Creates an image including flow and gradient values
+* **rcvChamferDistance**: Selects a pre-defined chamfer kernel
+* **rcvChamferCreateOutput**: Creates a distance map (float!) 
+* **rcvChamferInitMap**: Initializes distance map 
+* **rcvChamferCompute**: Calculates the distance map to binarized gradient
+* **rcvChamferNormalize**: Normalizes calculated distance map
 ##Image enhancement
 * **rcvMakeTranscodageTable**: Creates a transcoding 256 table for affine enhancement
 * **rcvContrastAffine**: Enhances image contrast with affine function

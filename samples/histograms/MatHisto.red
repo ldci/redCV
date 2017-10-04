@@ -21,12 +21,12 @@ random/seed to integer! t/second
 
 processMat: does [
 	rcvRandomMat mat 255 
-	rcvMat82Image mat img1
+	rcvMat2Image mat img1
 	histo1: rcvHistogram mat
 	tmp: copy histo1
 	sort tmp
 	maxi: last tmp
-	rcvConvertMatScale/normal histo1 histo2  maxi 200 ; change scale
+	rcvConvertMatScale/std histo1 histo2  maxi 200 ; change scale
 	canvas1/image: img1
 ]
 

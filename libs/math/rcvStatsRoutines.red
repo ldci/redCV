@@ -1,7 +1,7 @@
 Red [
 	Title:   "Red Computer Vision: Red/System routines"
 	Author:  "Francois Jouen"
-	File: 	 %rcvStatsRoutines.red
+	File: 	 %rcvSnakeRoutines.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
 	License: {

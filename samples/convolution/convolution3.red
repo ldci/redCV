@@ -57,7 +57,6 @@ loadImage: does [
 		] 
 		canvas/size/x: rimg/size/x
 		canvas/size/y: rimg/size/y
-		canvas/image/size: canvas/size	
 		canvas/offset/x: (win/size/x - rimg/size/x) / 2
 		canvas/image: dst
 		isFile: true

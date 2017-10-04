@@ -14,12 +14,12 @@ dst: rcvCreateImage img1/size
 view win: layout [
 		title "RGB Channels Test"
 		origin margins space margins
-		button 80 "Source"	[_rcvChannel img1 dst 0]	; routine
-		button 70 "Red"  	[rcvSplit/red img1 dst]
-		button 70 "Green"	[rcvSplit/green img1 dst]
-		button 70 "Blue"  	[rcvSplit/blue img1 dst]
-		button 70 "Alpha"  	[rcvSplit/alpha img1 dst]
-		button 80 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]
+		button 60 "Source"	[_rcvChannel img1 dst 0]	; routine
+		button 60 "Red"  	[rcvSplit/red img1 dst]
+		button 60 "Green"	[rcvSplit/green img1 dst]
+		button 60 "Blue"  	[rcvSplit/blue img1 dst]
+		button 60 "Alpha"  	[rcvSplit/alpha img1 dst]
+		button 60 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
 		canvas: base 512x512 dst	
 		do [_rcvChannel img1 dst 0]

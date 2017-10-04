@@ -54,12 +54,12 @@ view win: layout [
                             rcvReleaseImage img2
                             Quit]
         return
-        text 100 "Source" pad 412x0 
+        text 100 "Source" pad 156x0 
         text 120 "Standard convolution"
-        pad 402x0 
+        pad 392x0 
         text "Normalized convolution"
         return
-        canvas1: base isize img1
+        canvas1: base 256x256 img1
         canvas2: base isize img2
         canvas3: base isize img3
 ]

@@ -29,7 +29,6 @@ loadImage: does [
 		] 
 		canvas/size/x: img1/size/x
 		canvas/size/y: img1/size/y
-		canvas/image/size: canvas/size	
 		canvas/offset/x: (win/size/x - img1/size/x) / 2
 		canvas/image: dst
 	]

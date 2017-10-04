@@ -29,7 +29,7 @@ upper:  170.255.255
 view win: layout [
 		title "Object Detection"
 		origin margins space margins
-		text 320 "Source" text 320 "HSV transform" text 320 "Object tracking"
+		text 320 "Source" text 320 "HSV transform" text 250 "Object tracking"
 		btnQuit: button "Quit" 60x24 on-click [
 			rcvReleaseImage rimg
 			rcvReleaseImage hsv
@@ -39,14 +39,11 @@ view win: layout [
 			quit]
 		return
 		cam: camera iSize
-		
 		cmask: base 320x240 mask
-		
-		canvas: base 320x240 rimg rate 0:0:1 on-time [
+		canvas: base 320x240 rimg on-time [
 			rcvRGB2HSV src hsv
-			rcvInrange hsv mask lower upper
+			rcvInrange hsv mask lower upper 0
 			rcvAnd src mask r1
-			
 			cmask/image: hsv
 			canvas/image: r1
 			src: to-image cam
@@ -58,7 +55,7 @@ view win: layout [
 		cam-list: drop-list 210x32 on-create [
 				face/data: cam/data
 			]
-		onoff: button "Start/Stop" 65x24 on-click [
+		onoff: button "Start/Stop" 80 on-click [
 				either cam/selected [
 					cam/selected: none
 					canvas/rate: none
@@ -66,7 +63,7 @@ view win: layout [
 					cmask/image: black
 				][
 					cam/selected: cam-list/selected
-					canvas/rate: 0:0:0.10;  max 1/25 fps in ms			
+					canvas/rate: 0:0:0.4;  max 1/25 fps in ms			
 					]
 			]
 		

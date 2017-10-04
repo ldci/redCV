@@ -1,7 +1,7 @@
 Red [
 	Title:   "Rotations"
 	Author:  "Francois Jouen"
-	File: 	 %triangle.r.red
+	File: 	 %rotations.r.red
 	Needs:	 'View
 ]
 
@@ -11,7 +11,7 @@ centerXY: 256x256
 _grad-offset: 0x0 ; this allows directional motion 
 _grad-start-rng: 0 ; 
 _grad-stop-rng: 512
-_grad-angle: 0 ; 
+_grad-angle: 90 ; 
 _grad-scale-x: 1.0 ; allows modifying frequency in x range
 _grad-scale-y: 1.0 ; allows modifying frequency in y range
 _grad-color-1: red ; this can be modified for playing with colors

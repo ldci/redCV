@@ -102,6 +102,17 @@ rcvSetReal2D: function [ dst [vector!] mSize [pair!] coordinate [pair!] val [flo
 	dst/(idx): val
 ]
 
+rcvGetPairs: function [binMatrix [vector!] width [integer!] height [integer!] points [block!]
+"Gets coordinates from a binary matrix as pair values"
+][
+	_rcvGetPairs binMatrix width height points
+]
+
+rcvGetPoints: function [binMatrix [vector!] width [integer!] height [integer!] points [vector!]
+"Gets coordinates from a binary matrix as x y values"
+][
+	_rcvGetPoints binMatrix width height points
+]
 
 
 rcvImage2Mat: function [src	[image!] mat [vector!]

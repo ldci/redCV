@@ -18,9 +18,8 @@ Red [
 
 ;**********************MATRICES**************************
 
-; exported as functions in /libs/matrix/rcvMatrix.red
+; internal and not exported routines 
 
-; some useful routines
 ; integer or float matrix type
 _rcvGetMatType: routine [
 	mat  	[vector!]
@@ -74,6 +73,119 @@ _setIntValue: routine [
 	]
 ]
 
+; gets and sets real matrix element value
+; p address must be passed as integer! since red routine doesn't know byte-ptr!
+
+
+_getFloatValue: routine [
+	p		[integer!] ; address of mat element as integer
+	return:	[float!]
+	/local
+	pt64
+] [
+	;vector/get-value-float as byte-ptr! p 8 ; old version
+	pt64: as float-ptr! p
+	pt64/value				
+]
+
+
+_getFloat32Value: routine [
+	p		[integer!] ; address of mat element as integer
+	return:	[float!]
+	/local
+	pt32	
+] [
+	vector/get-value-float as byte-ptr! p 4 
+]
+
+
+_setFloatValue: routine [
+	p		[integer!] ; address of mat element as integer address
+	f		[float!]
+	unit	[integer!] ; size of float 32 64  [4 8]
+	/local
+	pt64 	[pointer! [float!]]
+	pt32	[pointer! [float32!]]
+	
+][
+	either unit = 8 [
+					pt64: as float-ptr! p
+					pt64/value: f
+				][
+					pt32: as float32-ptr! p
+					pt32/value: as float32! f
+	]
+]
+
+
+; gets coordinates from a binary mat as x y values
+
+_rcvGetPoints: routine [
+	bingradient 	[vector!]
+	width			[integer!]
+	height			[integer!]		
+	points			[vector!]
+	/local
+	x y idx
+	svalue 
+	v
+	unit
+][
+	svalue: vector/rs-head bingradient	; a byte ptr
+	vector/rs-clear points
+	unit: _rcvGetMatBitSize bingradient
+    y: 0
+    while [y < height] [
+    	x: 0
+        while [x < width][
+       		v: _getIntValue as integer! svalue unit
+       		if (v = 1) [
+       			vector/rs-append-int points x
+       			vector/rs-append-int points y
+       		]
+       		x: x + 1
+       		svalue: svalue + unit
+       ]
+       y: y + 1
+    ]
+]
+
+; gets coordinates from a binary mat as pair values
+;Thanks to Nenad
+_rcvGetPairs: routine [
+    bingradient     [vector!]
+    width           [integer!]
+    height          [integer!]        
+    points          [block!]
+    /local
+    x y idx x2
+    mvalue 
+    unit
+    v
+][
+    mvalue: vector/rs-head bingradient
+    unit: _rcvGetMatBitSize bingradient
+    
+    block/rs-clear points
+    x: 0
+    y: 0
+
+    while [y < height] [
+    	x: 0
+       	while [x < width][
+               v: _getIntValue as integer! mvalue unit
+               if (v =  1) [pair/make-in points x y]
+               x: x + 1
+               mvalue: mvalue + unit
+       	]
+       	y: y + 1
+    ]
+]
+
+
+
+
+; exported as functions in /libs/matrix/rcvMatrix.red
 
 
 ; copy integer matrices

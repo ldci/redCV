@@ -42,4 +42,3 @@ rcvGetCamImage: function [device [integer!] img [image!]
 	getCamImage img
 ]
 
-

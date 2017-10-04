@@ -9,11 +9,11 @@ Red [
 margins: 5x5
 
 img1: rcvRandomImage/uniform 256x256 255.255.255
-img2: rcvRandomImage/uniform 256x256 255.255.255
+img2: rcvRandomImage/uniform 256x256 255.255.255 ;
 dst: rcvCreateImage 256x256
 
 view win: layout [
-	title "Math Operator Tests on Color"
+	title "Math Operator Tests"
 	origin margins space margins
 	button "+" [rcvAdd img1 img2 dst] 
 	button "-" [rcvSub img1 img2 dst]

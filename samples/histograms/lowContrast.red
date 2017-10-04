@@ -15,8 +15,8 @@ img1: rcvLoadImage %../../images/baboon.jpg
 img2: rcvCreateImage img1/size
 mat: rcvCreateMat 'integer! 8 img1/size
 rcvImage2Mat img1 mat ; -> Grayscale image
-rcvMat82Image mat img1
-rcvMat82Image mat img2
+rcvMat2Image mat img1
+rcvMat2Image mat img2
 f: 1
 
 ; ***************** Test Program ****************************
@@ -26,7 +26,7 @@ view win: layout [
 		sl: slider 455 [f: to integer! (face/data * 32)
 						if f = 0 [f: 1]
 						v/data: form f 
-						rcvImage2Mat img1 mat mat / f rcvMat82Image mat img2
+						rcvImage2Mat img1 mat mat / f rcvMat2Image mat img2
 						
 			 ]
 		v: field 50 "1"

@@ -15,13 +15,13 @@ img1: rcvLoadImage %../../images/lena.jpg
 img2: rcvCreateImage img1/size
 mat: rcvCreateMat 'integer! 8 img1/size
 rcvImage2Mat img1 mat ; -> Grayscale image
-rcvMat82Image mat img1
+rcvMat2Image mat img1
 p: 0%
 
 processMat: does [
 	rcvImage2Mat img1 mat
 	rcvContrastAffine mat p
-	rcvMat82Image mat img2
+	rcvMat2Image mat img2
 	canvas2/image: img2
 ]
 

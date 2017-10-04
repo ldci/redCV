@@ -20,14 +20,14 @@ rcvImage2Mat img1 mat ; -> Grayscale image
 smooth: false 
 
 processMat: does [
-	rcvMat82Image mat img1
+	rcvMat2Image mat img1
 	histo1: rcvHistogram mat
 	if smooth [histo11: rcvSmoothHistogram histo1]
 	tmp: copy histo1
 	sort tmp
 	maxi: last tmp
-	either smooth [rcvConvertMatScale/normal histo11 histo2  maxi 200 ] 
-	[rcvConvertMatScale/normal histo1 histo2  maxi 200] ; change scale
+	either smooth [rcvConvertMatScale/std histo11 histo2  maxi 200 ] 
+	[rcvConvertMatScale/std histo1 histo2  maxi 200] ; change scale
 	canvas1/image: img1
 ]
 
