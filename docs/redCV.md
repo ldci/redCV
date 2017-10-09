@@ -1,4 +1,9 @@
 # RedCV Index
+
+![alt text](red-poster.png "RedCV")
+
+*Illustration by Fyodor Shchukin*
+
 `All functions are documented in docs/RedCV_Manual.pdf
 `
 ##Images and matrices basic operators
