@@ -15,9 +15,7 @@ rimg: rcvCreateImage iSize
 src: rcvCloneImage rimg
 hsv: rcvCloneImage rimg
 mask: rcvCloneImage rimg
-
 r1: rcvCloneImage rimg
-r2: rcvCloneImage rimg
 
 margins: 10x10
 threshold: 32
@@ -52,10 +50,10 @@ view win: layout [
 		
 		return
 		text 100 "Select camera" 
-		cam-list: drop-list 210x32 on-create [
+		cam-list: drop-list 210 on-create [
 				face/data: cam/data
 			]
-		onoff: button "Start/Stop" 80 on-click [
+		onoff: button "Start/Stop" 100 on-click [
 				either cam/selected [
 					cam/selected: none
 					canvas/rate: none
@@ -63,6 +61,12 @@ view win: layout [
 					cmask/image: black
 				][
 					cam/selected: cam-list/selected
+					src: to-image cam
+					rimg: rcvCloneImage src
+					src: rcvCloneImage rimg
+					hsv: rcvCloneImage rimg
+					mask: rcvCloneImage rimg
+					r1: rcvCloneImage rimg
 					canvas/rate: 0:0:0.4;  max 1/25 fps in ms			
 					]
 			]

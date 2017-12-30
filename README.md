@@ -18,6 +18,9 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+### UPDATE DECEMBER 28 2017
+Update for video samples according to evolution of red camera object. 
+
 ### NEW OCTOBER 4 2017
 
 General update for Red 0.6.3

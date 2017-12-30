@@ -23,23 +23,24 @@ d2: rcvCreateImage iSize
 r1: rcvCreateImage iSize
 r2: rcvCreateImage iSize
 
+
 margins: 10x10
 threshold: 32
-cam: none ; for camera
+cam: none ; for camera object
 
 to-text: function [val][form to integer! 0.5 + 128 * any [val 0]]
+
 
 processCam: does [
 	rcv2gray/average nextImg currImg	; transforms to grayscale since, we don't need color
 	rcvAbsdiff  prevImg currImg d1		; difference between previous and current image
 	rcvAbsdiff  currImg nextImg d2		; difference between current and next image
 	rcvAnd d1 d2 r1						; AND differences
-	rcv2BWFilter r1 r2 threshold 		; Applies B&W Filter to base/image
-	canvas/image: nextImg
+	rcv2BWFilter r1 r2 threshold 		; Applies B&W Filter to AND image
 	prevImg: currImg					; previous image contains now the current image
 	currImg: nextImg					; current image contains the next image				
 	nextImg: to-image cam				; updates next image
-	;nextImg: cam/image
+	;nextImg: cam/image					; should work in red future version
 ]
 
 
@@ -48,25 +49,27 @@ view win: layout [
 		title "Motion Detection"
 		origin margins space margins
 		text "Motion " 50 
-		motion: field 50 rate 0:0:1 on-time [face/text: to-text rcvCountNonZero r2]
+		motion: field 70 rate 0:0:1 on-time [face/text: form rcvCountNonZero r2]
+		text "Camera Size" 
+		cSize: field 80
+		
 		btnQuit: button "Quit" 60x24 on-click [
 			rcvReleaseImage prevImg
-			rcvReleaseImage currImg
-			rcvReleaseImage nextImg
-			rcvReleaseImage d1
-			rcvReleaseImage d2
-			rcvReleaseImage r1
-			rcvReleaseImage r2
+            rcvReleaseImage currImg
+            rcvReleaseImage nextImg
+            rcvReleaseImage d1
+            rcvReleaseImage d2
+            rcvReleaseImage r1
+            rcvReleaseImage r2
 			quit]
+			
 		return
 		cam: camera iSize
-		canvas: base 320x240  rate 0:0:1 on-time [ processCam]
+		canvas: base iSize rate 0:0:1 on-time [processCam]
 		return
 		text 40 "Select" 
-		cam-list: drop-list 180x32 on-create [
-				face/data: cam/data
-			]
-		onoff: button "Start/Stop" 85x24 on-click [
+		cam-list: drop-list 180 on-create [face/data: cam/data]
+		onoff: button "Start/Stop" 85 on-click [
 				either cam/selected [
 					cam/selected: none
 					canvas/rate: none
@@ -74,9 +77,13 @@ view win: layout [
 					canvas/image: black
 				][
 					cam/selected: cam-list/selected
-					rcvZeroImage prevImg
-					rcvZeroImage currImg
-					rcvZeroImage nextImg
+					prevImg: currImg: nextImg: to-image cam
+					cSize/text: form currImg/size
+					d1: rcvCreateImage currImg/size
+					d2: rcvCreateImage currImg/size
+					r1: rcvCreateImage currImg/size
+					r2: rcvCreateImage currImg/size
+					canvas/image: r2
 					canvas/rate: 0:0:0.04;  max 1/25 fps in ms
 					motion/rate: 0:0:0.04
 					]
