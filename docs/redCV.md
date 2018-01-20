@@ -1,4 +1,4 @@
-# RedCV Index
+# RedCV Function Index
 
 ![alt text](red-poster.png "RedCV")
 
@@ -22,7 +22,9 @@
 * **rcvRandomImage**: Creates a random uniform color or pixel random image
 * **rcvRandomMat**: Randomize matrix
 * **rcvColorImage**: Set image color
-* **rcvColorMat**: Set matrix color##Image and matrix utilities
+* **rcvColorMat**: Set matrix color
+* **rcvCompressRGB**: Zlib compression of image data
+* **rcvDecompressRGB**: ZLib decompression of image data##Image and matrix utilities
 * **rcvGetPixel**: Returns pixel value at xy coordinates
 * **rcvGetInt2D** : Get integer matrix value
 * **rcvGetReal2D**: Get float matrix value

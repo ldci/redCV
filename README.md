@@ -18,6 +18,13 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+
+### UPDATE JANUARY 20 2018
+
+You'll find in /samples/image_compression/ new code for image compression with ZLib.
+
+Documentation is updated.
+
 ### UPDATE JANUARY 04 2018
 
 Happy New Year!
