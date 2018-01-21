@@ -15,6 +15,8 @@ Red [
 
 ; To be modified when Matrix! datatype will be available
 
+
+
 rcvCreateMat: function [ type [word!] bitSize [integer!] mSize [pair!] return: [vector!]
 "Creates 2D matrix "
 ][
@@ -47,14 +49,110 @@ rcvCopyMat: function [src [vector!] dst [vector!]
 	if t = 2 [_rcvCopyMatF src dst] 
 ]
 
+; news
+
+makeRange: func [a [number!] b [number!] step [number!]][
+    collect [i: a - step until [keep i: i + step i = b]]
+]
+
+
+rcvMakeRangeMat: function [a [number!] b [number!] step [number!] return: [vector!]
+"Creates an ordered matrix"
+][
+	tmp: makeRange a b step
+	make vector! tmp
+]
+
+rcvMakeIndenticalMat: func [type [word!] bitSize [integer!] vSize [integer!] value [number!]return: [vector!]
+"Creates a matrix with identical values"
+][
+	tmp: make vector! reduce  [type bitSize vSize]
+	tmp + value
+]
+
+
+rcvCreateRangeMat: function [a [number!] b [number!] return: [vector!]] 
+[
+	tmp: makeRange a b
+	make vector! tmp
+]
+
+
+
+_rcvRandomMat: function [v [vector!] value [number!]
+][
+	n: length? v
+	collect [i: 0 until [ i: i + 1 keep  v/:i: random value i = n]]
+]
+
+
+rcvSortMat: func [v [vector!] return: [vector!]
+"Ascending sort of matrix"
+] [
+	vv: copy v ; to avoid source modification
+	sort vv
+]
+
+rcvFlipMat: function [v [vector!] return: [vector!]
+"Reverses matrix"
+][
+	vv: copy v ; to avoid source modification
+	reverse vv
+]
+
+rcvLengthMat: function [mat [vector!] return: [integer!]] [
+	length? mat
+]
+
+rcvSumMat: function [mat [vector!] return: [float!]] [
+	sum: 0.0
+	foreach value mat [sum: sum + value]
+	sum
+]
+
+rcvMeanMat: function [mat [vector!] return: [float!]] [
+	(rcvSumMat mat) / (rcvLengthMat mat)
+]
+
+rcvProdMat: function [mat [vector!] return: [float!]] [
+	prod: to-float mat/1
+	n: length? mat
+	i: 2
+	while [i <= n] [
+		prod: (prod * mat/:i)
+		i: i + 1
+	]
+	prod
+]
+
+rcvMaxMat: function [mat [vector!] return: [number!]] [
+	n: length? mat
+	vMax: mat/1
+	i: 2
+	while [i <= n] [
+		either (mat/:i > vMax) [vMax: mat/:i] [vMax: vMax]
+		i: i + 1
+	]
+	vMax
+]
+
+rcvMinMat: function [mat [vector!] return: [number!]] [
+	n: length? mat
+	vMin: mat/1
+	i: 2
+	while [i <= n] [
+		either (mat/:i < vMin) [vMin: v/:i] [vMin: vMin]
+		i: i + 1
+	]
+	vMin
+]
+
+; news end
+
 
 rcvRandomMat: function [mat [vector!] value [integer!]
 "Randomize matrix"
 ][
-	; for interpreted
-	;n: length? mat
-	;i: 1
-	;while [i <= n] [mat/(i): random value i: i + 1]
 	forall mat [mat/1: random value]
 ]
 
@@ -114,6 +212,147 @@ rcvGetPoints: function [binMatrix [vector!] width [integer!] height [integer!] p
 	_rcvGetPoints binMatrix width height points
 ]
 
+;Image and Contour moments
+
+; Hu Invariant Moments of 2D Matrix
+;uses binary transform for large images
+
+rcvGetMatCentroid: function [
+"Returns the centroid of the image"
+	mat 	[vector!] 
+	width 	[integer!]
+	height 	[integer!] 
+	return:	[pair!]
+][
+	minLoc: 0x0
+	_rcvGetMatCentroid mat width height minLoc
+]
+
+
+;p - the order of the moment
+;q - the repetition of the moment
+; p: q: 0.0 -> moment order 0 -> form area
+
+
+rcvGetMatSpatialMoment: function [
+"Returns the spatial moment of the mat"
+	mat		[vector!] 
+	width 	[integer!] 
+	height	[integer!] 
+	p 		[float!] 
+	q 		[float!] 
+	return: [float!]
+][
+	_rcvGetMatSpatialMoment mat width height p q
+]
+
+rcvGetMatCentralMoment: function [
+"Returns the central moment of the mat"
+	mat		[vector!] 
+	width 	[integer!] 
+	height	[integer!] 
+	p 		[float!] 
+	q 		[float!] 
+	return: [float!]
+][
+	minLoc: 0x0
+	centroid: _rcvGetMatCentroid mat width height minLoc
+	_rcvGetMatCentralMoment mat width height centroid p q
+]
+
+
+
+;Return the scale invariant moment of the image
+;p - the order of the moment
+;q - the repetition of the moment
+
+
+
+rcvGetNormalizedCentralMoment: function [
+"Return the scale invariant moment of the image"
+	mat  			[vector!]
+	width           [integer!]
+    height          [integer!]
+    p				[float!]
+    q				[float!]
+    return:			[float!]
+] [
+	moment1: rcvGetMatCentralMoment mat width height p q 
+	moment2: rcvGetMatCentralMoment mat width height 0.0 0.0
+	exponent: p + q / 2.0 + 1.0  
+	m00: power moment2 exponent
+	moment1 / m00
+]
+
+rcvGetMatHuMoments: function [
+"Returns Hu moments of the image"
+	mat  			[vector!]
+	width           [integer!]
+    height          [integer!]
+    return: 		[block!]
+][
+	;where ηi,j are normalized central moments of 2-nd and 3-rd orders.
+	n20: rcvGetNormalizedCentralMoment mat width height 2.0 0.0
+	n02: rcvGetNormalizedCentralMoment mat width height 0.0 2.0
+	n11: rcvGetNormalizedCentralMoment mat width height 1.0 1.0
+	n12: rcvGetNormalizedCentralMoment mat width height 1.0 2.0
+	n21: rcvGetNormalizedCentralMoment mat width height 2.0 1.0
+	n30: rcvGetNormalizedCentralMoment mat width height 3.0 0.0
+	n03: rcvGetNormalizedCentralMoment mat width height 0.0 3.0
+
+	{from OpenCV
+	h1=η20+η02
+	h2=(η20-η02)²+4η11²
+	h3=(η30-3η12)²+ (3η21-η03)²
+	h4=(η30+η12)²+ (η21+η03)²
+	h5=(η30-3η12)(η30+η12)[(η30+η12)²-3(η21+η03)²]+(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]
+	h6=(η20-η02)[(η30+η12)²- (η21+η03)²]+4η11(η30+η12)(η21+η03)
+	h7=(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]-(η30-3η12)(η21+η03)[3(η30+η12)²-(η21+η03)²]
+	}
+	
+	hu1: n20 + n02
+	hu2: power (n20 - n02) 2 +  (4 * power n11 2)
+	hu3: (power n30 - (3 * n12) 2) + (power 3 * n21 - n03 2)
+	hu4: power (n30 + n12) 2 + power (n21 + n03) 2
+	
+	
+	;h5=(η30-3η12)(η30+η12)[(η30+η12)²-3(η21+η03)²]+(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]
+	
+	
+	a: n30 - (3 * n12)
+	b: n30 + n12
+	c: power n30 + n12 2
+	d: 3 * power n21 + n03 2 
+	e: 3 * n21 - n03
+	f: n21 + n03
+	g: 3 * power n30 + n12 2
+	h: power n21 + n03 2
+	
+	hu5: (a * b) * (c - d) + (e * f * (g - h))
+	
+	
+	
+	;hu5: n30 - (3 * n12) * (n30 + n12) - (3 * (n21 + n03) ** 2)))) 
+	;	+ (((3 * n21) - n03) * (n21 + n03)) * (3 * ((n30 + n12) ** 2) - ((n21 + n03) ** 2))
+	a: n20 - n02
+	b: (n30 + n12) ** 2
+	c: (n21 + n03) ** 2
+	d: 4 * n11
+	e: n30 + n12
+	f: n21 + n03
+	;print (a * (b - c)) + (d * e * f)
+	
+	hu6: (n20 - n02) * (((n30 + n12) ** 2) - (n21 + n03) ** 2) + (4 * n11) * ((n30 + n12) * (n21 + n03))
+	hu7: (3 * n21 - n03) * (n30 + n12) * ((n30 + n12) ** 2 - 3 * (n21 + n03) ** 2) -
+			(n30 - 3 * n12) * (n21 + n03) * (3 * (n30 + n12) ** 2 - (n21 + n03) ** 2)
+			
+	reduce [hu1 hu2 hu3 hu4 hu5 hu6 hu7]
+]
+
+
+
+
+;*********
 
 rcvImage2Mat: function [src	[image!] mat [vector!]
 "Red Image to integer or char 2-D Matrix "

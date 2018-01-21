@@ -8,11 +8,15 @@
 `
 ##Images and matrices basic operators
 * **rcvCreateImage**: Creates and returns empty (black) image
+* **rcvGetImageSize**: Gets image size as a pair
 * **rcvCreateMat**: Creates 2D matrix
+* **rcvLengthMat**: Returns matrix length
+* **rcvMakeRangeMat**: Makes an ordered matrix
+* **rcvMakeIndenticalMat**: Creates a matrix with identical values
 * **rcvReleaseImage**: Releases image data
 * **rcvReleaseMat**: Releases Matrix
 * **rcvLoadImage**: Loads image from file
-* **rcvLoadImageB**: Loads image from file and return image as binary
+* **rcvLoadImageAsBinary**: Loads image from file and return image as binary
 * **rcvSaveImage**: Save image to file
 * **rcvCloneImage**: Returns a copy of source image
 * **rcvCloneMat**: Returns a copy of source matrix
@@ -23,8 +27,11 @@
 * **rcvRandomMat**: Randomize matrix
 * **rcvColorImage**: Set image color
 * **rcvColorMat**: Set matrix color
+* **rcvSortMat**: Ascending sort of matrix
+* **rcvFlipMat**: Flip matrix
 * **rcvCompressRGB**: Zlib compression of image data
-* **rcvDecompressRGB**: ZLib decompression of image data##Image and matrix utilities
+* **rcvDecompressRGB**: ZLib decompression of image data
+##Image and matrix utilities
 * **rcvGetPixel**: Returns pixel value at xy coordinates
 * **rcvGetInt2D** : Get integer matrix value
 * **rcvGetReal2D**: Get float matrix value
@@ -128,14 +135,24 @@
 ##Statistics and image features extraction
 * **rcvCountNonZero**: Returns number of non zero values in image or matrix
 * **rcvSum**: Returns sum value of image or matrix as a block of rgb values
+* **rcvSumMat**: returns matrix sum as number value
 * **rcvMean**: Returns mean value of image or matrix as a tuple of rgb values
+* **rcvMeanMat**: returns matrix mean as a number
 * **rcvSTD**: Returns standard deviation value of image or matrix as a block of rgb values
 * **rcvMedian**: Returns median value of image or matrix as a block of rgb values
+* **rcvProdMat**: return matrix product
 * **rcvMinValue**: Returns minimal value of image or matrix as a block of rgb values
 * **rcvMaxValue**: Returns maximum value of image or matrix as a block of rgb values
+* **rcvMaxMat**: maximum of matrix as a number
+* **rcvMinMat**: minimum  of matrix as a number
 * **rcvMinLoc**: Finds global minimum location in array
 * **rcvMaxLoc**: Finds global maximum location in array
 * **rcvRangeImage**: Gives range value in Image as a tuple
+* **rcvGetMatCentroid**: Returns the centroid of the image
+* **rcvGetMatSpatialMoment**: Returns the spatial moment of the mat
+* **rcvGetMatCentralMoment**: Returns the central moment of the mat
+* **rcvGetNormalizedCentralMoment**: Return the scale invariant moment of the image
+* **rcvGetMatHuMoments**: Returns Hu momoent of the image
 * **rcvSortImage**: Ascending image sorting
 * **rcvHistogram**: Calculates array histogram
 * **rcvSmoothHistogram**: This function smoothes the input histogram by a moving average

@@ -22,13 +22,12 @@ loadImage: does [
 	isFile: false
 	tmp: request-file
 	if not none? tmp [
-		img0: rcvLoadImage tmp
-		imgSize: img0/size
-		rgb: copy img0/rgb
+		imgSize: rcvGetImageSize tmp
+		rgb: rcvLoadImageAsBinary tmp
 		img1: rcvCreateImage imgSize 
 		img2: rcvCreateImage imgSize 
-		img3: rcvCreateImage imgSize 
-		img1/rgb: rgb
+		img3: rcvCreateImage imgSize
+		img1/rgb: rgb 
 		b1/image: img1
 		b2/image: img2
 		b3/image: img3
@@ -82,7 +81,6 @@ uncompressImage: does [
 	f3/text: rejoin [form length? result2 " bytes"]
 	img3/rgb: copy result2
 	b3/image: img3
-	
 	sb/text: rejoin ["Uncompressed in " form t2 - t1]
 ]
 
@@ -104,7 +102,7 @@ view win: layout [
 	button 90 "Compress" [if isFile [compressImage]]
 	f0: field 120
 	button 105 "Uncompress" [if isCompressed [uncompressImage]]
-	button 50 "Quit" [quit]
+	button 50 "Quit" [rcvReleaseImage img1 rcvReleaseImage img2 rcvReleaseImage img3 quit]
 	return
 	f1: field 125 f11: field 125
 	text 125 "Compressed" f2: field 125
