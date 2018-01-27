@@ -183,7 +183,129 @@ _rcvGetPairs: routine [
 ]
 
 
+; Hu Invariant Moments of 2D Matrix
+; We use a binary [0..1] matrix rather [0..255] integer matrix
 
+_rcvGetMatCentroid: routine [
+	mat  			[vector!]
+	width           [integer!]
+    height          [integer!]
+    minloc 			[pair!]
+    return: 		[pair!]   
+	/local
+	loc
+	x y
+	sumX sumY sumXY
+	mvalue 
+    unit
+    v
+][	
+	mvalue: vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    x: 0
+    y: 0
+    sumX: 0 sumY: 0 sumXY: 0
+    loc: as red-pair! minloc; stack/arguments
+    while [y < height] [
+    	x: 0
+       	while [x < width][
+       		v: _getIntValue as integer! mvalue unit
+       		if v > 0 [v: 1]
+       		sumX: sumX + (x * v)
+       		sumY: sumY + (y * v)
+       		sumXY: sumXY + v
+            x: x + 1
+            mvalue: mvalue + unit
+       	]
+       	y: y + 1
+    ]
+    loc/x: (sumX / sumXY)
+    loc/y: (sumY / sumXY)
+    as red-pair! stack/set-last as cell! loc
+]
+
+
+;Returns the central moment of the matrix
+;p - the order of the moment (x order)
+;q - the repetition of the moment (y order)
+
+
+
+_rcvGetMatSpatialMoment: routine [
+	mat  			[vector!]
+	width           [integer!]
+    height          [integer!]
+    p				[float!]
+    q				[float!]
+    return:			[float!]
+    /local 	
+    moment
+    x y
+    xf yf
+	mvalue 
+    unit
+    v
+][
+	mvalue: vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    x: 0
+    y: 0
+    xf: 0.0
+    xf: 0.0
+    moment: 0.0
+    while [y < height] [
+    	x: 0
+       	while [x < width][
+       		v: as float! _getIntValue as integer! mvalue unit
+       		xf: pow as float! x  p
+       		yf: pow as float! y  q
+       		moment: moment + (v * xf * yf)
+            x: x + 1
+            mvalue: mvalue + unit
+       	]
+       	y: y + 1
+    ]
+    moment
+]
+
+
+_rcvGetMatCentralMoment: routine [
+	mat  			[vector!]
+	width           [integer!]
+    height          [integer!]
+    centroid		[pair!]
+    p				[float!]
+    q				[float!]
+    return:			[float!]
+    /local 	
+    moment
+    x y
+    xf yf
+	mvalue 
+    unit
+    v
+][
+	mvalue: vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    x: 0
+    y: 0
+    xf: 0.0
+    xf: 0.0
+    moment: 0.0
+    while [y < height] [
+    	x: 0
+       	while [x < width][
+       		v: as float! _getIntValue as integer! mvalue unit
+       		xf: pow as float! (x - centroid/x)  p
+       		yf: pow as float! (y - centroid/y)  q
+       		moment: moment + (xf * yf * v)
+            x: x + 1
+            mvalue: mvalue + unit
+       	]
+       	y: y + 1
+    ]
+    moment
+]
 
 ; exported as functions in /libs/matrix/rcvMatrix.red
 
