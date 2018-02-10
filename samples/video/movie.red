@@ -1,4 +1,3 @@
-#! /usr/local/bin/red
 Red [
 	Title:   "Test camera Red VID "
 	Author:  "Francois Jouen"
@@ -6,82 +5,89 @@ Red [
 	Needs:	 View redCV
 ]
 
+#include %../../libs/redcv.red ; for redCV functions
+
+
 margins: 5x5
-fn: %video.rvf
 iSize: 640x480
 imgSize: 0x0
-cSize: 0x0
-n: 0
-nImages: 0
-strSize: 0
-f: none
-isFile: false
-rgbSize: 0
-img: make image! reduce [iSize black] 
-
-activeImage: 1
+nImages: rgbSize: urgbSize: 0
+img: rcvCreateImage iSize
+currentImg: 1
 duration: 0.0
 fps: 0
-compression: 0
-freq: none
+freq: to-time compose [0 0 0.0]
+zComp: 0
+headerSize: 36
+f: none
+isFile: false
+
 
 readImage: func [n [integer!]][
-	if isFile [
+	if isFile[
 		f5/text: form n
-		img/rgb: movie/:n
+		idx: movie/:n										; get image offset
+		rgbSize: to-integer copy/part skip f idx 4			; get compressed size
+		urgbSize: to-integer copy/part skip f idx + 4 4		; get uncompressed size
+		rgb: copy/part skip f idx + 8 rgbSize				; get binary values 
+		;decompress if necessary
+		either zComp = 0 [img/rgb: rgb] [img/rgb: rcvDecompressRGB rgb urgbSize]
+		canvas/image: img									; update image container
 	]
-	canvas/image: img
 ]
 
+updateSlider: does [sl/data: to-percent (currentImg / to-float nImages)]
+
 readAllImages: does [
-	either activeImage < nImages [activeImage: activeImage + 1 readImage activeImage]
-								  [activeImage: 1]
+	either currentImg < nImages [currentImg: currentImg + 1 readImage  currentImg]
+								[currentImg: 0]
+	updateSlider
+]
+
+readHeader: func [file [file!]][
+	f: read/binary/part file headerSize				; 36 bytes for the header
+	s: to-string copy/part f 4  					; should be "RCAM"			
+	nImages: to-integer copy/part skip f 4 4		; number of images in movie
+	imgSize/x: to-integer copy/part skip f 8 4		; image X size	
+	imgSize/y: to-integer copy/part skip f 12 4		; image Y size
+	duration: to-float copy/part skip f 16 8		; movie duration in sec
+	fps: to-integer copy/part skip f 24 4			; frames/sec
+	zComp: to-integer copy/part skip f 28 4			; compressed or uncompressed data
+	s: to-string copy/part skip f 32 4  			; should be "DATA"
+	; update fields and variables
+	either zComp = 0 [f6/text: rejoin [ form zComp " : Uncompressed video"]] 
+					 [f6/text: rejoin [ form zComp " : ZLib compressed video"]]
+	f1/text: rejoin [form nImages " frames"]
+	f2/text: form imgSize
+	f3/text: rejoin [form round duration " sec"]
+	f4/text: rejoin [form fps " FPS"]
+	freq: to-time compose [0 0 (1.0 / fps)]
 ]
 
 loadMovie: func [] [
-	;tmp: request-file/filter ["Red Video Files" "*.rvf"] ; pb with -t macOS
-	tmp: request-file
+	tmp: request-file/filter ["Red Video Files" "*.rvf"]
 	if not none? tmp [
-		f: read/binary tmp
-		; read header
-		s: to-string copy/part f 4  ; should be "RCAM"
-		f: skip f 4					;
-		nImages: to-integer copy/part f 4
-		
-		f: skip f 4
-		imgSize/x: to-integer copy/part f 4
-		f: skip f 4
-		imgSize/y: to-integer copy/part f 4
-		
-		rgbSize: (imgSize/x * imgSize/y) * 3
-		f: skip f 4
-		duration: to-float copy/part f 8
-		f: skip f 8
-		fps: to-integer copy/part f 4
-		f: skip f 4
-		compression: to-integer copy/part f 4
-		either compression = 0 [f6/text: rejoin [ form compression " : Uncompressed video"]] 
-							[f6/text: rejoin [ form compression " : ZLib compressed video"]]
-		f1/text: rejoin [form nImages " frames"]
-		f2/text: form imgSize
-		f3/text: rejoin [form round duration " sec"]
-		f4/text: rejoin [form fps " FPS"]
-		freq: to-time compose [0 0 (1.0 / fps)]
-		f: skip f 4
-		
-		; read red movie data
+		readHeader tmp 						; read movie header
+		f: read/binary/seek tmp headerSize 	; go to first image
 		movie: copy []
 		i: 0 
+		; makes image offset index
+		nextIndex: headerSize ; 36 bytes
 		while [i < nImages] [
-			if i > 0 [f: skip f rgbSize]
-			rgb: copy/part f rgbSize
-			append movie rgb
+			index: nextindex
+			rgbSize: to-integer copy/part f 4
+			nextindex: index + rgbSize + 8
+			f: skip f rgbSize + 8
+			append movie index
 			i: i + 1
-		]
-		img: make image! reduce [imgSize rgb]
+		]	
 		isFile: true 
-		activeImage: 1
-		readImage activeImage 
+		sl/data: 0%
+		f: read/binary tmp			; head of file 
+		img: rcvCreateImage imgSize ; we need a red image! for displaying video
+		currentImg: 1
+		readImage currentImg 
+		win/text: copy form tmp
 	]
 ]
 
@@ -89,23 +95,35 @@ view win: layout [
 	title "Reading red movie"
 	origin margins space margins
 	button "Load" [loadMovie]
-	f1: field 100
+	f1: field 150
 	f2: field 100
 	f3: field 100
 	f4: field 100
-	bt: base 20x20 on-time [readAllImages]
+	pad 40x0
 	button "Quit" [quit]
 	return
 	canvas: base iSize img
 	return
-	button "<<" [activeImage: 1 readImage activeImage]
-	button ">>" [activeImage: nImages readImage activeImage]
-	button ">"  [if activeImage < nImages [activeImage: activeImage + 1 readImage activeImage]]
-	button "<"  [if activeImage > 1 [activeImage: activeImage - 1 readImage activeImage]]
-	button "<>" [if isFile [bt/rate: freq]]
-	button "||" [bt/rate: none]
-	f5: field 60
-	f6: field 160
+	sl: slider 615 [
+				n: nImages - 1
+				currentImg: to-integer (sl/data * n) + 1 
+				readImage  currentImg]
+	bt: base 20x20 black on-time [readAllImages]
+	return
+	button "<<" [currentImg: 1 readImage currentImg sl/data: 0%]
+	button ">>" [currentImg: nImages readImage currentImg updateSlider]
+	button "<"  [if currentImg > 1 [currentImg: currentImg - 1 readImage currentImg]
+				updateSlider]
+	button ">"  [if currentImg < nImages [currentImg: currentImg + 1 readImage currentImg]
+				updateSlider]
+	onoff: button "Start/Stop" on-click [
+		if isFile [
+			either bt/rate = none [bt/color: green bt/rate: freq] 
+			[bt/color: black bt/rate: none]
+		]
+	]
+	f5: field 75
+	f6: field 190
 	do [bt/rate: none]
 ]
 
