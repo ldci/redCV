@@ -16,6 +16,8 @@
 * **rcvReleaseImage**: Releases image data
 * **rcvReleaseMat**: Releases Matrix
 * **rcvLoadImage**: Loads image from file
+* **rcvLoadTiffImage**: Loads TIFF image;
+* **rcvReadTiffImageData**: Reads multiple images included in tiff file
 * **rcvLoadImageAsBinary**: Loads image from file and return image as binary
 * **rcvSaveImage**: Save image to file
 * **rcvCloneImage**: Returns a copy of source image
@@ -51,6 +53,7 @@
 * **rcvSplit**: Separates source image in RGBA channels
 * **rcvSplit2Mat**: Splits an image to 4 8-bit matrices
 * **rcvMerge2Image**: Merges 4 8-bit matrices to image
+* **rcvTiff2RedImage**: Converts TIFF image to Red image 
 
 ##Color and color space conversion
 * **rcvInvert**: Destination image: inverted source image 

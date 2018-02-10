@@ -18,6 +18,12 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+### UPDATE FEBRUARY 10
+
+redCV can read tiff files now. 1 to 4 channels 8-bit uncompressed images are supported. 
+see /samples/tiff for code sample.
+
+Doc is also updated.
 
 ### UPDATE JANUARY 20 2018
 
