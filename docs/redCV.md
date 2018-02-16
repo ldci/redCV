@@ -18,8 +18,9 @@
 * **rcvLoadImage**: Loads image from file
 * **rcvLoadTiffImage**: Loads TIFF image;
 * **rcvReadTiffImageData**: Reads multiple images included in tiff file
-* **rcvLoadImageAsBinary**: Loads image from file and return image as binary
+* ***rcvLoadImageAsBinary**: Loads image from file and return image as binary
 * **rcvSaveImage**: Save image to file
+* **rcvSaveTiffImage**: Save red image as tiff
 * **rcvCloneImage**: Returns a copy of source image
 * **rcvCloneMat**: Returns a copy of source matrix
 * **rcvCopyImage**: Copy source image to destination image

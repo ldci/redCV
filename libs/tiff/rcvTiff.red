@@ -6,21 +6,6 @@ Red [
 	Needs:	 View
 ]
 
-; for intel or motorola file
-
-bigEndian: false ; by default intel 
-endian: func [str [binary!]] [either not bigEndian [to-integer reverse str] [to-integer str]]
-
-BStripOffsets: []		; list of strips offset
-BStripByteCounts: []	; length of stipe
-tiffBlock: []			; block of tags
-imageData: copy #{} 	; image Data
-tagList: []				; list for visualization
-IFDOffsetList: []		;list of Image File Directory
-; default 8-bit image with 3 channels
-sampleFormat: 1     ; 1 
-samplesPerPixel: 3
-bitsPerSample: 8
 
 
 {*
@@ -523,7 +508,7 @@ TIFFHeader: make object! [
 	tiffFIFD: 		integer!	; 4 bytes 4-7 offset of the first Image File Directory
 ]
 
-;Image File Directory 
+;Image File Directory entry
 ; Dir entry size: 12 bytes by entry
 
 TImgFDEntry: make object![
@@ -615,10 +600,35 @@ TRGBImage: make object! [
 ]
 
 
+; for intel or motorola file
+
+bigEndian: false ; by default intel 
+endian: func [str [binary!]] [either not bigEndian [to-integer reverse str] [to-integer str]]
+
+bStripOffsets: []		; list of strips offset
+bStripByteCounts: []	; length of stripe 
+tiffValues: []			; block of tags values
+imageData: copy #{} 	; image Data
+tagList: []				; list of tags for visualization
+IFDOffsetList: []		;list of Image File Directory offsets and number of entries
+; default 8-bit image with 3 channels
+sampleFormat: 1     ; 1 
+samplesPerPixel: 3
+bitsPerSample: 8
+
+
+assertTiffFile: func [return: [logic!]][
+	isTiffFile: true
+	tiff: head tiff
+	if error? try [tmp: to-string copy/part skip tiff 0 2] [tmp: "NO"]
+	either (tmp = "MM") or (tmp = "II") [isTiffFile: true] [isTiffFile: false]
+	isTiffFile
+]
 
 
 ;Read Tiff File header (8 bytes) OK;
 rcvReadTiffHeader:  func [] [
+	isTiffFile: true
 	tiff: head tiff
 	tmp: to-string copy/part skip tiff 0 2 ; byte order
 	; file created by motorola (big endian) or intel (litte endian) processor?
@@ -626,13 +636,12 @@ rcvReadTiffHeader:  func [] [
 						[bigEndian: false byteOrder: "Intel"]
 	TiffHeader/tiffBOrder: tmp
 	tmp: copy/part skip tiff 2 2 
-	;if  endian  tmp <> 42 [exit] ; mettre test ici
 	TiffHeader/tiffVersion: endian tmp  ; expected value: 42
 	tmp: copy/part skip tiff 4 4
 	TiffHeader/tiffFIFD: endian tmp ;offset of the first Image File Directory
 	;initialisation des blocs pour la gestion des strips de donnes :
-	clear BStripOffsets
-	clear BStripByteCounts
+	clear bStripOffsets
+	clear bStripByteCounts
 ]
 
 ; make the list of  Image File Directory (IFD) 12 bytes OK
@@ -698,7 +707,7 @@ _getImageType: func  [pageNumber [integer!]] [
 		stream: skip stream 8
     	; value for phometric  
 		tmp: copy/part stream 4             
-    	TImgFDEntry/tiffOffset: endian tmp
+    	TImgFDEntry/tiffOffset: endian tmp ; value or pointer
     	
     	; get PhotometricInterpretation
     	if (TImgFDEntry/tiffTag = 262) [photometric: TImgFDEntry/tiffOffset]
@@ -727,7 +736,7 @@ _getImageType: func  [pageNumber [integer!]] [
 
 _getTagValue: func [] [
 	; use a block rather a string for specific tags such as StripOffsets 
-	clear tiffBlock  
+	tiffValues: copy []  
 	tiff: head tiff
 	; adapt to the real data length in reference to data type
 		switch TImgFDEntry/tiffDataType [
@@ -758,11 +767,11 @@ _getTagValue: func [] [
     		if (TImgFDEntry/tiffDataType = 3) and (value > 65535) [value: to-integer (TImgFDEntry/tiffOffset / 65536)]
     		if (TImgFDEntry/tiffDataType = 8) and (value > 32767) [value: to-integer (TImgFDEntry/tiffOffset / 32768)]
         	TImgFDEntry/redValue: form value	; for Red
-        	append tiffBlock value 
+        	append tiffValues value 
         ] 
         
-        ; > 4 bytes: go to offset to find the tag value
-        
+        ; > 4 bytes: value is not here
+        ;go to pointer offset to find the tag value and put value in red string
         if tlong > 4 [
         	tiff:  skip tiff  to-integer TImgFDEntry/tiffOffset
         	str: copy/part tiff tlong
@@ -771,13 +780,13 @@ _getTagValue: func [] [
         		1 [TImgFDEntry/redValue: str]
 				2 [TImgFDEntry/redValue: str] 
 				3 [ n1: copy/part str 2
-					TImgFDEntry/redValue:  endian  n1 
+					TImgFDEntry/redValue: endian  n1 
 				] 
 				4 [	tmpstr: copy ""
 					cpt: 1
 					until [
 						n1:  endian  copy/part str 4
-						append tiffBlock  n1
+						append tiffValues  n1
 						either cpt <= (TImgFDEntry/tiffDataLength - 1)
 						[append tmpstr rejoin [to-string n1 " "]]
 						[append tmpstr to-string n1]
@@ -824,7 +833,7 @@ _getTagValue: func [] [
 ]
 
 _processTag: func [] [
-	tagLabel: select tiffTags TImgFDEntry/tiffTag ; a block!
+	tagLabel: select tiffTags TImgFDEntry/tiffTag ; tiffTags a block!
 	if not none? tagLabel [
 		str: copy "[" 
 		append str form TImgFDEntry/tiffTag
@@ -856,13 +865,13 @@ _processTag: func [] [
 			258 [BitsPerSample: TImage/BitsPerSample: to-integer TImgFDEntry/redValue]
 			259 [TImage/Compression:  to-integer TImgFDEntry/redValue]
 			262 [TImage/PhotometricInterpretation: to-integer TImgFDEntry/redValue]
-			273 [BStripOffsets: copy tiffBlock TImage/StripOffsets: TImgFDEntry/tiffOffset]
+			273 [bStripOffsets: copy tiffValues TImage/StripOffsets: TImgFDEntry/tiffOffset]
 			278 [TImage/RowsPerStrip:  to-integer TImgFDEntry/redValue]
 			277 [SamplesPerPixel: to-integer TImgFDEntry/redValue
 				if imageType = "rgb" [TImage/SamplesPerPixel: SamplesPerPixel]
 				if imageType = "palette" [TImage/SamplesPerPixel: SamplesPerPixel]
 				] 
-			279 [BStripByteCounts: copy tiffBlock TImage/StripByteCounts: BStripByteCounts]
+			279 [bStripByteCounts: copy tiffValues TImage/StripByteCounts: bStripByteCounts]
 			282 [TImage/XResolution: to-integer TImgFDEntry/redValue ]
 			283 [TImage/YResolution: to-integer TImgFDEntry/redValue]
 			296 [TImage/ResolutionUnit: to-integer TImgFDEntry/redValue]
@@ -877,8 +886,10 @@ _processTag: func [] [
 
 
 ; get the image description for each subfile included in the file
-; Image File Directory 12 bytes
-_readIFD: func [index [integer!]] [
+; Image File Directory is 12 bytes
+; index is the page number by default: 1
+
+readImageFileDirectory: func [index [integer!]] [
 	clear tagList
 	bloc: IFDOffsetList/:index
 	startOffset: first bloc
@@ -912,18 +923,18 @@ _readIFD: func [index [integer!]] [
 rcvReadTiffImageData: func [page [integer!]] [
 	imageData: copy #{}
 	_getImageType page				; image type
-	_readIFD page		; read file dir and process all tags
+	readImageFileDirectory page		; read file dir and process all tags
 
-	BStripOffsets: head  BStripOffsets
-	BStripByteCounts: head BStripByteCounts
+	bStripOffsets: head  bStripOffsets
+	bStripByteCounts: head bStripByteCounts
 	
 	StripsPerImage: TImage/ImageLength + TImage/RowsPerStrip - 1 / TImage/RowsPerStrip
 	;Since each strip is a stream of bytes no endianess correction is needed.
 	
 	; all data are here in an unique strip
 	if StripsPerImage = 1 [
-		startoff: BStripOffsets/1
-		dataLength: to-integer BStripByteCounts/1
+		startoff: bStripOffsets/1
+		dataLength: to-integer bStripByteCounts/1
 		tiff:  head tiff 
 		data:  skip tiff  to-integer startoff
 		append imageData  copy/part data dataLength
@@ -935,8 +946,8 @@ rcvReadTiffImageData: func [page [integer!]] [
 		i: 1
 		sumD: 0
 		while [i < StripsPerImage] [
-			startoff: BStripOffsets/:i
-			dataLength: to-integer BStripByteCounts/:i
+			startoff: bStripOffsets/:i
+			dataLength: to-integer bStripByteCounts/:i
 			tiff:  head tiff 
 			data:  skip tiff to-integer startoff
 			append imageData copy/part data dataLength
@@ -955,79 +966,52 @@ rcvReadTiffImageData: func [page [integer!]] [
 
 
 ;from 1 to 3 Samples Per Pixel
+; from 1 channel to 4 channels red image
+
 rcvBinary2Image: routine [
 	bin		[binary!]
 	dst		[image!]
 	/local
 	pixD 	[int-ptr!]
 	handle	[integer!]
-	unit   ; 1 2 or 4
-	i value  
-	h w x y pos
+	i value pos
+	w h x y
 	
 ] [
 	handle: 0
     pixD: image/acquire-buffer dst :handle
-    w: IMAGE_WIDTH(dst/size) 
-    h: IMAGE_HEIGHT(dst/size) 
+    w: IMAGE_WIDTH(dst/size)
+    h: IMAGE_HEIGHT(dst/size)
     x: 0
     y: 0
     pos: 0
     i: 0
     value: binary/rs-head bin ; get pointer address of bin string
-    while [y < h] [
-       while [x < w][
-       		pos: pos + 1
+    while [y < h][
+    	while [x < w] [
+    		pos: pos + 1
        		i: binary/rs-abs-at bin pos
        		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
-       		value: value + 1
-           	pixD: pixD + 1
-           	x: x + 1
-       ]
-       x: 0
-       y: y + 1
+        	pixD: pixD + 1
+        	x: x + 1
+        ]
+        x: 0
+    	y: y + 1
     ]
     image/release-buffer dst handle yes
 ]
 
 
+
 rcvTiff2RedImage: func [return: [image!]] [
  	src: make image! reduce [ to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)] imageData]
  	img: rcvCreateImage src/size
- 	
- 	;Tiff sampleFormat
- 	;1: unsigned integer data [0..255] 8-bit
- 	;2: two’s complement signed integer data  [-127.. 128] or [-32767..32768] 8 or 16-bit
- 	;3: IEEE floating point data [0..1] ; 32 or 64-bit
- 	;4: unknown
- 	
- 	
- 	if sampleFormat = 2 []
- 	
- 	
- 	if sampleFormat = 3 []
- 	
- 	
+ 
  	; Tiff bit per Sample
  	; TIFF grayscale images are 4 and 8
  	; 4 or 8 for  Palette Color Images
  	; 8,8,8 for RGB Full Color Images
  	; 16, 32: ???
- 	
- 	
- 	{if bitsPerSample = 8 [rcvCopyImage src img]
- 	
- 	if bitsPerSample = 16 [
- 		src/rgb: imageData
- 		rcvCopyImage src img
- 	]
- 	
- 	
- 	if BitsPerSample = 32  [
- 		src/argb: imageData
- 		rcvCopyImage src img
- 	]}
- 	
  	
  	;SamplesPerPixel is usually 1 for bilevel, grayscale, and palette-color images. 
  	;SamplesPerPixel is usually 3 for RGB images.
@@ -1041,26 +1025,176 @@ rcvTiff2RedImage: func [return: [image!]] [
  	img 
 ]
 
-rcvLoadTiffImage: func [f [file!]][
+rcvLoadTiffImage: func [f [file!]return: [logic!]][
 	bigEndian: false ; by default intel 
-	BStripOffsets: copy []		; list of strips offset
-	BStripByteCounts: copy []	; length of stipe
-	tiffBlock: copy []			; block of tags
-	imageData: copy #{} 		; image Data
-	tagList: copy []			; list for visualization
-	IFDOffsetList: copy []		;list of Image File Directory
+	bStripOffsets: copy []		; list of strips offset
+	bStripByteCounts: copy []	; list of strips length
+	tiffValues: copy []			; block of tags value
+	imageData: copy #{} 		; image Data binary string
+	tagList: copy []			; tag list for visualization
+	IFDOffsetList: copy []		; list of Image File Directory
 	cc: 1
 	NumberOfPages: 0
 	; default 8-bit image with 3 channels
-	sampleFormat: 1     ; 1 
-	samplesPerPixel: 3
-	bitsPerSample: 8
-	
+	sampleFormat: 		1     
+	samplesPerPixel:	3
+	bitsPerSample: 		8
+	ret: true
 	tiff: read/binary f 
-	rcvReadTiffHeader 
-	rcvmakeTiffIFDList
-	rcvReadTiffImageData 1
+	either assertTiffFile [
+		rcvReadTiffHeader 
+		rcvmakeTiffIFDList
+		rcvReadTiffImageData 1
+		ret: true
+		] [ret: false]
+	ret
 ]
+
+
+; basic tiff writing 24-bit colour RGB red image
+; mode 1: intel little endian
+; mode 2: motorola big endian 
+
+
+rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
+	; image size
+	nx: anImage/size/x ny: anImage/size/y
+	; creates tiff file and file header
+	either ( mode = 1) [str: "II"] [str: "MM"] ; little or big endian
+	write/binary f str	;creates tiff file
+	
+	either (mode = 1) [str: "2a00"] [str: "002a"] ; 42 magic tiff number
+	write/binary/append f debase/base str 16
+	
+	; IDF offset
+	_offset: (nx * ny * 3) + 8
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin	
+	
+	;end of header
+	
+	;Write binary image data
+	write/binary/append f anImage/rgb   
+	
+	; first and unique IFD
+	; The number of directory entries (14)
+	 
+	either (mode = 1) [str: "0E00"] [str: "000E"]
+	write/binary/append f debase/base str 16
+	
+	; Tag 1: 256: image  width , short int (3)
+	either (mode = 1) [str: "0001030001000000"] [str: "0100000300000001"]
+	write/binary/append f debase/base str 16
+	bin: to-binary nx
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	;tag 2: 257: image height  , short int (3)
+	either (mode = 1) [str: "0101030001000000"] [str: "0101000300000001"]
+	write/binary/append f debase/base str 16
+	bin: to-binary ny
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	;Tag 3: 258 Bits per sample tag, short int 
+	_offset: (nx * ny * 3) + 182;
+	either (mode = 1) [str: "0201030003000000"] [str: "0102000300000003"]
+	write/binary/append f debase/base str 16
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	; tag 4: 259: Compression flag, short int : 1 none
+	either (mode = 1) [str: "030103000100000001000000"] [str: "010300030000000100010000"]
+	write/binary/append f debase/base str 16
+	
+	;Tag 5: 262 ; Photometric interpolation tag, short int: 2 RGB
+	either (mode = 1) [str: "060103000100000002000000"] [str: "010600030000000100020000"]
+	write/binary/append f debase/base str 16
+	
+	;Tag 6: 273 : Strip offset tag, long int
+	either (mode = 1) [str: "110104000100000008000000"] [str: "011100040000000100000008"]
+	write/binary/append f debase/base str 16
+	
+	;tag 7: 274 Orientation flag, short int 1: Top and Left
+	either (mode = 1) [str: "120103000100000001000000"] [str: "011200030000000100010000"]
+	write/binary/append f debase/base str 16
+	
+	;Tag 8 277;Sample per pixel tag, short int 3 since RGB Image
+	either (mode = 1) [str: "150103000100000003000000"] [str: "011500030000000100030000"]
+	write/binary/append f debase/base str 16
+	
+	;Tag 9: 278 Rows per strip tag, short int
+	_offset: ny
+	either (mode = 1) [str: "1601030001000000"] [str: "1601030001000000"]
+	write/binary/append f debase/base str 16
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	;Tag 10: 279 Strip byte count flag, long int 
+	_offset: nx * ny * 3
+	either (mode = 1) [str: "1701040001000000"] [str: "0117000400000001"]
+	write/binary/append f debase/base str 16
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	
+	; Tag 11: 280 Minimum sample value flag, short int  
+	_offset: (nx * ny * 3) + 188
+	either (mode = 1) [str: "1801030003000000"] [str: "0118000300000003"]
+	write/binary/append f debase/base str 16
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	; Tag 12: 281 Max sample value flag, short int  
+	_offset: (nx * ny * 3) + 194
+	either (mode = 1) [str: "1901030003000000"] [str: "0119000300000003"]
+	write/binary/append f debase/base str 16
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	;Tag 13: 284 ;Planar configuration tag, short int
+	either (mode = 1) [str: "1c0103000100000001000000"] [str: "011c00030000000100010000"]
+	write/binary/append f debase/base str 16
+	
+	;Tag 14: 339 Sample format tag, short int
+	_offset: (nx * ny * 3) + 200
+	either (mode = 1) [str: "5301030003000000"] [str: "0153000300000003"]
+	write/binary/append f debase/base str 16
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin
+	
+	;End of the directory entry
+	str: "00000000"
+	write/binary/append f debase/base str 16
+	
+	; now values addressed by pointers
+	;Bits for each colour channel
+	either (mode = 1) [str: "080008000800"] [str: "000800080008"]
+	write/binary/append f debase/base str 16
+	;Minimum value for each component
+	str: "000000000000"
+	write/binary/append f debase/base str 16
+	;Maximum value per channel
+	either (mode = 1) [str: "ff00ff00ff00"] [str: "00ff00ff00ff"]
+	write/binary/append f debase/base str 16
+	;Samples per pixel for each channel
+	either (mode = 1) [str: "010001000100"] [str: "000100010001"]
+	write/binary/append f debase/base str 16
+]
+	
+
+
+
+
+
+
 
 
 

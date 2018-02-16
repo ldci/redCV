@@ -16,27 +16,33 @@ img: make image! reduce [gSize black]
 isFile: false
 
 loadImage: does [
+	canvas/image: black
+	f1/text: f2/text: f3/text: f4/text: ""
+	sb1/text: sb2/text: ""
+	clear tags/data
 	tmpf: request-file; /filter ["*.tif" "*.tiff"]
 	isFile: false
 	if not none? tmpf [
 		;process tiff file and first image (page)
-		t1: now/time/precise
-		rcvLoadTiffImage tmpf
-		canvas/image: rcvTiff2RedImage 
-		t2: now/time/precise
-		; for tags visualisation
-		tags/data: tagList
-		f1/text: rejoin ["Byte Order: " form byteOrder]
-		f2/text: rejoin ["Image: " ImageType]
-		either NumberOfPages = 1 [str: " page" ] [str: " pages"]
 		page: 1
-		f3/text: rejoin [to-string NumberOfPages str]
-		f4/text: form page
-		either NumberOfPages = 1 [f4/visible?: sl/visible?: false] [f4/visible?: sl/visible?: true]   
-		sb1/text: to-string tmpf
-		sb2/text: rejoin ["Loaded and displayed in " form t2 - t1]
-		sl/data: 0%
- 		isFile: true	
+		t1: now/time/precise
+		ret: rcvLoadTiffImage tmpf
+		either ret [
+			canvas/image: rcvTiff2RedImage 
+			t2: now/time/precise
+			; for tags visualisation
+			tags/data: tagList
+			f1/text: rejoin ["Byte Order: " form byteOrder]
+			f2/text: rejoin ["Image: " ImageType]
+			either NumberOfPages = 1 [str: " page" ] [str: " pages"]
+			f3/text: rejoin [to-string NumberOfPages str]
+			f4/text: form page
+			either NumberOfPages = 1 [f4/visible?: sl/visible?: false] [f4/visible?: sl/visible?: true]   
+			sb1/text: to-string tmpf
+			sb2/text: rejoin ["Loaded and displayed in " form t2 - t1]
+			sl/data: 0%
+ 			isFile: true
+ 		] [sb1/text: to-string tmpf sb2/text: "Not a Tiff File" isFile: false]
 	]
 ]
 
