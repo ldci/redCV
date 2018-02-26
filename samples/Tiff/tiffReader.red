@@ -20,7 +20,7 @@ loadImage: does [
 	f1/text: f2/text: f3/text: f4/text: ""
 	sb1/text: sb2/text: ""
 	clear tags/data
-	tmpf: request-file; /filter ["*.tif" "*.tiff"]
+	tmpf: request-file/filter ["All Tiff Files" "*.tif;*.tiff"]
 	isFile: false
 	if not none? tmpf [
 		;process tiff file and first image (page)

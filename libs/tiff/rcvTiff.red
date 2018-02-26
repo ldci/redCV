@@ -1059,6 +1059,12 @@ rcvLoadTiffImage: func [f [file!]return: [logic!]][
 rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	; image size
 	nx: anImage/size/x ny: anImage/size/y
+	nChannels: 3
+	nEntries: 15
+	baseOffset: nEntries + (nEntries * 12)
+	if odd? baseOffset [baseOffset: baseOffset + 1]
+	
+	
 	; creates tiff file and file header
 	either ( mode = 1) [str: "II"] [str: "MM"] ; little or big endian
 	write/binary f str	;creates tiff file
@@ -1067,7 +1073,7 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	write/binary/append f debase/base str 16
 	
 	; IDF offset
-	_offset: (nx * ny * 3) + 8
+	_offset: (nx * ny * nChannels) + 8
 	bin: to-binary _offset
 	if mode = 1 [reverse bin]
 	write/binary/append f bin	
@@ -1078,9 +1084,10 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	write/binary/append f anImage/rgb   
 	
 	; first and unique IFD
-	; The number of directory entries (14)
-	 
-	either (mode = 1) [str: "0E00"] [str: "000E"]
+	; The number of directory entries
+	str: to-string to-hex/size nEntries 4
+	;either (mode = 1) [str: "0E00"] [str: "000E"]
+	if (mode = 1) [reverse str] 
 	write/binary/append f debase/base str 16
 	
 	; Tag 1: 256: image  width , short int (3)
@@ -1097,8 +1104,9 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	if mode = 1 [reverse bin]
 	write/binary/append f bin
 	
+	
 	;Tag 3: 258 Bits per sample tag, short int 
-	_offset: (nx * ny * 3) + 182;
+	_offset: (nx * ny * nChannels) + baseOffset; 
 	either (mode = 1) [str: "0201030003000000"] [str: "0102000300000003"]
 	write/binary/append f debase/base str 16
 	bin: to-binary _offset
@@ -1126,24 +1134,22 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	write/binary/append f debase/base str 16
 	
 	;Tag 9: 278 Rows per strip tag, short int
-	_offset: ny
 	either (mode = 1) [str: "1601030001000000"] [str: "1601030001000000"]
 	write/binary/append f debase/base str 16
-	bin: to-binary _offset
+	bin: to-binary ny
 	if mode = 1 [reverse bin]
 	write/binary/append f bin
 	
 	;Tag 10: 279 Strip byte count flag, long int 
-	_offset: nx * ny * 3
 	either (mode = 1) [str: "1701040001000000"] [str: "0117000400000001"]
 	write/binary/append f debase/base str 16
-	bin: to-binary _offset
+	bin: to-binary (nx * ny * nChannels)
 	if mode = 1 [reverse bin]
 	write/binary/append f bin
 	
 	
 	; Tag 11: 280 Minimum sample value flag, short int  
-	_offset: (nx * ny * 3) + 188
+	_offset: (nx * ny * nChannels) + baseOffset + 6 
 	either (mode = 1) [str: "1801030003000000"] [str: "0118000300000003"]
 	write/binary/append f debase/base str 16
 	bin: to-binary _offset
@@ -1151,19 +1157,30 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	write/binary/append f bin
 	
 	; Tag 12: 281 Max sample value flag, short int  
-	_offset: (nx * ny * 3) + 194
+	_offset: (nx * ny * nChannels) + baseOffset + 12 
 	either (mode = 1) [str: "1901030003000000"] [str: "0119000300000003"]
 	write/binary/append f debase/base str 16
 	bin: to-binary _offset
 	if mode = 1 [reverse bin]
 	write/binary/append f bin
 	
-	;Tag 13: 284 ;Planar configuration tag, short int
+	;Tag 13: 284 ;Planar configuration tag, short int 3
 	either (mode = 1) [str: "1c0103000100000001000000"] [str: "011c00030000000100010000"]
 	write/binary/append f debase/base str 16
 	
-	;Tag 14: 339 Sample format tag, short int
-	_offset: (nx * ny * 3) + 200
+	
+	;test for software
+	; 14: 305 Sotfware; ascii 2
+	_offset: (nx * ny * nChannels) +  baseOffset + 22
+	either (mode = 1) [str: "3101020026000000"] [str: "0131200026000000"]
+	write/binary/append f debase/base str 16
+	bin: to-binary _offset
+	if mode = 1 [reverse bin]
+	write/binary/append f bin	
+	
+	
+	;Tag 15: 339 Sample format tag, short int
+	_offset: (nx * ny * nChannels) + baseOffset + 18
 	either (mode = 1) [str: "5301030003000000"] [str: "0153000300000003"]
 	write/binary/append f debase/base str 16
 	bin: to-binary _offset
@@ -1174,7 +1191,7 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	str: "00000000"
 	write/binary/append f debase/base str 16
 	
-	; now values addressed by pointers
+	; now write values addressed by pointers
 	;Bits for each colour channel
 	either (mode = 1) [str: "080008000800"] [str: "000800080008"]
 	write/binary/append f debase/base str 16
@@ -1187,6 +1204,11 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	;Samples per pixel for each channel
 	either (mode = 1) [str: "010001000100"] [str: "000100010001"]
 	write/binary/append f debase/base str 16
+	
+	; redCV software
+	str: "7265644356206C696272617279"
+	write/binary/append f debase/base str 16
+	
 ]
 	
 

@@ -28,10 +28,9 @@ loadImage: does [
 		; update faces
 		if img1/size/x >= defSize/x [
 			win/size/x: img1/size/x + 20
-			win/size/y: img1/size/y + 90
+			win/size/y: img1/size/y + 70
 		] 
 		canvas/size: img1/size
-		canvas/image/size: canvas/size	
 		canvas/offset/x: (win/size/x - img1/size/x) / 2
 		isFile: true
 		alpha: 0.5
@@ -47,8 +46,8 @@ view win: layout [
 		title "Image intensity"
 		button "Load Image" [loadImage] 
 		sl: slider 256 [alpha: face/data * 1.0
-					f1/text: form alpha
-					rcvSetIntensity img1 dst alpha
+						f1/text: form alpha
+						rcvSetIntensity img1 dst alpha
 					]
 		f1: field 50 "0.5"
 		button 60 "Quit" [	rcvReleaseImage img1 
