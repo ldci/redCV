@@ -40,7 +40,6 @@ view win: layout [
 		origin margins space margins
 		button 100 "Test" [
 						  rcvIntegral mat sum sqsum 4x4 
-						  probe sum
 						  processMat
 						  ;d/text: form sum
 						  d2/text: form sqsum

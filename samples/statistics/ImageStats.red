@@ -10,14 +10,26 @@ Red [
 #include %../../libs/redcv.red ; for redcv functions
 
 margins: 5x5
-img1: rcvLoadImage %../../images/lena.jpg
+img1: rcvCreateImage 512x512
 img: rcvCreateImage img1/size
+
+loadImage: does [
+	canvas/image: none
+	tmp: request-file
+	if not none? tmp [
+		img1: rcvLoadImage tmp
+		canvas/image: img1
+		
+	]
+]
 
 
 ; ***************** Test Program ****************************
 view win: layout [
 		title "RGB Statistical Tests"
 		origin margins space margins
+		button 80 "Load"	[loadImage]
+		return
 		button 80 "NZero" 	[sbar/data: rcvCountNonZero img1 canvas/image: img1]
 		button 80 "Sum" 	[sbar/data: rcvSum img1 canvas/image: img1]
 		button 80 "Mean" 	[sbar/data: rcvMean/argb img1 canvas/image: img1]

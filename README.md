@@ -18,6 +18,13 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+### UPDATE AUGUST 4
+General update for documentation.
+
+General update for code sample.
+
+A lot of new samples are added for lines and shapes detection in image.
+
 
 ### UPDATE FEBRUARY 16
 redCV can write tiff images: 24-bit color format.

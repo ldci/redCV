@@ -12,7 +12,7 @@ Red [
 
 
 ;***************** PIXEL ACCESS *****************************
-
+	
 _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
 	/local 
 		stride1 
@@ -23,21 +23,22 @@ _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
 ][
     stride1: 0
     ;bmp1: OS-image/lock-bitmap as-integer src1/node no ;0.6.2
-    bmp1: OS-image/lock-bitmap src1 no	; master branch
+    bmp1: OS-image/lock-bitmap src1 no	; >= 0.6.3
     data1: OS-image/get-data bmp1 :stride1   
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: coordinate/x
     y: coordinate/y
     pos: stride1 >> 2 * y + x + 1
-    a: data1/pos >>> 24
+    a: 255 - (data1/pos >>> 24)
     r: data1/pos and 00FF0000h >> 16
     g: data1/pos and FF00h >> 8
     b: data1/pos and FFh
-    ;OS-image/unlock-bitmap as-integer src1/node bmp1
-    OS-image/unlock-bitmap src1 bmp1 ; master branch
+    ;OS-image/unlock-bitmap as-integer src1/node bmp1 ; 0.6.2
+    OS-image/unlock-bitmap src1 bmp1 ;  0.6.3
     (a << 24) OR (r << 16 ) OR (g << 8) OR b 
 ]
+
 
 _rcvSetPixel: routine [src1 [image!] coordinate [pair!] val [integer!]
 	/local 
@@ -142,6 +143,8 @@ _rcvConvert: routine [
             3 [pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2RGBA
             4 [either r >= 128 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
             	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2BW
+            5 [either r >= 128 [r: 0 g: 0 b: 0] [r: 255 g: 255 b: 255] 
+            	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2WB
         ]
         pix1: pix1 + 1
         pixD: pixD + 1

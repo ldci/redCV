@@ -117,6 +117,90 @@ _setFloatValue: routine [
 	]
 ]
 
+_rcvGetInt2D: routine [
+	mat  		[vector!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	return:		[integer!]
+	/local
+	mvalue
+	unit
+	idx
+] [
+	mvalue: as integer! vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    _getIntValue mvalue + idx unit
+] 
+
+_rcvGetReal2D: routine [
+	mat  		[vector!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	return:		[integer!]
+	/local
+	mvalue
+	unit
+	idx
+] [
+	mvalue: as integer! vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    _getFloatValue  mvalue + idx unit
+] 
+
+_rcvGetReal322D: routine [
+	mat  		[vector!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	return:		[integer!]
+	/local
+	mvalue
+	unit
+	idx
+] [
+	mvalue: as integer! vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    _getFloat32Value mvalue + idx unit
+] 
+
+_rcvSetInt2D: routine [
+	mat  		[vector!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	val			[integer!]
+	/local
+	mvalue
+	unit
+	idx
+] [
+	mvalue: as integer! vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    _setIntValue mvalue + idx val unit
+]
+
+_rcvSetReal2D: routine [
+	mat  		[vector!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	val			[float!]
+	/local
+	mvalue
+	unit
+	idx
+] [
+	mvalue: as integer! vector/rs-head mat
+    unit: _rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    _setFloatValue mvalue + idx val unit
+]  
 
 ; gets coordinates from a binary mat as x y values
 
@@ -181,6 +265,7 @@ _rcvGetPairs: routine [
        	y: y + 1
     ]
 ]
+
 
 
 ; Hu Invariant Moments of 2D Matrix
@@ -306,8 +391,6 @@ _rcvGetMatCentralMoment: routine [
     ]
     moment
 ]
-
-; exported as functions in /libs/matrix/rcvMatrix.red
 
 
 ; copy integer matrices
@@ -1041,6 +1124,44 @@ _rcvIntegralMat: routine [
     ]
 ]
 
+_rcvProcessIntegralMat: routine [
+	mat 	[vector!]
+	w 		[integer!] 
+	h 		[integer!]
+	boxW 	[integer!]
+	boxH 	[integer!]
+	thresh	[integer!]
+	points  [block!]
+	/local
+	x y
+	scal0 scal1 scal2 scal3
+	val
+	s
+]
+[
+	s: "box"
+	y: boxH 
+	while [y < (h - 1)] [
+		x: boxW
+		while [x < (w - 1)] [
+			scal0: _rcvGetInt2D mat w x y
+			scal1: _rcvGetInt2D mat w (x - boxW) (y - boxH)
+			scal2: _rcvGetInt2D mat w  x (y - boxH) 
+			scal3: _rcvGetInt2D mat w  (x - boxW) y
+			val: (scal0 + scal1 - scal2 - scal3)
+			val: val / (boxW * boxH)
+			if val <= thresh [
+				word/load-in s points				  		; draw dialect word
+				pair/make-in points (x - boxW) (y - boxH) 	; top left
+				pair/make-in points x y					  	; bottom right
+			]
+			x: x + 1
+		]
+		y: y + 1
+	]
+]
+
+
 ;************** matrices alpha blending ***********************
 ; exported as functions in /libs/matrix/rcvMatrix.red
 
@@ -1106,4 +1227,290 @@ _rcvInRangeMat: routine [
 		svalue1: svalue1 + unit
 	]
 ]
+
+
+;****************** Contour detection ********************************
+
+; by columns
+_rcvleftPixel: routine [
+	mat [vector!] 
+	matSize [pair!] 
+	value [integer!] 
+	b [block!]
+	/local
+	flag
+	unit matHead v
+	x y px py pos
+	] 
+[
+	matHead: as integer! vector/rs-head mat ; get pointer address of the matrice
+	unit: _rcvGetMatBitSize mat
+	flag: false
+	x: 0
+	while [x < matSize/x][
+		y: 0
+		while [y < matSize/y] [
+			pos: y * matSize/x + x * unit
+			v: _getIntValue  matHead + pos unit; get mat value as integer
+			if (v = value) and (not flag) [
+				px: x
+				py: y
+				flag: true
+			]
+			y: y + 1
+		]
+		x: x + 1
+	]
+	pair/make-in b px py
+]
+
+; by columns
+_rcvRightPixel: routine [
+	mat [vector!] 
+	matSize [pair!] 
+	value [integer!] 
+	b [block!]
+	/local
+	flag
+	unit matHead v
+	x y
+	px py pos
+	] 
+[
+	matHead: as integer!  vector/rs-head mat ; get pointer address of the matrice
+	unit: _rcvGetMatBitSize mat
+	flag: false
+	x: matSize/x - 1
+	while [x >= 0][
+		y: matSize/y - 1
+		while [y >= 0] [
+			pos: (x + (y * matSize/x)) * unit
+			v: _getIntValue matHead + pos unit; get mat value as integer
+			if (v = value) and (not flag) [
+				px: x
+				py: y
+				flag: true
+			]
+			y: y - 1
+		]
+		x: x - 1
+	]
+	pair/make-in b px py
+]
+
+;by lines
+_rcvUpPixel: routine [
+	mat [vector!] 
+	matSize [pair!] 
+	value [integer!] 
+	b [block!]
+	/local
+	flag
+	unit matHead v
+	x y px py
+	i j pos
+	] 
+[
+	matHead: as integer!  vector/rs-head mat ; get pointer address of the matrice
+	unit: _rcvGetMatBitSize mat
+	flag: false
+	y: 0
+	while [y < matSize/y][
+		x: 0
+		while [x < matSize/x] [
+			pos: (x + (y * matSize/x)) * unit
+			v: _getIntValue matHead + pos unit; get mat value as integer
+			if (v = value) and (not flag) [
+				px: x
+				py: y
+				flag: true
+			]
+			x: x + 1
+		]
+		y: y + 1
+	]
+	pair/make-in b px py
+]
+
+;by lines
+_rcvDownPixel: routine [
+	mat [vector!] 
+	matSize [pair!] 
+	value [integer!] 
+	b [block!]
+	/local
+	flag
+	unit matHead v
+	x y px py
+	i j pos
+	] 
+[
+	matHead: as integer! vector/rs-head mat ; get pointer address of the matrice
+	unit: _rcvGetMatBitSize mat
+	flag: false
+	y: matSize/y - 1
+	while [y >= 0][
+		x: matSize/x - 1
+		while [x >= 0] [
+			pos: (x + (y * matSize/x)) * unit
+			v: _getIntValue  matHead + pos unit; get mat value as integer
+			if (v = value) and (not flag) [
+				px: x
+				py: y
+				flag: true
+			]
+			x: x - 1
+		]
+		y: y - 1
+	]
+	pair/make-in b px py
+]
+
+_borderPixel: routine [
+	mat [vector!] 
+	matSize [pair!]
+	x [integer!]
+	y [integer!]
+	value [integer!]
+	return: [logic!]
+	/local
+	unit matHead v vbg
+	pos
+][
+	
+	matHead: as integer! vector/rs-head mat ; get pointer address of the matrice
+	unit: _rcvGetMatBitSize mat
+	
+	;only check background pixels (white or black)
+	either value = 1 [vbg: 0] [vbg: 1]
+	
+	pos: y * matSize/x + x * unit
+	v: _getIntValue matHead + pos unit
+	if (v = vbg) [return false] 
+	
+	;check left
+	if (x = 0) [return true] ; image border = shape border
+	if (x > 0) [
+		pos: y * matSize/x + x - 1 * unit
+		v: _getIntValue  matHead + pos unit
+		if (v = vbg) [return true]
+	]
+	
+	;check up
+	if (y = 0) [return true]
+	if (y > 0) [
+		pos: y - 1 * matSize/x + x * unit
+		v: _getIntValue matHead + pos unit
+		if (v = vbg) [return true]
+	]
+	
+	;check right
+    if (x = matSize/x) [return true]
+    if (x < matSize/x) [
+    	pos: y * matSize/x + x + 1 * unit
+    	v: _getIntValue matHead + pos unit
+    	if (v = vbg) [return true]
+    ]
+    
+     ;check down
+    if (y = matSize/y) [return true]
+    if (y < matSize/y) [
+    	pos: y + 1 * matSize/x + x * unit
+    	v: _getIntValue matHead + pos unit
+    	if (v = vbg) [return true]
+    ]
+	;no empty pixel around = not border pixel
+	return false
+]
+
+
+_rcvGetBorder: routine [
+	mat [vector!] 
+	matSize [pair!]
+	value [integer!]
+	border [block!]
+	/local
+	matHead unit pos x y v
+][
+	matHead: as integer! vector/rs-head mat ; get pointer address of the matrice
+	unit: _rcvGetMatBitSize mat
+	block/rs-clear border
+	y: 0
+	while [y < matSize/y][
+		x: 0
+		while [x < matSize/x] [
+			v: _getIntValue matHead unit
+			if (v = value) [
+				;if a neighbor of a pixel is empty, that pixel belongs to the border of the shape 
+				if _borderPixel mat matSize x y value [
+					pair/make-in border x y
+				]
+			]
+			mathead: mathead + unit
+			x: x + 1
+		]
+		y: y + 1
+	]
+]
+
+
+_borderNeighbors: routine [
+	mat [vector!] 
+	matSize [pair!]
+	x [integer!]
+	y [integer!]
+	value [integer!]
+	return:	[integer!]
+	/local
+	 unit matHead v
+	pos
+][
+	
+	matHead: as integer! vector/rs-head mat ; get pointer address of the matrice
+	unit: _rcvGetMatBitSize mat
+	
+	; check east (0)
+	pos: y * matSize/x + x + 1 * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 0]
+	
+	;check southeast (1)
+	
+	pos: y + 1 * matSize/x + x + 1 * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 1]
+	
+	;check south (2)
+	pos: y + 1 * matSize/x + x * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 2]
+	
+	;check southwest (3)
+	pos: y + 1 * matSize/x + x - 1 * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 3]
+	
+	;check west (4)
+	pos: y * matSize/x + x - 1 * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 4]
+	
+	;check northwest (5)
+	pos: y - 1 * matSize/x + x - 1 * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 5]
+	
+	;check north (6)
+	pos: y - 1 * matSize/x + x * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 6]
+	
+	;check northeast (7)
+	pos: y - 1 * matSize/x + x + 1 * unit
+	v: _getIntValue matHead + pos unit
+	if (v = value) [return 7]
+	return -1
+]
+
+
 

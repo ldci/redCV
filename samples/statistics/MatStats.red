@@ -10,18 +10,31 @@ Red [
 #include %../../libs/redcv.red ; for red functions
 
 margins: 5x5
-img1: rcvLoadImage %../../images/baboon.jpg
-img2:  rcvCreateImage img1/size				; create image for grayscale
-mat: rcvCreateMat 'integer! 8 img1/size		; a 8-bit matrix
-rcvImage2Mat img1 mat 						; Converts  image to 1 Channel matrix [0..255]  
-rcvMat2Image mat img2 						; from matrix to red image
-img3: rcvCloneImage img2
-img: rcvCreateImage img1/size
+img1: rcvCreateImage 512x512
+img2: rcvCreateImage 512x512
+
+
+loadImage: does [
+	canvas/image: none
+	tmp: request-file
+	if not none? tmp [
+		img1: rcvLoadImage tmp
+		img2:  rcvCreateImage img1/size				; create image for grayscale
+		mat: rcvCreateMat 'integer! 32 img1/size	; a 32-bit matrix
+	rcvImage2Mat img1 mat 							; Converts  image to 1 Channel matrix [0..255]  
+	rcvMat2Image mat img2 							; from matrix to red image
+	img3: rcvCloneImage img2
+	img: rcvCreateImage img1/size
+	canvas/image: img2	
+	]
+]
 
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Statistical Tests"
 		origin margins space margins
+		button 80 "Load"	[loadImage]
+		return
 		button 80 "NZero" 	[sbar/data: rcvCountNonZero mat canvas/image: img2]
 		button 80 "Sum" 	[sbar/data: rcvSum mat canvas/image: img2]
 		button 80 "Mean" 	[sbar/data: first rcvMean mat canvas/image: img2]

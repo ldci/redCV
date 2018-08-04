@@ -22,7 +22,7 @@ loadImage: does [
 	isFile: false
 	tmp: request-file
 	if not none? tmp [
-		imgSize: rcvGetImageSize tmp
+		imgSize: rcvGetImageFileSize tmp
 		rgb: rcvLoadImageAsBinary tmp
 		img1: rcvCreateImage imgSize 
 		img2: rcvCreateImage imgSize 
@@ -102,7 +102,8 @@ view win: layout [
 	button 90 "Compress" [if isFile [compressImage]]
 	f0: field 120
 	button 105 "Uncompress" [if isCompressed [uncompressImage]]
-	button 50 "Quit" [rcvReleaseImage img1 rcvReleaseImage img2 rcvReleaseImage img3 quit]
+	button 50 "Quit" [if isFile [rcvReleaseImage img1 rcvReleaseImage img2 rcvReleaseImage img3]
+					 quit]
 	return
 	f1: field 125 f11: field 125
 	text 125 "Compressed" f2: field 125

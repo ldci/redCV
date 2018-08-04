@@ -9,26 +9,46 @@ Red [
 #include %../../libs/redcv.red ; for redCV functions
 margins: 10x10
 winBorder: 10x50
-img1: rcvLoadImage %../../images/lena.jpg
+img1: rcvCreateImage 512x512 ;rcvLoadImage %../../images/lena.jpg
 dst:  rcvCreateImage img1/size
 rLimit: 0x0
 lLimit: 512x512
 start: 0x0
 end: start + 200
 poffset: negate start
+
+canvas: none
+
 ;drawBlk: compose [translate (poffset) clip (start) (end) image img1]
 
-drawBlk: rcvClipImage poffset start end img1
-drawRect: compose [line-width 2 pen green box 0x0 200x200]
+;drawBlk: rcvClipImage poffset start end img1
+;drawRect: compose [line-width 2 pen green box 0x0 200x200]
+
+loadImage: does [
+	canvas/image/rgb: black
+	tmp: request-file
+	if not none? tmp [
+		img1: rcvLoadImage tmp
+		dst:  rcvCloneImage img1
+		canvas/image: dst
+		img1: to-image canvas ; force image in 512x512 size
+		drawBlk: rcvClipImage poffset start end img1
+		drawRect: compose [line-width 2 pen green box 0x0 200x200]
+		p1/draw: [] extrait/draw: []
+	]
+]
+
+
 
 ; ***************** Test Program ****************************
 view/tight [
 		title "Clip Tests"
 		style rect: base 255.255.255.240 202x202 loose draw []
 		origin margins space margins
-		button 80 "Show Roi" [p1/draw: drawRect extrait/draw: drawBlk]
-		button 80 "Hide Roi" [p1/draw: [] extrait/draw: []]
-		button 80 "Quit" 	 [rcvReleaseImage img1 dst Quit]
+		button 90 "Load Image"		[loadImage]
+		button 80 "Show Roi" 		[p1/draw: drawRect extrait/draw: drawBlk]
+		button 80 "Hide Roi" 		[p1/draw: [] extrait/draw: []]
+		button 80 "Quit" 	 		[rcvReleaseImage img1 dst Quit]
 		return 
 		canvas: base 512x512 dst react [
 			

@@ -180,6 +180,20 @@ rcvFastFilter2D: function [src [image!] dst [image!] kernel [block!]
 
 ; ********** spatial filters **************************
 
+; new 
+rcvPointDetector: function [src [image! vector!] dst [image! vector!] param1 [float!] param2 [float!]
+" "
+] [
+	knl: [-1.0 -1.0 -1.0 -1.0 8.0 -1.0 -1.0 -1.0 -1.0] ; OK
+	t: type? src
+	if t = vector! [
+		_rcvConvolveMat src dst 3x3 knl param1 param2
+	]
+	if t = image! [
+		_rcvConvolve src dst knl param1 param2
+	]
+]
+
 rcvSharpen: function [src [image! vector!] dst [image! vector!] iSize [pair!] 
 " "
 ] [
@@ -584,10 +598,17 @@ rcvIntegral: function [src [image! vector!] sum [image! vector!] sqsum [image! v
 ]
 
 
+rcvProcessIntegralImage: function [src [image! vector!] w [integer!] h [integer!] boxW [integer!] boxH [integer!] thresh	[integer!] points [block!]
+"Gets boxes in integral image"
+][
+	t: type? src
+	if t = vector! [_rcvProcessIntegralMat src w h boxW boxH thresh points] 
+]
+
 
 ;******************* Image Transformations *****************************
 
-rcvResizeImage: function [src [image!] canvas iSize [pair!]/Gaussian return: [pair!]
+__rcvResizeImage: function [src [image!] canvas iSize [pair!]/Gaussian return: [pair!]
 "Resizes image and applies filter for Gaussian pyramidal resizing if required"
 ][
 	tmpImg: rcvCloneImage src
@@ -602,6 +623,23 @@ rcvResizeImage: function [src [image!] canvas iSize [pair!]/Gaussian return: [pa
 	src: to-image canvas
 	src/size
 ]
+;modified
+
+rcvResizeImage: function [src [image!] iSize [pair!] /Gaussian return: [image!]
+"Resizes image and applies filter for Gaussian pyramidal resizing if required"
+][
+	tmpImg: rcvCloneImage src
+	case [
+		gaussian [
+			knl: rcvMakeGaussian 5x5
+			_rcvFilter2D tmpImg src knl 0
+		]
+	]
+	rcvReleaseImage tmpImg
+	_rcvResize src iSize/x iSize/y
+]
+
+
 
 
 rcvScaleImage: function [factor [float!] img [image!] return: [block!]
@@ -693,18 +731,21 @@ rcvDilate: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 ]
 
 
+; to be improved
 rcvOpen: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 "Erodes and Dilates image by using structuring element"
 ] [
-	img: rcvCloneImage dst
-	_rcvErode src img kSize/x kSize/y kernel 
-	_rcvDilate img dst kSize/x kSize/y kernel 
+	clone: rcvCloneImage src
+	_rcvErode clone dst kSize/x kSize/y kernel 
+	_rcvCopy dst clone
+	_rcvDilate clone dst kSize/x kSize/y kernel
 ]
 
+; to be improved
 rcvClose: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 "Dilates and Erodes image by using structuring element"
 ] [
-	img: rcvCloneImage dst
+	img: rcvCloneImage src
 	_rcvDilate src img kSize/x kSize/y kernel 
 	_rcvErode img dst kSize/x kSize/y kernel 
 ]
@@ -739,6 +780,49 @@ rcvMMean: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 "Means image by using structuring element"
 ] [
 	_rcvMMean src dst kSize/x kSize/y kernel
+]
+
+
+; Hough Transform
+
+; *************** functions and functions that call routines ***************************
+
+rcvMakeHoughAccumulator: func [w [integer!] h [integer!] return: [vector!]][
+"Creates Hough accumulator"
+	either h > w [maxRho: ((sqrt 2.0) * h) / 2.0] 
+				 [maxRho: ((sqrt 2.0) * w) / 2.0]
+	accuH: to-integer maxRho * 2 ; -r .. +r
+	accuW: 180 ; for theta
+	make vector! accuH * accuW
+]
+
+rcvGetAccumulatorSize: function [acc [vector!] return: [pair!]
+"Gets Hough space accumulator size"
+][
+	accuW: 180
+	n: length? acc
+	accuH:  n / accuW
+	as-pair accuW accuH
+]
+
+rcvHoughTransform: function [mat [vector!] accu [vector!] w [integer!]  h [integer!] 
+"Makes Hough transform"
+][
+	_rcvHoughTransform mat accu w h 127 ; treshold
+]
+
+
+rcvHough2Image: function [mat [vector!] dst [image!] contrast [float!]
+"Makes Hough space as red image"
+][
+	_rcvHough2Image mat dst contrast
+]
+
+
+rcvGetHoughLines: func [accu [vector!] img [image!] threshold [integer!] lines [block!]
+"Gets lines in the accumulator according to threshold"
+][
+	_rcvGetHoughLines accu img threshold lines
 ]
 
 

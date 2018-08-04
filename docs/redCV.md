@@ -9,16 +9,19 @@
 ##Images and matrices basic operators
 * **rcvCreateImage**: Creates and returns empty (black) image
 * **rcvGetImageSize**: Gets image size as a pair
+* **rcvGetImageFileSize**: Gets image file size as a pair
 * **rcvCreateMat**: Creates 2D matrix
 * **rcvLengthMat**: Returns matrix length
 * **rcvMakeRangeMat**: Makes an ordered matrix
 * **rcvMakeIndenticalMat**: Creates a matrix with identical values
+* **makeBinaryMat**: Makes a [0 1] matrix
 * **rcvReleaseImage**: Releases image data
+* **rcvReleaseAllImages**: Releases all images
 * **rcvReleaseMat**: Releases Matrix
 * **rcvLoadImage**: Loads image from file
-* **rcvLoadTiffImage**: Loads TIFF image;
+* **rcvLoadTiffImage**: Loads TIFF image
 * **rcvReadTiffImageData**: Reads multiple images included in tiff file
-* ***rcvLoadImageAsBinary**: Loads image from file and return image as binary
+* **rcvLoadImageAsBinary**: Loads image from file and return image as binary
 * **rcvSaveImage**: Save image to file
 * **rcvSaveTiffImage**: Save red image as tiff
 * **rcvCloneImage**: Returns a copy of source image
@@ -36,11 +39,17 @@
 * **rcvDecompressRGB**: ZLib decompression of image data
 ##Image and matrix utilities
 * **rcvGetPixel**: Returns pixel value at xy coordinates
+* **rcvGetPixelAsInteger**: Returns pixel value at xy coordinates as integer
 * **rcvGetInt2D** : Get integer matrix value
 * **rcvGetReal2D**: Get float matrix value
-* **rcvSetPixel**: Set pixel value as xy coordinates
+* **rcvSetPixel**: Set pixel value at xy coordinates
+* **rcvPokePixel**: Set pixel value at xy coordinates
 * **rcvSetInt2D**: Set value in integer matrix 
 * **rcvSetReal2D**: Set value in float matrix
+* **rcvMatleftPixel**: Gets coordinates of first left pixel 
+* **rcvMatRightPixel**: Gets coordinates of first right pixel
+* **rcvMatUpPixel**: Gets coordinates of first top pixel
+* **rcvMatDownPixel**:Gets coordinates of first bottom pixel
 * **rcvSetAlpha**: Set image transparency
 * **rcvBlend**: Computes the alpha blending of two images 
 * **rcvBlendMat**: Computes the alpha blending of two matrices
@@ -59,6 +68,7 @@
 ##Color and color space conversion
 * **rcvInvert**: Destination image: inverted source image 
 * **rcv2BW**: Convert RGB image to Black[0] and White [255]
+* **rcv2WB**: Convert RGB image to White[255] and Black [0]
 * **rcv2Gray**: Convert RGB image to Grayscale
 * **rcv2BGRA**: Converts RGBA to BGRA
 * **rcv2RGBA**: Converts BGRA to RGBA 
@@ -207,6 +217,7 @@ Using RedCV Routines
 * **rcvFastConvolve**: Convolves 8-bit and 1-channel image with the kernel
 * **rcvFilter2D**: Basic convolution filter
 * **rcvFastFilter2D**: Fast convolution filter
+* **rcvPointDetector**: Convolution allowing to find dots in image or matrix
 ## Fast Edge Detection
 * **rcvSobel**: Direct Sobel edges detection for image or matrix
 * **rcvRoberts**: Robert's cross edges detection for image or matrix
@@ -216,7 +227,17 @@ Using RedCV Routines
 * **rcvDivNeumann**: Computes the divergence by backward finite differences 
 * **rcvDerivative2**: Computes an approximation of the gradient magnitude of the input image 
 * **rcvLaplacian**: Computes the Laplacian of an image or matrix. The Laplacian is an approximation of the second derivative of an image 
- ##Mathematical morphology
+ 
+## Lines Detection
+* **rcvMakeHoughAccumulator**: Creates Hough accumulator
+* **rcvGetAccumulatorSize**: Gets Hough space accumulator size
+* **rcvHoughTransform**: Makes Hough transform
+* **rcvGetHoughLines**: Gets lines in the accumulator according to threshold
+* **rcvHough2Image**: Makes Hough space as red image
+
+## Shape Detection
+* **rcvMatGetBorder**: TBD
+* **rcvMatGetChainCode**: TBD##Mathematical morphology
 * **rcvCreateStructuringElement**: The function allocates and fills a block, which can be used as a structuring element in the morphological operations
 * **rcvErode**: Erodes image by using structuring element
 * **rcvErodeMat**: Erodes matrice by using structuring element
@@ -228,6 +249,7 @@ Using RedCV Routines
 * **rcvTopHat**: Performs advanced morphological transformations
 * **rcvBlackHat**: Performs advanced morphological transformations
 * **rcvMMean**: Means image by using structuring element
+
 
 
 ##GUI functions

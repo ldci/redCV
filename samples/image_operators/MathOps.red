@@ -8,16 +8,29 @@ Red [
 ; last Red Master required!
 #include %../../libs/redcv.red ; for redCV functions
 margins: 5x5
-img1: rcvLoadImage %../../images/lena.jpg
+img1: rcvCreateImage 512x512
 img2: rcvRandomImage/uniform img1/size 255.255.255 ;
 
 dst: rcvCreateImage img1/size
+
+loadImage: does [
+	tmp: request-file
+	if not none? tmp [
+		img1: rcvLoadImage  tmp
+		img2: rcvRandomImage/uniform img1/size 255.255.255 ;
+		dst: rcvCreateImage img1/size
+		rcvCopyImage img1 dst
+		canvas/image: dst
+	]
+]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Math Operator Tests"
 		origin margins space margins
 		bb: base 80x30 img2 
+		button "Load" [LoadImage]
 		button "Generate image 2" [img2: rcvRandomImage/uniform img1/size 255.255.255 bb/image: img2]
 		button 80 "Source"  [_rcvMath img1 img2 dst 0] ; routine
 		button 80 "Quit" [	rcvReleaseImage img1 
@@ -60,7 +73,7 @@ view win: layout [
 		button 35 "^n" [rcvPow img1 dst 0.75]
 		button 35 "<<" [rcvLSH img1 dst 2]
 		button 35 ">>" [rcvRSH img1 dst 2]
-		button 35 "Sqr"[rcvSQR img1 dst 0.0]
+		button 50 "Sqr"[rcvSQR img1 dst 0.0]
 		
 		
 		return

@@ -49,7 +49,14 @@ rcvCopyMat: function [src [vector!] dst [vector!]
 	if t = 2 [_rcvCopyMatF src dst] 
 ]
 
-; news
+
+
+rcvMakeBinaryMat: function [src [vector!] return: [vector!]
+"Makes a 0 1 matrix"
+][
+	tmpm: copy src
+	tmpm / 255
+]
 
 makeRange: func [a [number!] b [number!] step [number!]][
     collect [i: a - step until [keep i: i + step i = b]]
@@ -147,7 +154,7 @@ rcvMinMat: function [mat [vector!] return: [number!]] [
 	vMin
 ]
 
-; news end
+
 
 
 rcvRandomMat: function [mat [vector!] value [integer!]
@@ -170,34 +177,39 @@ rcvColorMat: function [mat [vector!] value [integer!]
 
 
 ; direct pixel access for 1 channel image
-; since image coordinates is 0x0 based -> + 1 in matrices 
+; modified
 
 rcvGetInt2D: function [ src [vector!] mSize [pair!] coordinate [pair!] return: [integer!]
 "Get integer matrix value"
 ] [
-	idx: coordinate/x + (coordinate/y * mSize/x) + 1
-	src/(idx)
+	;idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	;src/(idx)
+	_rcvGetInt2D src mSize coordinate/x coordinate/y
 ]
 
-rcvGetReal2D: function [ src [vector!] mSize [pair!] coordinate [pair!] return: [float!]
+rcvGetReal2D: function [ src [vector!] mSize [pair!] coordinate [pair!] return: [float!] /f32
 "Get float matrix value"
 ] [
-	idx: coordinate/x + (coordinate/y * mSize/x) + 1
-	src/(idx)
+	;idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	;src/(idx)
+	either f32 [_rcvGetReal322D src mSize coordinate/x coordinate/y]
+	[_rcvGetReal2D src mSize coordinate/x coordinate/y]
 ]
 
 rcvSetInt2D: function [ dst [vector!] mSize [pair!] coordinate [pair!] val [integer!]
 "Set integer matrix value"
 ] [
-	idx: coordinate/x + (coordinate/y * mSize/x) + 1
-	dst/(idx): val
+	;idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	;dst/(idx): val
+	_rcvSetInt2D dst mSize coordinate/x coordinate/y val
 ]
 
 rcvSetReal2D: function [ dst [vector!] mSize [pair!] coordinate [pair!] val [float!]
 "Set float matrix value"
 ] [
-	idx: coordinate/x + (coordinate/y * mSize/x) + 1
-	dst/(idx): val
+	;idx: coordinate/x + (coordinate/y * mSize/x) + 1
+	;dst/(idx): val
+	_rcvSetReal2D dst mSize coordinate/x coordinate/y val
 ]
 
 rcvGetPairs: function [binMatrix [vector!] width [integer!] height [integer!] points [block!]
@@ -211,6 +223,57 @@ rcvGetPoints: function [binMatrix [vector!] width [integer!] height [integer!] p
 ][
 	_rcvGetPoints binMatrix width height points
 ]
+
+; news for contour detection
+
+rcvMatleftPixel: function [mat [vector!] matSize [pair!] value [integer!] return: [pair!]
+"Gets coordinates of first left pixel"
+][
+	b: copy []
+	_rcvleftPixel  mat matSize value b
+	to-pair b/1
+]
+
+rcvMatRightPixel: function [mat [vector!] matSize [pair!] value [integer!] return: [pair!]
+"Gets coordinates of first right pixel"
+][
+	b: copy []
+	_rcvRightPixel  mat matSize value b
+	to-pair b/1
+]
+
+rcvMatUpPixel: function [mat [vector!] matSize [pair!] value [integer!] return: [pair!]
+"Gets coordinates of first top pixel"
+][
+	b: copy []
+	_rcvUpPixel  mat matSize value b
+	to-pair b/1 
+]
+
+rcvMatDownPixel: function [mat [vector!] matSize [pair!] value [integer!] return: [pair!]
+"Gets coordinates of first bottom pixel"
+][
+	b: copy []
+	_rcvDownPixel  mat matSize value b
+	to-pair b/1
+]
+
+; end news
+
+rcvMatGetBorder: function [mat [vector!] matSize [pair!] value [integer!] border [block!]
+"Gets pixels that belong to shape border"
+][
+	_rcvGetBorder mat matSize value border
+]
+
+
+rcvMatGetChainCode: function [mat [vector!] matSize [pair!] 
+coord [pair!] value [integer!] return: [integer!]
+"Gets Freeman Chain code"
+][
+	_borderNeighbors mat matSize coord/x coord/y value
+]
+
 
 ;Image and Contour moments
 
@@ -368,6 +431,11 @@ rcvMat2Image: function [mat [vector!] dst [image!]
 	_rcvMat2Image mat dst
 ]
 
+rcvMat2Binary: function [mat [vector!] return: [binary!]
+"Matrix to binary value"
+] [
+	to-binary to-block mat
+]
 
 rcvSplit2Mat: function [src [image!] mat0 [vector!] mat1 [vector!] mat2 [vector!] mat3 [vector!]  
 "Split an image to 4 8-bit matrices"
