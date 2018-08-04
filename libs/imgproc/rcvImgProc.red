@@ -731,23 +731,22 @@ rcvDilate: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 ]
 
 
-; to be improved
+
 rcvOpen: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 "Erodes and Dilates image by using structuring element"
 ] [
-	clone: rcvCloneImage src
-	_rcvErode clone dst kSize/x kSize/y kernel 
-	_rcvCopy dst clone
-	_rcvDilate clone dst kSize/x kSize/y kernel
+	_rcvErode src dst kSize/x kSize/y kernel 
+	_rcvCopy dst src
+	_rcvDilate src dst kSize/x kSize/y kernel
 ]
 
-; to be improved
+
 rcvClose: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 "Dilates and Erodes image by using structuring element"
 ] [
-	img: rcvCloneImage src
-	_rcvDilate src img kSize/x kSize/y kernel 
-	_rcvErode img dst kSize/x kSize/y kernel 
+	_rcvDilate src dst kSize/x kSize/y kernel 
+	_rcvCopy dst src
+	_rcvErode src dst kSize/x kSize/y kernel 
 ]
 
 rcvMGradient: function [ src [image!] dst [image!] kSize [pair!] kernel [block!] /reverse

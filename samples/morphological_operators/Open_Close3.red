@@ -43,14 +43,8 @@ view win: layout [
 		origin margins space margins
 		button 60 "Load" 	[loadImage]
 		button 65 "Source" 	[rcvCopyImage img1 dst clone: rcvCloneImage img1 ]									
-		button 65 "Open" 	[rcvErode clone dst knlSize knl
-							rcvCopyImage dst clone
-							rcvDilate clone dst knlSize knl 
-							]
-		button 65 "Close" 	[rcvDilate clone dst knlSize knl
-							rcvCopyImage dst clone
-							rcvErode clone dst knlSize knl
-							]	
+		button 65 "Open" 	[rcvOpen clone dst knlSize knl ]
+		button 65 "Close" 	[rcvClose clone dst knlSize knl]	
 		button 60 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return
 		text 60 "Shape" 	
