@@ -8,28 +8,28 @@ Red [
 ;'
 iSize: 320x240
 margins: 10x10
-cam: none ; for camera
+cam: none ; for camera object
 
 view win: layout [
-		title "Red Cam"
+		title "Red Camera"
 		origin margins space margins
-		btnQuit: button "Quit" 60x24 on-click [quit]
+		cam: camera 20x15 ;  non visible camera just to get back image 
+		pad 230x0
+		btnQuit: button "Quit" 60 on-click [quit]
 		return
-		cam: camera iSize
-		canvas: base 320x240 white on-time [canvas/text: form now/time 
+		
+		canvas: base iSize black on-time [canvas/text: form now/time 
 					canvas/image: to-image cam ;cam/image;
-					] font-color red font-size: 12
+					] font-color red font-size 12
 		return
-		text 60 "Camera" 
-		cam-list: drop-list 160 on-create [
-				face/data: cam/data
-		]
+		
+		cam-list: drop-list 225 on-create [face/data: cam/data]
+		
 		onoff: button "Start/Stop" on-click [
 				either cam/selected [
 					cam/selected: none
 					canvas/rate: none
 					canvas/image: none
-					;canvas/color: black
 					canvas/text: ""
 				][
 					cam/selected: cam-list/selected
@@ -37,6 +37,7 @@ view win: layout [
 					]
 		]
 		do [cam-list/selected: 1 canvas/rate: none 
-			canvas/para: make para! [align: 'right v-align: 'bottom]
+			canvas/para: make para! [align: 'right v-align: 'bottom 
+			cam/visible?: false]
 		]
 ]
