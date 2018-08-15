@@ -8,17 +8,20 @@ Red [
 
 #include %../../libs/redcv.red ; for redCV functions
 
-mat:  rcvCreateMat 'integer! 32 512x512
 
-plot: copy []
 
 iSize: 512x512
 rSize: 300x300
 img: rcvCreateImage iSize
 edges: rcvCreateImage iSize
 edges2: rcvCreateImage iSize
+
+mat:  rcvCreateMat 'integer! 32 iSize
+bMat: rcvCreateMat 'integer! 32 iSize
+visited: rcvCreateMat 'integer! 32 iSize
+plot: copy []
+
 fgVal: 1
-;bMat: none
 canvas: none
 knlSize: 3x3
 knl: rcvCreateStructuringElement/rectangle knlSize
@@ -41,7 +44,7 @@ generatePolygon: does [
 	rcvConvolve img edges canny factor delta	; edges detection with Canny
 	rcvDilate edges edges2 knlSize knl			; dilates shape to suppress 0 values if exist
 	rcvImage2Mat edges2 mat 					; make first matrix 0..255
-	bmat: rcvMakeBinaryMat mat					; make second matrix 0..1
+	rcvMakeBinaryMat mat bmat					; make second matrix 0..1
 	lPix: rcvMatleftPixel bmat iSize fgVal
 	rPix: rcvMatRightPixel bmat iSize fgVal
 	uPix: rcvMatUpPixel bmat iSize fgVal
@@ -106,7 +109,14 @@ view win: layout [
 	pgb: progress 200
 	f0: field 75
 	pad 135x0
-	button "Quit" [Quit]
+	button "Quit" [
+					rcvReleaseImage img
+					rcvReleaseImage edges
+					rcvReleaseImage edges2
+					rcvReleaseMat mat
+					rcvReleaseMat bmat
+					rcvReleaseMat visited
+					Quit]
 	return
 	canvas: base iSize black draw plot
 	r: area 200x512
@@ -116,8 +126,7 @@ view win: layout [
 	f2: field 60
 	f3: field 60
 	f4: field 60
-	return
-	
+	return	
 ]
 
 		

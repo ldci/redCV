@@ -8,53 +8,48 @@ Red [
 
 #include %../../libs/redcv.red ; for redCV functions
 
-mat:  rcvCreateMat 'integer! 32 512x512
-
-plot: copy [fill-pen white box 205x205 305x305]
-
+plot: []
 iSize: 512x512
 img: rcvCreateImage iSize
+mat:  rcvCreateMat 'integer! 32 iSize
+bMat: rcvCreateMat 'integer! 32 iSize
+visited: rcvCreateMat 'integer! 32 iSize
 fgVal: 1
-bMat: none
 canvas: none
 
 
-
-
-processImage: does [
+generateImage: does [
+	canvas/image: none
+	p1: random 400x400
+	p2: random 400x400
+	color: 255.255.255
+	plot: compose [fill-pen (color) box (p1) (p2)]
+	canvas/draw: reduce [plot]
 	img: to-image canvas
 	rcvImage2Mat img mat 	 
-	bmat: rcvMakeBinaryMat mat
-	visited: rcvCreateMat 'integer! 32 iSize
+	rcvMakeBinaryMat mat bmat
 	lPix: rcvMatleftPixel bmat iSize fgVal
 	rPix: rcvMatRightPixel bmat iSize fgVal
 	uPix: rcvMatUpPixel bmat iSize fgVal
 	dPix: rcvMatDownPixel bmat iSize fgVal
-	
-	w: (rPix/x - lPix/x) + 1
-	h: (dPix/y - uPix/y) + 1
-	
-	luPix: as-pair lPix/x uPix/y 
-	ruPix: as-pair rPix/x uPix/y 
-	rdPix: as-pair rPix/x dPix/y 
-	ldPix: as-pair lPix/x dPix/y
-	f1/text: form luPix
-	f2/text: form ruPix
-	f3/text: form ldPix
-	f4/text: form rdPix 
-	
-	
-	border: []
+	f1/text: form as-pair lPix/x uPix/y 
+	f2/text: form as-pair rPix/x uPix/y 
+	f3/text: form as-pair rPix/x dPix/y 
+	f4/text: form as-pair lPix/x dPix/y
+	clear r/text
+	processImage
+]
+
+
+processImage: does [
+	visited: rcvCreateMat 'integer! 32 iSize
+	border: copy []
 	rcvMatGetBorder bmat iSize fgVal border
 	foreach p border [rcvSetInt2D visited iSize p 1]
-	
 	perim: length? border
-	
 	p: first border
 	i: 1
-	s: ""
-	clear r/text
-	
+	s: copy ""
 	while [i < perim] [
 		d: rcvMatGetChainCode visited iSize p fgVal
 		idx: (p/y * iSize/x + p/x) + 1	
@@ -73,7 +68,6 @@ processImage: does [
 		i: i + 1
 	]
 	r/text: s
-	
 ]
 
 
@@ -81,17 +75,22 @@ processImage: does [
 ; ***************** Test Program ****************************
 view win: layout [
 	title "Chain Code"
-	button "Process" [processImage]
-	button "Quit" [Quit]
+	button "Generate Shape" 	[generateImage]
+	pad 580x0
+	button "Quit" 				[rcvReleaseImage img
+								 rcvReleaseMat mat
+								 rcvReleaseMat bmat
+								 rcvReleaseMat visited
+								 Quit]
 	return
 	canvas: base iSize black draw plot
+	r: area 256x512
 	return
+	pad 100x0
 	f1: field 60
 	f2: field 60
 	f3: field 60
 	f4: field 60
-	return
-	r: area 512x100
 ]
 
 		

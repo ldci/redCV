@@ -50,12 +50,11 @@ rcvCopyMat: function [src [vector!] dst [vector!]
 ]
 
 
-
-rcvMakeBinaryMat: function [src [vector!] return: [vector!]
+; modified
+rcvMakeBinaryMat: function [src [vector!] dst [vector!]
 "Makes a 0 1 matrix"
 ][
-	tmpm: copy src
-	tmpm / 255
+	_rcvMakeBinaryMat src dst
 ]
 
 makeRange: func [a [number!] b [number!] step [number!]][

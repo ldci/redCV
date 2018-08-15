@@ -23,7 +23,7 @@ canvas: none
 processImage: does [
 	img: to-image canvas
 	rcvImage2Mat img mat 	 
-	bmat: rcvMakeBinaryMat mat
+	rcvMakeBinaryMat mat bmat
 	visited: rcvCreateMat 'integer! 32 iSize
 	lPix: rcvMatleftPixel bmat iSize fgVal
 	rPix: rcvMatRightPixel bmat iSize fgVal
@@ -100,7 +100,13 @@ view win: layout [
 	button "Process" [processImage]
 	pgb: progress 200
 	pad 240x0
-	button "Quit" [Quit]
+	button "Quit" [
+			rcvReleaseImage img
+			rcvReleaseImage edges
+			rcvReleaseMat mat
+			rcvReleaseMat bmat
+			rcvReleaseMat visited
+			Quit]
 	return
 	canvas: base iSize black draw plot
 	r: area 200x512

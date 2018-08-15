@@ -443,6 +443,35 @@ _rcvCopyMatF: routine [
 ]
 
 
+; copy integer matrices
+_rcvMakeBinaryMat: routine [
+   	src  	[vector!]
+    dst  	[vector!]
+    /local
+    svalue tail dvalue p4 	; byte-ptr!
+    unit val val2				; integer!
+][
+    svalue: vector/rs-head src  	
+    tail: vector/rs-tail src		
+	dvalue: vector/rs-head dst			
+	unit: _rcvGetMatBitSize src 
+   	while [svalue < tail][
+		;val: vector/get-value-int as int-ptr! svalue unit
+		val: _getIntValue as integer! svalue unit
+		either val > 0 [val2: 1] [val2: 0]
+		p4: as int-ptr! dvalue
+		p4/value: switch unit [
+					1 [val2 and FFh or (p4/value and FFFFFF00h)]
+					2 [val2 and FFFFh or (p4/value and FFFF0000h)]
+					4 [val2]
+		]
+		svalue: svalue + unit
+		dvalue: dvalue + unit
+    ]
+]
+
+
+
 
 ; converts Integer Matrix scale
 ; 8 -> 16-bits OK (for 8-bit -127..+127)
@@ -1380,15 +1409,17 @@ _borderPixel: routine [
 	
 	matHead: as integer! vector/rs-head mat ; get pointer address of the matrice
 	unit: _rcvGetMatBitSize mat
-	
 	;only check background pixels (white or black)
-	either value = 1 [vbg: 0] [vbg: 1]
+	if value = 1 	[vbg: 0]
+	if value = 255	[vbg: 0]
+	if value =  0 	[vbg: 1]
+	;either value = 0 [vbg: 1] [vbg: 0] 
 	
 	pos: y * matSize/x + x * unit
 	v: _getIntValue matHead + pos unit
 	if (v = vbg) [return false] 
 	
-	;check left
+	;check left (west)
 	if (x = 0) [return true] ; image border = shape border
 	if (x > 0) [
 		pos: y * matSize/x + x - 1 * unit
@@ -1396,7 +1427,7 @@ _borderPixel: routine [
 		if (v = vbg) [return true]
 	]
 	
-	;check up
+	;check up (north)
 	if (y = 0) [return true]
 	if (y > 0) [
 		pos: y - 1 * matSize/x + x * unit
@@ -1404,7 +1435,7 @@ _borderPixel: routine [
 		if (v = vbg) [return true]
 	]
 	
-	;check right
+	;check right (east)
     if (x = matSize/x) [return true]
     if (x < matSize/x) [
     	pos: y * matSize/x + x + 1 * unit
@@ -1412,13 +1443,15 @@ _borderPixel: routine [
     	if (v = vbg) [return true]
     ]
     
-     ;check down
+     ;check down (south)
     if (y = matSize/y) [return true]
     if (y < matSize/y) [
     	pos: y + 1 * matSize/x + x * unit
     	v: _getIntValue matHead + pos unit
     	if (v = vbg) [return true]
     ]
+    
+    
 	;no empty pixel around = not border pixel
 	return false
 ]
@@ -1441,7 +1474,8 @@ _rcvGetBorder: routine [
 		while [x < matSize/x] [
 			v: _getIntValue matHead unit
 			if (v = value) [
-				;if a neighbor of a pixel is empty, that pixel belongs to the border of the shape 
+				;if a neighbor of a pixel belongs to background
+				;that pixel belongs to the border of the shape 
 				if _borderPixel mat matSize x y value [
 					pair/make-in border x y
 				]
@@ -1509,6 +1543,7 @@ _borderNeighbors: routine [
 	pos: y - 1 * matSize/x + x + 1 * unit
 	v: _getIntValue matHead + pos unit
 	if (v = value) [return 7]
+	
 	return -1
 ]
 
