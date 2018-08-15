@@ -283,12 +283,11 @@ coord [pair!] value [integer!] return: [integer!]
 rcvGetMatCentroid: function [
 "Returns the centroid of the image"
 	mat 	[vector!] 
-	width 	[integer!]
-	height 	[integer!] 
+	matSize [pair!]
 	return:	[pair!]
 ][
 	minLoc: 0x0
-	_rcvGetMatCentroid mat width height minLoc
+	_rcvGetMatCentroid mat matSize/x matSize/y minLoc
 ]
 
 
@@ -300,27 +299,25 @@ rcvGetMatCentroid: function [
 rcvGetMatSpatialMoment: function [
 "Returns the spatial moment of the mat"
 	mat		[vector!] 
-	width 	[integer!] 
-	height	[integer!] 
+	matSize [pair!]
 	p 		[float!] 
 	q 		[float!] 
 	return: [float!]
 ][
-	_rcvGetMatSpatialMoment mat width height p q
+	_rcvGetMatSpatialMoment mat matSize/x matSize/y p q
 ]
 
 rcvGetMatCentralMoment: function [
 "Returns the central moment of the mat"
 	mat		[vector!] 
-	width 	[integer!] 
-	height	[integer!] 
+	matSize [pair!]
 	p 		[float!] 
 	q 		[float!] 
 	return: [float!]
 ][
 	minLoc: 0x0
-	centroid: _rcvGetMatCentroid mat width height minLoc
-	_rcvGetMatCentralMoment mat width height centroid p q
+	centroid: _rcvGetMatCentroid mat matSize/x matSize/y minLoc
+	_rcvGetMatCentralMoment mat matSize/x matSize/y centroid p q
 ]
 
 
@@ -334,14 +331,13 @@ rcvGetMatCentralMoment: function [
 rcvGetNormalizedCentralMoment: function [
 "Return the scale invariant moment of the image"
 	mat  			[vector!]
-	width           [integer!]
-    height          [integer!]
+	matSize 		[pair!]
     p				[float!]
     q				[float!]
     return:			[float!]
 ] [
-	moment1: rcvGetMatCentralMoment mat width height p q 
-	moment2: rcvGetMatCentralMoment mat width height 0.0 0.0
+	moment1: rcvGetMatCentralMoment mat matSize p q 
+	moment2: rcvGetMatCentralMoment mat matSize 0.0 0.0
 	exponent: p + q / 2.0 + 1.0  
 	m00: power moment2 exponent
 	moment1 / m00
@@ -350,18 +346,17 @@ rcvGetNormalizedCentralMoment: function [
 rcvGetMatHuMoments: function [
 "Returns Hu moments of the image"
 	mat  			[vector!]
-	width           [integer!]
-    height          [integer!]
+	matSize 		[pair!]
     return: 		[block!]
 ][
 	;where ηi,j are normalized central moments of 2-nd and 3-rd orders.
-	n20: rcvGetNormalizedCentralMoment mat width height 2.0 0.0
-	n02: rcvGetNormalizedCentralMoment mat width height 0.0 2.0
-	n11: rcvGetNormalizedCentralMoment mat width height 1.0 1.0
-	n12: rcvGetNormalizedCentralMoment mat width height 1.0 2.0
-	n21: rcvGetNormalizedCentralMoment mat width height 2.0 1.0
-	n30: rcvGetNormalizedCentralMoment mat width height 3.0 0.0
-	n03: rcvGetNormalizedCentralMoment mat width height 0.0 3.0
+	n20: rcvGetNormalizedCentralMoment mat matSize 2.0 0.0
+	n02: rcvGetNormalizedCentralMoment mat matSize 0.0 2.0
+	n11: rcvGetNormalizedCentralMoment mat matSize 1.0 1.0
+	n12: rcvGetNormalizedCentralMoment mat matSize 1.0 2.0
+	n21: rcvGetNormalizedCentralMoment mat matSize 2.0 1.0
+	n30: rcvGetNormalizedCentralMoment mat matSize 3.0 0.0
+	n03: rcvGetNormalizedCentralMoment mat matSize 0.0 3.0
 
 	{from OpenCV
 	h1=η20+η02
