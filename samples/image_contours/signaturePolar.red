@@ -1,7 +1,7 @@
 Red [
 	Title:   "Matrix tests "
 	Author:  "Francois Jouen"
-	File: 	 %freeman.red
+	File: 	 %freeman2.red
 	Needs:	 'View
 ]
 
@@ -12,7 +12,7 @@ iSize: 512x512
 mat:  rcvCreateMat 'integer! 32 iSize
 bMat: rcvCreateMat 'integer! 32 iSize
 img: rcvCreateImage iSize
-plot: copy [fill-pen white box 155x155 355x355]
+plot:  copy [fill-pen white box 155x155 355x355]
 plot2: copy [line-width 1 pen green line]
 fgVal: 1
 canvas: none
@@ -29,33 +29,27 @@ processImage: does [
 	plot2: copy [line-width 1 pen green line]
 	angles: copy []
 	foreach p border [
-		x: (p/x - cg/x) * (p/x - cg/x)
-		y: (p/y - cg/y) * (p/y - cg/y)
-		c: sqrt (x + y) 						; AB
-		b: to-float p/y	- cg/y					; AC 
-		a: to-float p/x - cg/x					; CB	
-		if a = 0 [a: 0.00001]
-		if b = 0 [b: 0.00001]	
-		a2: a * a
-		b2: b * b
-		c2: c * c
-		
-		;theta: arctangent to-float a / to-float b
-		; cosine law for angles
-		cosA:  (negate a2) + b2 + c2 / (2 * b * c)
-		cosB: a2 - b2 + c2 / (2 * c * a)
-		cosC: a2 + b2 - c2 / (2 * a * b)
-		theta: arccosine cosA
-		if (p/x >= cg/x) [theta: 180.0 + theta]
+		; use polar coordinates and calculates theta
+		x2: (p/x - cg/x) * (p/x - cg/x)
+		y2: (p/y - cg/y) * (p/y - cg/y)
+		rho: sqrt (x2 + y2) 					; rho
+		uY: to-float p/y - cg/y					; uY ->
+		uX: to-float p/x - cg/x					; uX ->	
+		costheta: uX / rho
+		sinTheta: uY / rho
+		tanTheta: costheta / sinTheta
+		theta: arccosine costheta
+		; to get 0..359 angle value
+		if (p/y >= cg/y) [theta: 180.0 + theta]
 		if theta >= 180 [theta: 360.0 - theta + 180.0]
 		theta: round theta
 		bloc: copy []
 		append bloc theta
-		append bloc c
+		append bloc rho
 		append/only angles bloc	
 	]
 	
-	sort angles ; 0.. 360
+	sort angles ; 0.. 359
 	
 	foreach n angles [
 		p: as-pair first n 384 - second n 
@@ -64,7 +58,6 @@ processImage: does [
 		;do-events/no-wait; to show progression
 	]
 	canvas2/draw: reduce [plot2]
-	
 ]
 
 
