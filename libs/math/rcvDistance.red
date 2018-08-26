@@ -15,6 +15,30 @@ Red [
 
 #include %rcvDistanceRoutines.red
 
+;general distances functions 
+
+rcvGetEuclidianDistance: function [p [pair!] cg [pair!] return: [float!]
+"Gets Euclidian distance between 2 points"
+][
+	x2: (p/x - cg/x) * (p/x - cg/x)
+	y2: (p/y - cg/y) * (p/y - cg/y)
+	sqrt (x2 + y2) 
+]
+
+rcvGetAngle: function [p [pair!] cg [pair!]return: [float!]
+"Gets angle in degrees form points coordinates"
+][		
+	rho: rcvGetEuclidianDistance p cg		; rho
+	uY: to-float p/y - cg/y					; uY ->
+	uX: to-float p/x - cg/x					; uX ->	
+	costheta: uX / rho
+	sinTheta: uY / rho
+	tanTheta: costheta / sinTheta 
+	theta: arccosine costheta
+	if p/y > cg/y [theta: 360 - theta]
+	theta
+]
+
 
 
 ; ************** Chamfer distance **********
@@ -109,4 +133,130 @@ rcvChamferNormalize: function [output [vector!] value [integer!]
 	_Normalize output value
 ]
 
+
+;********************* DTW Dynamic Time Warping ****************************
+; a very basic DTW algorithm
+; thanks to Nipun Batra (https://nipunbatra.github.io/blog/2014/dtw.html)
+
+rcvDTWMin: function [x [number!] y [number!] z [number!] return: [number!]
+"Minimal value between 3 values"
+][
+	if (x <= y) and (x <= z) [return x]
+	if (y <= x) and (y <= z) [return y]
+	if (z <= x) and (z <= y) [return z]
+]
+ 
+
+
+rcvDTWDistances: function [x [block!] y [block!] return: [block!]
+"Making a 2d matrix to compute distances between all pairs of x and y series"
+][
+	dist: 0.0
+	xLength: length? x
+	yLength: length? y
+	dMat: copy []
+	i: 1
+	
+	while [i <= yLength][
+		j: 1 
+		bloc: copy []
+		while [j <= xLength ] [
+		  	dist: to-float sqrt power (x/:j - y/:i) 2.0
+			append bloc dist
+			j: j + 1
+		]
+		append/only dMat bloc
+		i: i + 1
+	]
+	dMat
+]
+
+
+		  								
+rcvDTWRun: function [x [block!] y [block!] dMat [block!] return: [block!]
+"Making a 2d matrix to compute minimal distance cost "
+][
+	xLength: length? x
+	yLength: length? y
+	cMat: copy []
+	a: make vector! reduce ['float! 64 xLength]
+	i: 1 
+	while [i <= yLength] [
+		append/only cMat to-block a
+		i: i + 1
+	]
+	cMat/1/1: dMat/1/1
+	
+	; first line
+	i: 2
+	while [i <= xLength][ 
+		cMat/1/:i: dMat/1/:i + cMat/1/(i - 1)
+		i: i + 1
+	]	
+	
+	; first column
+	i: 2
+	while [i <= yLength] [ 
+		cMat/:i/1: dMat/:i/1 + cMat/(i - 1)/1
+		i: i + 1
+	]
+	
+	; other cMat values
+	i: 2
+	while [i <= yLength] [
+		j: 2
+		while [j <= xLength] [
+			cMat/:i/:j: dMat/:i/:j + rcvDTWMin cMat/(i - 1)/(j - 1) cMat/(i - 1)/(j) cMat/(i)/(j - 1)
+			j: j + 1
+		]
+		i: i + 1
+	]
+	cMat
+]
+
+rcvDTWGetDTW: function [cMat [block!] return: [number!]
+"Returns DTW value"
+][
+	last last cMat
+]
+
+rcvDTWGetPath: function [x [block!] y [block!] cMat [block!] return: [block!]
+"Find the path minimizing the distance "
+][
+	xPath: copy []
+	i: length? y
+	j: length? x
+	while [(i >= 1) and (j >= 1)] [
+		either any [i = 1 j = 1][
+			case/all [
+				i = 1 [j: j - 1 ] 
+				j = 1 [i: i - 1 ]	
+			]
+		]
+		[minD: rcvDTWMin cMat/(i - 1)/(j - 1) cMat/(i - 1)/(j) cMat/(i)/(j - 1)
+		t0: false
+			case/all [
+				cMat/(i - 1)/(j) = minD [i: i - 1 t0: true]
+				cMat/(i)/(j - 1) = minD [j: j - 1 t0: true]
+			]
+			unless t0 [i: i - 1 j: j - 1]
+		]
+		b: copy []
+		append b j ; x
+		append b i ; y
+		append/only xPath b
+	]
+	append/only xPath [0 0]
+	reverse xPath
+]
+
+
+
+rcvDTWCompute: function [x [block!] y [block!] return: [number!]
+"Short-cut to get DTW value if you don't need distance and cost matrices"
+][
+	dMat: rcvDTWDistances x y
+	cMat: rcvDTWRun x y dMat	
+	last last cMat
+]
 

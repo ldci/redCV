@@ -18,7 +18,12 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
-### UPDATE AUGUST 4
+### UPDATE AUGUST 26 2018
+
+Dynamic Time Warping added to redCV.
+
+
+### UPDATE AUGUST 4 2018
 General update for documentation.
 
 General update for code sample.
@@ -26,10 +31,10 @@ General update for code sample.
 A lot of new samples are added for lines and shapes detection in image.
 
 
-### UPDATE FEBRUARY 16
+### UPDATE FEBRUARY 16 2018
 redCV can write tiff images: 24-bit color format.
 
-### UPDATE FEBRUARY 10
+### UPDATE FEBRUARY 10 2018
 
 redCV can read tiff files now. 1 to 4 channels 8-bit uncompressed images are supported. 
 see /samples/tiff for code sample.

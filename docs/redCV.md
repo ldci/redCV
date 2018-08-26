@@ -184,7 +184,7 @@ Using Draw DSL
 * **rcvSkewImage**: Sets a coordinate system skewed from the original by the given number of degrees
 
 Using RedCV Routines
-## Distances
+## Chamfer Distances
 
 * **rcvMakeGradient**: Makes a gradient matrix for contour detection (similar to Sobel) and returns max gradient value
 * **rcvMakeBinaryGradient**: Makes a binary [0 1] matrix for contour detection
@@ -195,7 +195,16 @@ Using RedCV Routines
 * **rcvChamferCreateOutput**: Creates a distance map (float!) 
 * **rcvChamferInitMap**: Initializes distance map 
 * **rcvChamferCompute**: Calculates the distance map to binarized gradient
-* **rcvChamferNormalize**: Normalizes calculated distance map
+* **rcvChamferNormalize**: Normalizes calculated distance map
+
+## Dynamic Time Warping
+* **rcvDTWDistances**: Making a 2d matrix to compute distances between all pairs of x and y series
+* **rcvDTWRun**: Making a 2d matrix to compute minimal distance cost
+* **rcvDTWGetDTW**: Returns DTW value
+* **rcvDTWGetPath**: Find the path minimizing the distance 
+* **rcvDTWCompute**: Short-cut to get DTW value if you don't need distance and cost matrices
+
+
 ##Image enhancement
 * **rcvMakeTranscodageTable**: Creates a transcoding 256 table for affine enhancement
 * **rcvContrastAffine**: Enhances image contrast with affine function
