@@ -138,89 +138,11 @@ rcvChamferNormalize: function [output [vector!] value [integer!]
 ; a very basic DTW algorithm
 ; thanks to Nipun Batra (https://nipunbatra.github.io/blog/2014/dtw.html)
 
-rcvDTWMin: function [x [number!] y [number!] z [number!] return: [number!]
-"Minimal value between 3 values"
-][
-	if (x <= y) and (x <= z) [return x]
-	if (y <= x) and (y <= z) [return y]
-	if (z <= x) and (z <= y) [return z]
-]
- 
 
 
-rcvDTWDistances: function [x [block!] y [block!] return: [block!]
-"Making a 2d matrix to compute distances between all pairs of x and y series"
-][
-	dist: 0.0
-	xLength: length? x
-	yLength: length? y
-	dMat: copy []
-	i: 1
-	
-	while [i <= yLength][
-		j: 1 
-		bloc: copy []
-		while [j <= xLength ] [
-		  	dist: to-float sqrt power (x/:j - y/:i) 2.0
-			append bloc dist
-			j: j + 1
-		]
-		append/only dMat bloc
-		i: i + 1
-	]
-	dMat
-]
 
 
-		  								
-rcvDTWRun: function [x [block!] y [block!] dMat [block!] return: [block!]
-"Making a 2d matrix to compute minimal distance cost "
-][
-	xLength: length? x
-	yLength: length? y
-	cMat: copy []
-	a: make vector! reduce ['float! 64 xLength]
-	i: 1 
-	while [i <= yLength] [
-		append/only cMat to-block a
-		i: i + 1
-	]
-	cMat/1/1: dMat/1/1
-	
-	; first line
-	i: 2
-	while [i <= xLength][ 
-		cMat/1/:i: dMat/1/:i + cMat/1/(i - 1)
-		i: i + 1
-	]	
-	
-	; first column
-	i: 2
-	while [i <= yLength] [ 
-		cMat/:i/1: dMat/:i/1 + cMat/(i - 1)/1
-		i: i + 1
-	]
-	
-	; other cMat values
-	i: 2
-	while [i <= yLength] [
-		j: 2
-		while [j <= xLength] [
-			cMat/:i/:j: dMat/:i/:j + rcvDTWMin cMat/(i - 1)/(j - 1) cMat/(i - 1)/(j) cMat/(i)/(j - 1)
-			j: j + 1
-		]
-		i: i + 1
-	]
-	cMat
-]
-
-rcvDTWGetDTW: function [cMat [block!] return: [number!]
-"Returns DTW value"
-][
-	last last cMat
-]
-
-rcvDTWGetPath: function [x [block!] y [block!] cMat [block!] return: [block!]
+rcvDTWGetPath1: function [x [block!] y [block!] cMat [block!] return: [block!]
 "Find the path minimizing the distance "
 ][
 	xPath: copy []
@@ -251,12 +173,56 @@ rcvDTWGetPath: function [x [block!] y [block!] cMat [block!] return: [block!]
 ]
 
 
+rcvDTWMin: function [x [number!] y [number!] z [number!] return: [number!]
+"Minimal value between 3 values"
+][
+	_rcvDTWMin x y z
+]
+
+rcvDTWDistances: function [x [block!] y [block!] return: [vector!]
+"Making a 2d matrix to compute distances between all pairs of x and y series"
+][
+	xl: length? x
+	yl: length? y
+	matSize: xl * yl
+	dMat: make vector! reduce ['float! 64 matSize]
+	t: type? first x
+	if t = integer! [_rcvDTWDistances x y dmat 0]
+	if t = float! [_rcvDTWDistances x y dmat 1]
+	dMat
+]
+
+rcvDTWRun: function [x [block!] y [block!] dMat [vector!] return: [vector!]
+"Making a 2d matrix to compute minimal distance cost "
+] [
+	xl: length? x
+	yl: length? y
+	matSize: xl * yl
+	cMat: make vector! reduce ['float! 64 matSize]
+	_rcvDTWRun xl yl dMat cMat
+	cMat
+]
+
+rcvDTWGetPath: function [x [block!] y [block!] cMat [vector!] return: [block!]
+"xx"
+] [
+	xPath: copy []
+	_rcvDTWGetPath x y cMat xPath
+	reverse xPath
+]
+
+
+rcvDTWGetDTW: function [cMat [vector!] return: [number!]
+"Returns DTW value"
+][
+	last cMat
+]
 
 rcvDTWCompute: function [x [block!] y [block!] return: [number!]
 "Short-cut to get DTW value if you don't need distance and cost matrices"
 ][
 	dMat: rcvDTWDistances x y
 	cMat: rcvDTWRun x y dMat	
-	last last cMat
+	last cMat
 ]
 

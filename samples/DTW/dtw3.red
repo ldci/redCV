@@ -50,35 +50,26 @@ calculateDTW: does [
 	append fDTW/text form dtw
 	
 	; distance map
-	img: rcvCreateImage as-pair (length? dMatrix) (length? dMatrix)
+	img: rcvCreateImage as-pair (length? x) (length? y)
 	mat:  make vector! [integer! 32 0]
 	
-	foreach v dMatrix [
-		ct: length? v 
-		i: 1
-		while [i <= ct][append mat (to-integer v/:i) i: i + 1]
-	]
+	foreach v dMatrix [append mat to-integer v]
 	mx:  rcvMaxMat mat
 	mat * (255 / mx)
 	rcvMat2Image mat img
 	canvas3/image: img 
 	
 	; cost map
-	img2: rcvCreateImage as-pair (length? cMatrix) (length? cMatrix)
+	img2: rcvCreateImage as-pair (length? x) (length? x)
 	mat2:  make vector! [integer! 32 0]
-	foreach v cMatrix [
-		ct: length? v 
-		i: 1
-		while [i <= ct][append mat2 to-integer v/:i i: i + 1]
-	]
+	foreach v cMatrix [append mat2 to-integer v]
 	mx:  rcvMaxMat mat2
 	fc:  complement (mx / 255)
 	mat2 / fc
 	rcvMat2Image mat2 img2
 	;optimum warping path
 	plot4: compose [line-width 1 pen blue line]
-	foreach v xPath [p: as-pair first v second v append plot4 (p)]
-	
+	foreach v xPath  [append plot4 (v)]
 	canvas4/image: draw img2 plot4
 ]
 

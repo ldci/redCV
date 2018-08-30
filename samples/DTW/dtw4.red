@@ -44,13 +44,17 @@ loadImage1: does [
 	tmp: request-file
 	if not none? tmp [
 		img1: rcvLoadImage tmp
+		img11: rcvCreateImage img1/size
+		clone1: rcvCreateImage img1/size
 		matSize1: img1/size
 		mat1:  rcvCreateMat 'integer! bitSize matSize1
 		bmat1:  rcvCreateMat 'integer! bitSize matSize1
-		visited1: rcvCreateMat 'integer! bitSize matSize1
-		rcvImage2Mat img1 mat1 		; process image to a bytes matrix [0..255] 
+		;visited1: rcvCreateMat 'integer! bitSize matSize1
+		rcv2WB img1 img11 
+		rcvImage2Mat img11 mat1 		; process image to a bytes matrix [0..255] 
 		rcvMakeBinaryMat mat1 bmat1	; processImages to a binary matrix [0..1]
-		canvas1/image: img1
+		canvas1/image: img11
+		f1/text: form img1/size
 		isLoad1: true
 	]
 ]
@@ -68,13 +72,17 @@ loadImage2: does [
 	tmp: request-file
 	if not none? tmp [
 		img2: rcvLoadImage tmp
+		img21: rcvCreateImage img2/size
+		clone2: rcvCreateImage img2/size
 		matSize2: img2/size
 		mat2:  rcvCreateMat 'integer! bitSize matSize2
 		bmat2:  rcvCreateMat 'integer! bitSize matSize2 
-		visited2: rcvCreateMat 'integer! bitSize matSize2
-		rcvImage2Mat img2 mat2 		; process image to a bytes matrix [0..255] 
+		;visited2: rcvCreateMat 'integer! bitSize matSize2
+		rcv2WB img2 img21
+		rcvImage2Mat img21 mat2 		; process image to a bytes matrix [0..255] 
 		rcvMakeBinaryMat mat2 bmat2	; processImages to a binary matrix [0..1]
-		canvas2/image: img2
+		canvas2/image: img21
+		f2/text: form img2/size
 		isLoad2: true
 	]
 ]
@@ -84,8 +92,15 @@ getCodeChain1: does [
 	clear cc4/text
 	s: copy ""
 	border1: copy []
+	visited1: rcvCreateMat 'integer! bitSize matSize1
 	rcvMatGetBorder bmat1 matSize1 fgVal border1
 	foreach p border1 [rcvSetInt2D visited1 matSize1 p 255]
+	
+	rcvCopyImage img11 clone1
+	plot1: compose [line-width 1 pen green]
+	foreach p border1 [append append append plot1 'box (p) (p + 1)]
+	canvas1/image: draw clone1 plot1
+	
 	count: length? border1
 	p: first border1
 	i: 1
@@ -115,8 +130,13 @@ getCodeChain2: does [
 	clear cc4/text
 	s: copy ""
 	border2: copy []
+	visited2: rcvCreateMat 'integer! bitSize matSize2
 	rcvMatGetBorder bmat2 matSize2 fgVal border2
 	foreach p border2 [rcvSetInt2D visited2 matSize2 p 255]
+	rcvCopyImage img21 clone2
+	plot2: compose [line-width 1 pen red]
+	foreach p border2 [append append append plot2 'box (p) (p + 1)]
+	canvas2/image: draw clone2 plot2
 	count: length? border2
 	p: first border2
 	i: 1
@@ -158,13 +178,9 @@ calculateDTW: does [
 	append fDTW/text form dtw
 	
 	; distance map
-	img: rcvCreateImage as-pair (length? dMatrix) (length? dMatrix)
+	img: rcvCreateImage as-pair (length? x) (length? y)
 	mat:  make vector! [integer! 32 0]
-	foreach v dMatrix [
-		ct: length? v 
-		i: 1
-		while [i <= ct][append mat (to-integer v/:i) i: i + 1]
-	]
+	foreach v dMatrix [append mat to-integer v]
 	mx:  rcvMaxMat mat
 	mat * (255 / mx)
 	rcvMat2Image mat img
@@ -172,12 +188,17 @@ calculateDTW: does [
 	cc3/text: copy form mat
 	
 	;optimum warping path
-	img: rcvCreateImage as-pair (length? x) + 1 (length? y) + 1
-	plot: compose [line-width 2 pen green line]
 	
-	foreach v xPath [p: as-pair first v second v append plot (p)
-		append s v
-	]
+	img: rcvCreateImage as-pair (length? x) + 1 (length? y) + 1
+	{mat:  make vector! [integer! 32 0]
+	foreach v cMatrix [append mat to-integer v]
+	mx:  rcvMaxMat mat
+	fc:  complement (mx / 255)
+	mat / fc
+	rcvMat2Image mat img}
+	
+	plot: compose [line-width 2 pen white line]
+	append plot (xPath)
 	canvas4/image: draw img plot
 	cc4/text: copy form xPath
 ]
@@ -188,7 +209,7 @@ view win: layout [
 	title "red CV: Dynamic Time Warping and Freeman Code Chain"
 	button "Load Image 1"	[loadImage1]
 	button "Load Image 2"	[loadImage2]
-	text 100 "Foreground"
+	text 100 "Foreground Value"
 	r1: radio 30 "1" [fgVal: 1 bgVal: 0]
 	r2: radio 30 "0" [fgVal: 0 bgVal: 1]
 	button "Compare Images"	[if all [isLoad1 isLoad2] [calculateDTW]]			
@@ -196,8 +217,8 @@ view win: layout [
 	pad 280x0
 	button "Quit" [Quit]
 	return
-	text 100 "Image 1" pad 156x0
-	text 100 "Image 2" pad 156x0
+	text 100 "Image 1" f1: field 90 pad  56x0
+	text 100 "Image 2" f2: field 90 pad  56x0
 	text 100 "Distance Map" pad 156x0
 	text     "Optimum Warping Path"
 	return

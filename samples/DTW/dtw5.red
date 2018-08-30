@@ -44,13 +44,15 @@ loadImage1: does [
 	tmp: request-file
 	if not none? tmp [
 		img1: rcvLoadImage tmp
+		img11: rcvCreateImage img1/size
 		matSize1: img1/size
 		mat1:  rcvCreateMat 'integer! bitSize matSize1
 		bmat1:  rcvCreateMat 'integer! bitSize matSize1
-		rcvImage2Mat img1 mat1 		; process image to a bytes matrix [0..255] 
+		rcv2WB img1 img11 
+		rcvImage2Mat img11 mat1 		; process image to a bytes matrix [0..255] 
 		rcvMakeBinaryMat mat1 bmat1	; processImages to a binary matrix [0..1]
 		cg1: rcvGetMatCentroid bmat1 matSize1
-		canvas1/image: img1
+		canvas1/image: img11
 		isLoad1: true
 	]
 ]
@@ -66,13 +68,15 @@ loadImage2: does [
 	tmp: request-file
 	if not none? tmp [
 		img2: rcvLoadImage tmp
+		img21: rcvCreateImage img2/size
 		matSize2: img2/size
 		mat2:  rcvCreateMat 'integer! bitSize matSize2
 		bmat2:  rcvCreateMat 'integer! bitSize matSize2
-		rcvImage2Mat img2 mat2 		; process image to a bytes matrix [0..255] 
+		rcv2WB img2 img21
+		rcvImage2Mat img21 mat2 		; process image to a bytes matrix [0..255] 
 		rcvMakeBinaryMat mat2 bmat2	; processImages to a binary matrix [0..1]
 		cg2: rcvGetMatCentroid bmat2 matSize2
-		canvas2/image: img2
+		canvas2/image: img21
 		isLoad2: true
 	]
 ]
@@ -135,18 +139,17 @@ calculateDTW: does [
 	f2/text: form length? y
 	append plot1 plot2
 	canvas3/draw: reduce [plot1]
-	do-events/no-wait; to show progression
+	;do-events/no-wait; to show progression
 	dMatrix: rcvDTWDistances x y	
 	cMatrix: rcvDTWRun x y dMatrix
 	dtw: rcvDTWGetDTW cMatrix
-	xPath: rcvDTWGetPath x y cMatrix 
 	fDTW/text: copy "DTW x y: "
 	append fDTW/text form dtw
 	;optimum warping path
-	img: rcvCreateImage as-pair (length? x) + 1 (length? y) + 1
+	xPath: rcvDTWGetPath x y cMatrix 
+	img: rcvCreateImage as-pair (length? x) (length? y)
 	plot: compose [line-width 2 pen yellow line]
-	foreach v xPath [p: as-pair first v second v append plot (p)]
-	;canvas4/draw: plot
+	append plot (xPath)
 	canvas4/image: draw img plot
 ]
 
