@@ -28,7 +28,7 @@ knl: rcvCreateStructuringElement/rectangle knlSize
 
 factor: 1.0
 delta: 0.0
-
+anim: false
 canny: [-1.0 -1.0 -1.0
 		-1.0 8.0 -1.0 
 		-1.0 -1.0 -1.0]
@@ -36,11 +36,24 @@ canny: [-1.0 -1.0 -1.0
 
 generatePolygon: does [
 	canvas/image: none
+	clear f0/text
+	clear f1/text
+	clear f2/text
+	clear f3/text
+	clear f4/text
+	clear r/text
 	p1: 128x128 + random rSize p2: 128x128 + random rSize  p3: 128x128 + random rSize 
 	p4: 128x128 + random rSize  128x128 +  p5: 128x128 + random rSize
 	plot: compose [pen white fill-pen white polygon (p1) (p2) (p3) (p4) (p5)]
 	canvas/draw: reduce [plot]
+	pgb/data: 0%
+]
+
+
+
+processImage: does [
 	img: to-image canvas
+	
 	rcvConvolve img edges canny factor delta	; edges detection with Canny
 	rcvDilate edges edges2 knlSize knl			; dilates shape to suppress 0 values if exist
 	rcvImage2Mat edges2 mat 					; make first matrix 0..255
@@ -49,20 +62,10 @@ generatePolygon: does [
 	rPix: rcvMatRightPixel bmat iSize fgVal
 	uPix: rcvMatUpPixel bmat iSize fgVal
 	dPix: rcvMatDownPixel bmat iSize fgVal
-	luPix: as-pair lPix/x uPix/y 
-	ruPix: as-pair rPix/x uPix/y 
-	rdPix: as-pair rPix/x dPix/y 
-	ldPix: as-pair lPix/x dPix/y
-	f1/text: form luPix
-	f2/text: form ruPix
-	f3/text: form ldPix
-	f4/text: form rdPix 
-	pgb/data: 0%
-]
-
-
-
-processImage: does [
+	f1/text: form as-pair lPix/x uPix/y
+	f2/text: form as-pair rPix/x uPix/y
+	f3/text: form as-pair rPix/x dPix/y 
+	f4/text: form as-pair lPix/x dPix/y 
 	visited: rcvCreateMat 'integer! 32 iSize			; for storing visited pixels	
 	border: []											; for neighbors
 	rcvMatGetBorder bmat iSize fgVal border				; get border
@@ -82,7 +85,7 @@ processImage: does [
 		rcvSetInt2D visited iSize p 0				; pixel processed 
 		append append append plot 'circle (p) 2 
 		if d > -1 [append s form d]
-		do-events/no-wait; to show progression
+		if anim [do-events/no-wait]; to show progression
 		switch d [
 			0	[p/x: p/x + 1]				; east
 			1	[p/x: p/x + 1 p/y: p/y + 1]	; southeast
@@ -105,10 +108,10 @@ processImage: does [
 view win: layout [
 	title "Chain Code with Canny Detector"
 	button "Generate Polygon" [generatePolygon]
+	cb: check "Show Anination" [anim: face/data]
 	button "Process" [processImage]
-	pgb: progress 200
-	f0: field 75
-	pad 135x0
+	pgb: progress 160
+	f0: field 125
 	button "Quit" [
 					rcvReleaseImage img
 					rcvReleaseImage edges
