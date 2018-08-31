@@ -24,6 +24,11 @@ generateImage: does [
 	p2: random 400x400
 	color: 255.255.255
 	plot: compose [fill-pen (color) box (p1) (p2)]
+	processImage
+]
+
+
+processImage: does [
 	canvas/draw: reduce [plot]
 	img: to-image canvas
 	rcvImage2Mat img mat 	 
@@ -37,11 +42,6 @@ generateImage: does [
 	f3/text: form as-pair rPix/x dPix/y 
 	f4/text: form as-pair lPix/x dPix/y
 	clear r/text
-	processImage
-]
-
-
-processImage: does [
 	visited: rcvCreateMat 'integer! 32 iSize
 	border: copy []
 	rcvMatGetBorder bmat iSize fgVal border

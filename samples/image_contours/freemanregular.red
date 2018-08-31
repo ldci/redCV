@@ -15,7 +15,7 @@ img: rcvCreateImage iSize
 edges: rcvCreateImage iSize
 plot: compose [pen white fill-pen white box 128x128 384x384]
 fgVal: 1
-
+anim: false
 canvas: none
 
 
@@ -29,23 +29,15 @@ processImage: does [
 	rPix: rcvMatRightPixel bmat iSize fgVal
 	uPix: rcvMatUpPixel bmat iSize fgVal
 	dPix: rcvMatDownPixel bmat iSize fgVal
-	luPix: as-pair lPix/x uPix/y 
-	ruPix: as-pair rPix/x uPix/y 
-	rdPix: as-pair rPix/x dPix/y 
-	ldPix: as-pair lPix/x dPix/y
-	f1/text: form luPix
-	f2/text: form ruPix
-	f3/text: form ldPix
-	f4/text: form rdPix 
-	
-	
+	f1/text: form as-pair lPix/x uPix/y
+	f2/text: form as-pair rPix/x uPix/y
+	f3/text: form as-pair lPix/x dPix/y
+	f4/text: form as-pair rPix/x dPix/y 
 	border: []
 	rcvMatGetBorder bmat iSize fgVal border
 	foreach p border [rcvSetInt2D visited iSize p 255]
 	perim: length? border
-	
 	p: first border
-	
 	i: 1
 	s: copy ""
 	clear r/text
@@ -54,10 +46,9 @@ processImage: does [
 		d: rcvMatGetChainCode visited iSize p 255
 		rcvSetInt2D visited iSize p 0	; pixel processed
 		;append append append plot 'box (p) (p + 1) 
-		append append append plot 'circle (p) 4 
+		append append append plot 'circle (p) 3 
 		append s form d
-		
-		do-events/no-wait; to show progression
+		if anim [do-events/no-wait]; to show progression
 		switch d [
 			0	[p/x: p/x + 1]				; east
 			1	[p/x: p/x + 1 p/y: p/y + 1]	; southeast
@@ -97,9 +88,10 @@ view win: layout [
 		]
 		canvas/draw: reduce [plot]
 	]
+	cb: check "Show Anination" [anim: face/data]
 	button "Process" [processImage]
-	pgb: progress 200
-	pad 240x0
+	pgb: progress 180
+	pad 150x0
 	button "Quit" [
 			rcvReleaseImage img
 			rcvReleaseImage edges
