@@ -170,10 +170,15 @@ calculateDTW: does [
 	getCodeChain2
 	clear cc3/text
 	clear cc4/text
-	dMatrix: rcvDTWDistances x y	
-	cMatrix: rcvDTWRun x y dMatrix
+	
+	matsize: (length? x) * (length? y)
+	dMatrix: make vector! reduce ['float! 64 matSize]
+	cMatrix: make vector! reduce ['float! 64 matSize]
+	xPath: copy []
+	rcvDTWDistances x y	dMatrix
+	rcvDTWCosts x y dMatrix cMatrix
 	dtw: rcvDTWGetDTW cMatrix
-	xPath: rcvDTWGetPath x y cMatrix 
+	rcvDTWGetPath x y cMatrix xPath
 	fDTW/text: copy "DTW x y: "
 	append fDTW/text form dtw
 	

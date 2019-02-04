@@ -11,11 +11,17 @@ Red [
 x: [9 3 1 5 1 2 0 1 0 2 2 8 1 7 0 6 4 4 5]
 y: [1 0 5 5 0 1 0 1 0 3 3 2 8 1 0 6 4 4 5]
 
+lx: length? x
+ly: length? y
+matsize: lx * ly
+dMatrix: make vector! reduce ['float! 64 matSize]
+cMatrix: make vector! reduce ['float! 64 matSize]
+	
 img: rcvCreateImage 256x256
 plot: copy []
 calculate: does [
-	dMatrix: rcvDTWDistances x y
-	cMatrix: rcvDTWRun x y dMatrix
+	rcvDTWDistances x y dMatrix
+	rcvDTWCosts x y dMatrix cMatrix
 	dtw: rcvDTWGetDTW cMatrix
  	fDTW/text: copy "DTW x y: "
 	append fDTW/text form dtw

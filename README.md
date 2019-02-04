@@ -18,6 +18,10 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+### UPDATE FEBRUARY 4 2019
+
+Update for red 0.6.4 version
+
 ### UPDATE AUGUST 26 2018
 
 Dynamic Time Warping added to redCV.

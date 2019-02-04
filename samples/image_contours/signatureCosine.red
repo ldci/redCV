@@ -47,8 +47,7 @@ processImage: does [
 		cosC: a2 + b2 - c2 / (2 * a * b)
 		theta: arccosine cosA
 		; to get 0..359 angle value
-		if (p/x >= cg/x) [theta: 180.0 + theta]
-		if theta >= 180 [theta: 360.0 - theta + 180.0]
+		if p/x > cg/x [theta: 360 - theta]
 		theta: round theta
 		bloc: copy []
 		append bloc theta

@@ -12,7 +12,11 @@ plot1: copy []
 plot2: copy []
 img: rcvCreateImage 256x256
 img2: rcvCreateImage 256x256
-
+count: 64
+matsize: count * count
+dMatrix: make vector! reduce ['float! 64 matSize]
+cMatrix: make vector! reduce ['float! 64 matSize]
+xPath: copy []
 
 random/seed now/time/precise
 
@@ -21,7 +25,7 @@ generateSeries: does [
 	x: copy []
 	y: copy []
 	i: 1
-	count: 64
+	
 	while [i <= count] [
 		append x random 250
 		append y random 250
@@ -42,10 +46,10 @@ generateSeries: does [
 
 
 calculateDTW: does [
-	dMatrix: rcvDTWDistances x y	
-	cMatrix: rcvDTWRun x y dMatrix
+	rcvDTWDistances x y dMatrix
+	rcvDTWCosts x y dMatrix cMatrix
 	dtw: rcvDTWGetDTW cMatrix
-	xPath: rcvDTWGetPath x y cMatrix 
+	rcvDTWGetPath x y cMatrix  xPath
 	fDTW/text: copy "DTW x y: "
 	append fDTW/text form dtw
 	

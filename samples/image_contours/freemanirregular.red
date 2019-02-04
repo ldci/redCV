@@ -7,25 +7,19 @@ Red [
 
 
 #include %../../libs/redcv.red ; for redCV functions
-
-
-
 iSize: 512x512
 rSize: 300x300
 img: rcvCreateImage iSize
 edges: rcvCreateImage iSize
 edges2: rcvCreateImage iSize
-
 mat:  rcvCreateMat 'integer! 32 iSize
 bMat: rcvCreateMat 'integer! 32 iSize
 visited: rcvCreateMat 'integer! 32 iSize
 plot: copy []
-
 fgVal: 1
 canvas: none
 knlSize: 3x3
 knl: rcvCreateStructuringElement/rectangle knlSize
-
 factor: 1.0
 delta: 0.0
 anim: false
@@ -33,7 +27,6 @@ canny: [-1.0 -1.0 -1.0
 		-1.0 8.0 -1.0 
 		-1.0 -1.0 -1.0]
 		
-
 generatePolygon: does [
 	canvas/image: none
 	clear f0/text
@@ -49,14 +42,11 @@ generatePolygon: does [
 	pgb/data: 0%
 ]
 
-
-
 processImage: does [
 	img: to-image canvas
-	
 	rcvConvolve img edges canny factor delta	; edges detection with Canny
 	rcvDilate edges edges2 knlSize knl			; dilates shape to suppress 0 values if exist
-	rcvImage2Mat edges2 mat 					; make first matrix 0..255
+	rcvImage2Mat edges2 mat 					; make first matrix 0..255 
 	rcvMakeBinaryMat mat bmat					; make second matrix 0..1
 	lPix: rcvMatleftPixel bmat iSize fgVal
 	rPix: rcvMatRightPixel bmat iSize fgVal
@@ -86,23 +76,13 @@ processImage: does [
 		append append append plot 'circle (p) 2 
 		if d > -1 [append s form d]
 		if anim [do-events/no-wait]; to show progression
-		switch d [
-			0	[p/x: p/x + 1]				; east
-			1	[p/x: p/x + 1 p/y: p/y + 1]	; southeast
-			2	[p/y: p/y + 1]				; south
-			3	[p/x: p/x - 1 p/y: p/y + 1]	; southwest
-			4	[p/x: p/x - 1]				; west
-			5	[p/x: p/x - 1 p/y: p/y - 1]	; northwest
-			6	[p/y: p/y - 1]				; north
-			7	[p/x: p/x + 1 p/y: p/y - 1]	; northeast
-		]
+		;get the next pixel to process
+		p: rcvGetContours p d
 		pgb/data: to-percent (i / to-float perim)
 		i: i + 1
 	]
 	r/text: s
 ]
-
-
 
 ; ***************** Test Program ****************************
 view win: layout [

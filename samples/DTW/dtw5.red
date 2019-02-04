@@ -140,13 +140,19 @@ calculateDTW: does [
 	append plot1 plot2
 	canvas3/draw: reduce [plot1]
 	;do-events/no-wait; to show progression
-	dMatrix: rcvDTWDistances x y	
-	cMatrix: rcvDTWRun x y dMatrix
+	
+	matsize: (length? x) * (length? y)
+	dMatrix: make vector! reduce ['float! 64 matSize]
+	cMatrix: make vector! reduce ['float! 64 matSize]
+	xPath: copy []
+	
+	rcvDTWDistances x y dMatrix
+	rcvDTWCosts x y dMatrix cMatrix
 	dtw: rcvDTWGetDTW cMatrix
 	fDTW/text: copy "DTW x y: "
 	append fDTW/text form dtw
 	;optimum warping path
-	xPath: rcvDTWGetPath x y cMatrix 
+	rcvDTWGetPath x y cMatrix xPath
 	img: rcvCreateImage as-pair (length? x) (length? y)
 	plot: compose [line-width 2 pen yellow line]
 	append plot (xPath)
