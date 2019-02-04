@@ -26,7 +26,7 @@ rcvGetEuclidianDistance: function [p [pair!] cg [pair!] return: [float!]
 ]
 
 rcvGetAngle: function [p [pair!] cg [pair!]return: [float!]
-"Gets angle in degrees form points coordinates"
+"Gets angle in degrees from points coordinates"
 ][		
 	rho: rcvGetEuclidianDistance p cg		; rho
 	uY: to-float p/y - cg/y					; uY ->
@@ -39,7 +39,13 @@ rcvGetAngle: function [p [pair!] cg [pair!]return: [float!]
 	theta
 ]
 
-
+;needs a coordinate translation p - shape centroid
+; angle * 180 / pi -> degrees
+rcvGetAngleRadian: function [p [pair!] return: [float!]
+"Gets angle in radian "
+][
+	atan2 p/y p/x
+]
 
 ; ************** Chamfer distance **********
 
@@ -133,96 +139,4 @@ rcvChamferNormalize: function [output [vector!] value [integer!]
 	_Normalize output value
 ]
 
-
-;********************* DTW Dynamic Time Warping ****************************
-; a very basic DTW algorithm
-; thanks to Nipun Batra (https://nipunbatra.github.io/blog/2014/dtw.html)
-
-
-
-
-
-rcvDTWGetPath1: function [x [block!] y [block!] cMat [block!] return: [block!]
-"Find the path minimizing the distance "
-][
-	xPath: copy []
-	i: length? y
-	j: length? x
-	while [(i >= 1) and (j >= 1)] [
-		either any [i = 1 j = 1][
-			case/all [
-				i = 1 [j: j - 1 ] 
-				j = 1 [i: i - 1 ]	
-			]
-		]
-		[minD: rcvDTWMin cMat/(i - 1)/(j - 1) cMat/(i - 1)/(j) cMat/(i)/(j - 1)
-		t0: false
-			case/all [
-				cMat/(i - 1)/(j) = minD [i: i - 1 t0: true]
-				cMat/(i)/(j - 1) = minD [j: j - 1 t0: true]
-			]
-			unless t0 [i: i - 1 j: j - 1]
-		]
-		b: copy []
-		append b j ; x
-		append b i ; y
-		append/only xPath b
-	]
-	append/only xPath [0 0]
-	reverse xPath
-]
-
-
-rcvDTWMin: function [x [number!] y [number!] z [number!] return: [number!]
-"Minimal value between 3 values"
-][
-	_rcvDTWMin x y z
-]
-
-rcvDTWDistances: function [x [block!] y [block!] return: [vector!]
-"Making a 2d matrix to compute distances between all pairs of x and y series"
-][
-	xl: length? x
-	yl: length? y
-	matSize: xl * yl
-	dMat: make vector! reduce ['float! 64 matSize]
-	t: type? first x
-	if t = integer! [_rcvDTWDistances x y dmat 0]
-	if t = float! [_rcvDTWDistances x y dmat 1]
-	dMat
-]
-
-rcvDTWRun: function [x [block!] y [block!] dMat [vector!] return: [vector!]
-"Making a 2d matrix to compute minimal distance cost "
-] [
-	xl: length? x
-	yl: length? y
-	matSize: xl * yl
-	cMat: make vector! reduce ['float! 64 matSize]
-	_rcvDTWRun xl yl dMat cMat
-	cMat
-]
-
-rcvDTWGetPath: function [x [block!] y [block!] cMat [vector!] return: [block!]
-"xx"
-] [
-	xPath: copy []
-	_rcvDTWGetPath x y cMat xPath
-	reverse xPath
-]
-
-
-rcvDTWGetDTW: function [cMat [vector!] return: [number!]
-"Returns DTW value"
-][
-	last cMat
-]
-
-rcvDTWCompute: function [x [block!] y [block!] return: [number!]
-"Short-cut to get DTW value if you don't need distance and cost matrices"
-][
-	dMat: rcvDTWDistances x y
-	cMat: rcvDTWRun x y dMat	
-	last cMat
-]
 

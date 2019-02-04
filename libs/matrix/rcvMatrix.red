@@ -211,9 +211,10 @@ rcvSetReal2D: function [ dst [vector!] mSize [pair!] coordinate [pair!] val [flo
 	_rcvSetReal2D dst mSize coordinate/x coordinate/y val
 ]
 
-rcvGetPairs: function [binMatrix [vector!] width [integer!] height [integer!] points [block!]
+rcvGetPairs: function [binMatrix [vector!] mSize [pair!] points [block!]
 "Gets coordinates from a binary matrix as pair values"
 ][
+	width: mSize/x height: mSize/y
 	_rcvGetPairs binMatrix width height points
 ]
 
@@ -271,6 +272,24 @@ coord [pair!] value [integer!] return: [integer!]
 "Gets Freeman Chain code"
 ][
 	_borderNeighbors mat matSize coord/x coord/y value
+]
+
+; new
+rcvGetContours: function [p [pair!] d [integer!] return: [pair!]
+"Gets next contour pixel to process"
+][
+	r: p
+	switch d [
+		0	[r/x: p/x + 1	r/y: p/y]		; east
+		1	[r/x: p/x + 1 	r/y: p/y + 1]	; southeast
+		2	[r/x: p/x 		r/y: p/y + 1]	; south
+		3	[r/x: p/x - 1 	r/y: p/y + 1]	; southwest
+		4	[r/x: r/x - 1 	r/y: p/y]		; west
+		5	[r/x: p/x - 1 	r/y: p/y - 1]	; northwest
+		6	[r/x: p/x 		r/y: p/y - 1]	; north
+		7	[r/x: p/x + 1 	r/y: p/y - 1]	; northeast
+	]
+	r
 ]
 
 
