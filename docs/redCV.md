@@ -14,7 +14,7 @@
 * **rcvLengthMat**: Returns matrix length
 * **rcvMakeRangeMat**: Makes an ordered matrix
 * **rcvMakeIndenticalMat**: Creates a matrix with identical values
-* **makeBinaryMat**: Makes a [0 1] matrix
+* **rcvMakeBinaryMat**: Makes a [0 1] matrix
 * **rcvReleaseImage**: Releases image data
 * **rcvReleaseAllImages**: Releases all images
 * **rcvReleaseMat**: Releases Matrix
@@ -38,6 +38,7 @@
 * **rcvCompressRGB**: Zlib compression of image data
 * **rcvDecompressRGB**: ZLib decompression of image data
 ##Image and matrix utilities
+* **rcvIsAPixel**: Returns true if  pixel value is greater than threshold
 * **rcvGetPixel**: Returns pixel value at xy coordinates
 * **rcvGetPixelAsInteger**: Returns pixel value at xy coordinates as integer
 * **rcvGetInt2D** : Get integer matrix value
@@ -67,6 +68,7 @@
 
 ##Color and color space conversion
 * **rcvInvert**: Destination image: inverted source image 
+* **rcv2NzRGB**: Normalizes the RGB values of an image
 * **rcv2BW**: Convert RGB image to Black[0] and White [255]
 * **rcv2WB**: Convert RGB image to White[255] and Black [0]
 * **rcv2Gray**: Convert RGB image to Grayscale
@@ -84,6 +86,7 @@
 * **rcvRGB2Lab**: RBG color to CIE L*a*b conversion
 * **rcvRGB2Luv**: RBG color to CIE L*u*v conversion
 * **rcvRGB2Luv**: RBG color to CIE L*u*v conversion
+* **rcvIRgBy**: Log-opponent conversion
 
 ##Arithmetic operators
 * **rcvAdd**: Destination image: image 1 + image 2
@@ -184,8 +187,10 @@ Using Draw DSL
 * **rcvSkewImage**: Sets a coordinate system skewed from the original by the given number of degrees
 
 Using RedCV Routines
-## Chamfer Distances
-
+## Distances function
+* **rcvGetEuclidianDistance**: Gets Euclidian distance between 2 points
+* **rcvGetAngle**: Gets angle in degrees from points coordinates
+* **rcvGetAngleRadian**: Gets angle in radian
 * **rcvMakeGradient**: Makes a gradient matrix for contour detection (similar to Sobel) and returns max gradient value
 * **rcvMakeBinaryGradient**: Makes a binary [0 1] matrix for contour detection
 * **rcvFlowMat**: Calculates the distance map to binarized gradient
@@ -197,12 +202,6 @@ Using RedCV Routines
 * **rcvChamferCompute**: Calculates the distance map to binarized gradient
 * **rcvChamferNormalize**: Normalizes calculated distance map
 
-## Dynamic Time Warping
-* **rcvDTWDistances**: Making a 2d matrix to compute distances between all pairs of x and y series
-* **rcvDTWRun**: Making a 2d matrix to compute minimal distance cost
-* **rcvDTWGetDTW**: Returns DTW value
-* **rcvDTWGetPath**: Find the path minimizing the distance 
-* **rcvDTWCompute**: Short-cut to get DTW value if you don't need distance and cost matrices
 
 
 ##Image enhancement
@@ -217,7 +216,7 @@ Using RedCV Routines
 * **rcvInRangeMat**: Extracts sub array from matrix according to lower and upper values
 
 
-##Spatial Filtering
+##Spatial filtering
 * **rcvMakeGaussian**: Creates a Gaussian uneven kernel
 * **rcvGaussianFilter**: Fast Gaussian 2D filter
 * **rcvConvolve**: Convolves an image with the kernel
@@ -227,7 +226,7 @@ Using RedCV Routines
 * **rcvFilter2D**: Basic convolution filter
 * **rcvFastFilter2D**: Fast convolution filter
 * **rcvPointDetector**: Convolution allowing to find dots in image or matrix
-## Fast Edge Detection
+## Fast edge detection
 * **rcvSobel**: Direct Sobel edges detection for image or matrix
 * **rcvRoberts**: Robert's cross edges detection for image or matrix
 * **rcvPrewitt**: Computes an approximation of the gradient magnitude of the input image
@@ -237,14 +236,14 @@ Using RedCV Routines
 * **rcvDerivative2**: Computes an approximation of the gradient magnitude of the input image 
 * **rcvLaplacian**: Computes the Laplacian of an image or matrix. The Laplacian is an approximation of the second derivative of an image 
  
-## Lines Detection
+## Lines detection
 * **rcvMakeHoughAccumulator**: Creates Hough accumulator
 * **rcvGetAccumulatorSize**: Gets Hough space accumulator size
 * **rcvHoughTransform**: Makes Hough transform
 * **rcvGetHoughLines**: Gets lines in the accumulator according to threshold
 * **rcvHough2Image**: Makes Hough space as red image
 
-## Shape Detection
+## Shape detection
 * **rcvMatGetBorder**: TBD
 * **rcvMatGetChainCode**: TBD##Mathematical morphology
 * **rcvCreateStructuringElement**: The function allocates and fills a block, which can be used as a structuring element in the morphological operations
@@ -259,6 +258,30 @@ Using RedCV Routines
 * **rcvBlackHat**: Performs advanced morphological transformations
 * **rcvMMean**: Means image by using structuring element
 
+## Image denoising
+* **rcvMeanFilter**: Mean Filter for images
+* **rcvMedianFilter**: Median Filter for images
+* **rcvMinFilter**: Minimum Filter for images
+* **rcvMaxFilter**: Maximum Filter for images
+* **rcvMidPointFilter**: Midpoint Filter for image
+
+## 1-D Series filtering
+* **rcvTSCopySignal**: Makes a copy of original signal
+* **rcvTSStatSignal**: Return mean, sd, minimal and maximal values of the signal serie
+* **rcvTSSDetrendSignal**: Removes linear trend in the signal by removing mean value of the serie
+* **rcvTSSNormalizeSignal**: Normalize data by replacing each value by a normalized value
+* **rcvTSMMFilter**: Calculates a mobile mean  according to the number of points given by filterSize
+* **rcvSGFilter**: Calculates second order polynomial Savitzky-Golay filter
+* **rcvSGCubicFilter**: Calculates cubic polynomial Savitzky-Golay filter
+* **rcvSGQuarticFilter**: Calculates quartic polynomial Savitzky-Golay filter
+* **rcvSGDerivative1**: Calculates first derivative polynomial Savitzky-Golay filter
+
+## Dynamic Time Warping
+* **rcvDTWDistances**: Making a 2d matrix to compute distances between all pairs of x and y series
+* **rcvDTWRun**: Making a 2d matrix to compute minimal distance cost
+* **rcvDTWGetDTW**: Returns DTW value
+* **rcvDTWGetPath**: Find the path minimizing the distance 
+* **rcvDTWCompute**: Short-cut to get DTW value if you don't need distance and cost matrices
 
 
 ##GUI functions

@@ -58,6 +58,21 @@ _rcvSetPixel: routine [src1 [image!] coordinate [pair!] val [integer!]
     image/release-buffer src1 handle1 yes
 ]
 
+_rcvIsAPixel: routine [src [image!] coordinate [pair!] threshold [integer!] return: [logic!]
+	/local 
+		v a r g b
+		mean
+][
+	v: _rcvGetPixel src coordinate
+	a: v >>> 24
+    r: v and 00FF0000h >> 16 
+    g: v and FF00h >> 8 
+    b: v and FFh
+    mean: (r + g + b) / 3
+    either mean > threshold [true] [false]
+]
+
+
 
 ;***************** IMAGE CONVERSION ROUTINES *****************
 ;exported as functions in /libs/core/rcvCore.red 
@@ -106,6 +121,7 @@ _rcvConvert: routine [
         pixD [int-ptr!]
         handle1 handleD h w x y
         r g b a s mini maxi
+        rf gf bf sf
 ][
     handle1: 0
     handleD: 0
@@ -116,14 +132,19 @@ _rcvConvert: routine [
     x: 0
     y: 0
     s: 0
+    sf: 0.0
     mini: 0
     maxi: 0
     while [y < h] [
+       x: 0
        while [x < w][
        	a: pix1/value >>> 24
        	r: pix1/value and 00FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
+        rf: as float! r
+        gf: as float! g
+        bf: as float! b
         switch op [
         	0 [pixD/value: pix1/value]
         	1 [s: (r + g + b) / 3 
@@ -139,18 +160,29 @@ _rcvConvert: routine [
               		  either b > maxi [maxi: b][ maxi: maxi] 
               		  s: (mini + maxi) / 2
               		  pixD/value: (a << 24) OR (s << 16 ) OR (s << 8) OR s] ;RGB2Gray lightness
+          113 [sf: rf + gf + bf 
+          		r: as integer! ((rf / sf) * 255)
+          		g: as integer! ((gf / sf) * 255)
+          		b: as integer! ((bf / sf) * 255)
+          		pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b
+          	] ; Normalized RGB by sum
+          114 [ sf: sqrt((pow rf 2.0) + (pow gf 2.0) + (pow bf 2.0))
+          		r: as integer! ((rf  / sf) * 255)
+          		g: as integer! ((gf  / sf) * 255)
+          		b: as integer! ((bf  / sf) * 255)
+          		pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b
+          	] ; Normalized RGB by square sum
         	2 [pixD/value: (a << 24) OR (b << 16 ) OR (g << 8) OR r] ;2BGRA
             3 [pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2RGBA
-            4 [either r >= 128 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
+            4 [either r > 127 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
             	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2BW
-            5 [either r >= 128 [r: 0 g: 0 b: 0] [r: 255 g: 255 b: 255] 
+            5 [either r > 127 [r: 0 g: 0 b: 0] [r: 255 g: 255 b: 255] 
             	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2WB
         ]
         pix1: pix1 + 1
         pixD: pixD + 1
         x: x + 1
        ]
-       x: 0
        y: y + 1
     ]
     image/release-buffer src1 handle1 no

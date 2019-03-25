@@ -98,6 +98,11 @@ rcvBGR2Luv: function [src [image!] dst [image!]
 	_rcvLuv src dst 2
 ]
 
+rcvIRgBy: function [src [image!] dst [image!] val [integer!]
+"log-opponent conversion"	
+][
+	_rcvIRgBy src dst val
+]
 ; ************ image transform **********
 
 rcvFlip: function [src [image!] dst [image!] /horizontal /vertical /both return: [image!]
@@ -343,6 +348,48 @@ rcvGaussianFilter: function [src [image!] dst [image!]
 	_rcvFilter2D src dst kernel 0
 ]
 
+
+; new median and mean filter for image smoothing
+
+rcvMedianFilter: function [src [image!] dst [image!] kSize [pair!]
+"Median Filter for images"
+][	kernel: make vector! []
+	n: kSize/x * kSize/y
+	repeat i n [append kernel 0]
+	_rcvMedianFilter src dst kSize/x kSize/y kernel 0
+]
+
+
+rcvMinFilter: function [src [image!] dst [image!] kSize [pair!]
+"Minimum Filter for images"
+][	kernel: make vector! []
+	n: kSize/x * kSize/y
+	repeat i n [append kernel 0]
+	_rcvMedianFilter src dst kSize/x kSize/y kernel 1
+]
+
+
+rcvMaxFilter: function [src [image!] dst [image!] kSize [pair!]
+"Maximum Filter for images"
+][	kernel: make vector! []
+	n: kSize/x * kSize/y
+	repeat i n [append kernel 0]
+	_rcvMedianFilter src dst kSize/x kSize/y kernel 2
+]
+
+rcvMidPointFilter: function [src [image!] dst [image!] kSize [pair!]
+"Midpoint Filter for images"
+][	
+	_rcvMidPointFilter src dst kSize/x kSize/y
+]
+
+
+rcvMeanFilter: function [src [image!] dst [image!] kSize [pair!] op [integer!]
+"Mean Filter for images"
+][	
+	;op = 0 arithmetic, 1 harmonic or 2 geometric mean
+	_rcvMeanFilter src dst kSize/x kSize/y op
+]
 
 
 ;***************** Fast edges detectors*******************
@@ -641,7 +688,6 @@ rcvResizeImage: function [src [image!] iSize [pair!] /Gaussian return: [image!]
 
 
 
-
 rcvScaleImage: function [factor [float!] img [image!] return: [block!]
 "Returns a Draw block for image scaling"
 ][
@@ -731,7 +777,6 @@ rcvDilate: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 ]
 
 
-
 rcvOpen: function [ src [image!] dst [image!] kSize [pair!] kernel [block!]
 "Erodes and Dilates image by using structuring element"
 ] [
@@ -805,7 +850,7 @@ rcvGetAccumulatorSize: function [acc [vector!] return: [pair!]
 ]
 
 rcvHoughTransform: function [mat [vector!] accu [vector!] w [integer!]  h [integer!] 
-"Makes Hough transform"
+"Makes Hough Space transform"
 ][
 	_rcvHoughTransform mat accu w h 127 ; treshold
 ]

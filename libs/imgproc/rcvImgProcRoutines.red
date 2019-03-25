@@ -413,6 +413,62 @@ _rcvLuv: routine [
 ]
 
 
+_logOpp: routine [
+	value [float!]
+	return: [float!]
+] [
+	105.0 * log-10 (value + 1.0)
+]
+
+_rcvIRgBy: routine [
+    src1 [image!]
+    dst  [image!]
+    val	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD 
+        h w x y
+        r g b a rf gf bf 
+        i rG bY 
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+       		a: pix1/value >>> 24
+       		r: pix1/value and FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh 
+        	rf: as float! r * val
+			gf: as float! g * val
+			bf: as float! b * val
+			i: (_logOpp rf + _logOpp bf + _logOpp gf) / 3.0
+			rG: _logOpp rf - _logOpp gf 
+			bY: _logOpp bf  - ((_logOpp gf + _logOpp rf) / 2.0)
+			r: as integer! i
+			g: as integer! rg
+			b: as integer! by
+    		pixD/value: (a << 24) OR (b << 16 ) OR (g << 8) OR r	
+        	pix1: pix1 + 1
+        	pixD: pixD + 1
+        	x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 ;***************** IMAGE TRANSFORMATION ROUTINES ***********************
 ; exported as functions in /libs/imgproc/rcvImgProc.red
 
@@ -1009,6 +1065,7 @@ _rcvDilate: routine [
 ]
 
 
+
 _rcvMMean: routine [
     src  	[image!]
     dst  	[image!]
@@ -1022,7 +1079,9 @@ _rcvMMean: routine [
         idx2	[int-ptr!]
         idxD	[int-ptr!]
         handle1 handleD h w x y i j
-        maxi
+        r g b
+        minr ming minb
+        maxr maxg maxb
         count
         k  imx imy imx2 imy2
        	radiusX radiusY
@@ -1050,8 +1109,13 @@ _rcvMMean: routine [
        		idx: pix1 + (y * w) + x  
        		kValue: kBase
         	j: 0 
-        	maxi: 0
         	count: 0
+        	minr: 255
+           	ming: 255
+			minb: 255
+           	maxr: 0
+           	maxg: 0
+           	maxb: 0
         	; process neightbour
         	while [j < rows][
         		i: 0
@@ -1063,7 +1127,12 @@ _rcvMMean: routine [
         			
         			if k/value = 1 [
         				count: count + 1
-        				maxi: maxi + idx2/value
+        				r: idx2/value and 00FF0000h >> 16 
+        				g: idx2/value and FF00h >> 8 
+       					b: idx2/value and FFh  
+        				maxr: maxr + r
+        				maxg: maxg + g
+        				maxb: maxb + b
         			]
         			kValue: kBase + (j * cols + i + 1)
         			i: i + 1
@@ -1071,7 +1140,10 @@ _rcvMMean: routine [
         		j: j + 1
         	]
        		pixD: idxD + (y * w) + x
-           	pixD/value: maxi / count
+       		r: maxr / count
+       		g: maxg / count
+       		b: maxb / count
+           	pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
            	x: x + 1
        ]
        x: 0
@@ -1080,6 +1152,240 @@ _rcvMMean: routine [
     image/release-buffer src handle1 no
     image/release-buffer dst handleD yes
 ]
+
+
+; new for image smoothing
+_sortKernel: function [knl][sort knl]
+
+_rcvMedianFilter: routine [
+    src  	[image!]
+    dst  	[image!]
+    kWidth 	[integer!]
+    kHeight	[integer!] 
+    kernel 	[vector!]
+    op	 	[integer!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx 	[int-ptr!]
+        handle1 handleD h w x y n pos
+        imx imy 
+        kBase ptr
+        edgex edgey
+        fx fy 
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    edgex: kWidth / 2
+    edgey: kHeight / 2
+    kBase: vector/rs-head kernel
+    ptr: as int-ptr! kBase
+    n: vector/rs-length? kernel
+    pos: n / 2
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w ][
+           	vector/rs-clear kernel
+    		fy: 0
+    		while [fy < kHeight][
+    			fx: 0
+    			while [fx < kWidth][
+    				;OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+    				imx: (x + fx - edgex + w) % w
+    				imy: (y + fy - edgey + h) % h 
+    				idx: pix1 + (imy * w) + imx 
+       				vector/rs-append-int kernel idx/value
+    				fx: fx + 1	
+    			]
+    			fy: fy + 1
+    		]
+    		#call [_sortKernel kernel]
+    		switch op [
+    			0 [pixD/value: ptr/pos] 	; median filter
+    			1 [pixD/value: ptr/1] 		; minimum filter
+    			2 [pixD/value: ptr/n] 		; maximum filter
+    		]
+    		pixD: pixD + 1
+           	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
+
+_rcvMeanFilter: routine [
+    src  	[image!]
+    dst  	[image!]
+    kWidth 	[integer!]
+    kHeight	[integer!] 
+    op	 	[integer!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx 	[int-ptr!]
+        handle1 handleD h w x y n 
+        imx imy 
+        edgex edgey
+        kx ky
+        sumr sumg sumb
+        prodr prodg prodb
+        r g b
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    edgex: kWidth / 2
+    edgey: kHeight / 2
+    n: kWidth * kHeight
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w ][
+           	sumr: 0.0
+           	sumg: 0.0
+			sumb: 0.0
+           	prodr: 1.0
+           	prodg: 1.0
+           	prodb: 1.0
+    		ky: 0
+    		while [ky < kHeight][
+    			kx: 0
+    			while [kx < kWidth][
+    				;OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+    				imx: (x + kx - edgex + w) % w
+    				imy: (y + ky - edgey + h) % h 
+    				idx: pix1 + (imy * w) + imx 
+    				r: idx/value and 00FF0000h >> 16 
+        			g: idx/value and FF00h >> 8 
+       				b: idx/value and FFh  
+    				switch op [
+    					0	[sumr: sumr + r
+    						 sumg: sumg + g
+    						 sumb: sumb + b]
+    					1	[sumr: sumr + (1.0 / r)
+    						 sumg: sumg + (1.0 / g)
+    						 sumb: sumb + (1.0 / b)]
+    					2	[prodr: prodr * r
+    						 prodg: prodg * g
+    						 prodb: prodb * b]
+    				]
+    				kx: kx + 1	
+    			]
+    			ky: ky + 1
+    		]
+    		switch op [
+    			0 	[r: as integer! 1.0 / n * sumr
+    				 g: as integer! 1.0 / n * sumg
+    				 b: as integer! 1.0 / n * sumb]			; arithmetic mean
+    			1 	[r: as integer! (1.0 * n / sumr)
+    				 g: as integer! (1.0 * n / sumg)
+    				 b: as integer! (1.0 * n / sumb)]		; harmonic mean
+    			2	[r: as integer! pow  prodr  (1.0 / n)
+    				 g: as integer! pow  prodg  (1.0 / n)
+    				 b: as integer! pow  prodb  (1.0 / n)]	; geometric mean
+    		]
+    		pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
+    		pixD: pixD + 1
+           	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
+_rcvMidPointFilter: routine [
+    src  	[image!]
+    dst  	[image!]
+    kWidth 	[integer!]
+    kHeight	[integer!] 
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx 	[int-ptr!]
+        handle1 handleD h w x y n 
+        imx imy 
+        edgex edgey
+        kx ky
+        r g b
+        minr ming minb
+        maxr maxg maxb
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    edgex: kWidth / 2
+    edgey: kHeight / 2
+    n: kWidth * kHeight
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w ][
+           	minr: 255
+           	ming: 255
+			minb: 255
+           	maxr: 0
+           	maxg: 0
+           	maxb: 0
+    		ky: 0
+    		while [ky < kHeight][
+    			kx: 0
+    			while [kx < kWidth][
+    				;OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+    				imx: (x + kx - edgex + w) % w
+    				imy: (y + ky - edgey + h) % h 
+    				idx: pix1 + (imy * w) + imx 
+    				r: idx/value and 00FF0000h >> 16 
+        			g: idx/value and FF00h >> 8 
+       				b: idx/value and FFh  
+       				if r > maxr [maxr: r]
+       				if g > maxg [maxg: g]
+       				if b > maxb [maxb: b]
+       				if r < minr [minr: r]
+       				if g < ming [ming: g]
+       				if b < minb [minb: b]
+       				
+    				kx: kx + 1	
+    			]
+    			ky: ky + 1
+    		]
+    		
+    		r: minr + maxr / 2
+    		g: ming + maxg / 2
+    		b: minb + maxb / 2
+    		
+    		pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
+    		pixD: pixD + 1
+           	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 
 _rcvBlend: routine [
     src1  	[image!]

@@ -428,7 +428,8 @@ rcvGetMatHuMoments: function [
 
 
 
-;*********
+
+;********* Matrices functions **************************
 
 rcvImage2Mat: function [src	[image!] mat [vector!]
 "Red Image to integer or char 2-D Matrix "
@@ -520,6 +521,15 @@ rcvMatFastSobel: function [src [vector!] dst [vector!] iSize [pair!]
 	_rcvSobelMat src dst iSize
 ]
 
+
+; median filter for matrices NEW!!!
+rcvMatrixMedianFilter: function [src [vector!] dst [vector!] mSize [pair!] kSize [pair!]
+"Median Filter for matrices"
+][	kernel: make vector! []
+	n: kSize/x * kSize/y
+	repeat i n [append kernel 0]
+	_rcvMatrixMedianFilter src dst mSize kSize/x kSize/y kernel
+]
 
 ;***********************Matrices Operations *********************
 __rcvAddMat: function [src1 [vector!] src2 [vector!] dst [vector!]
