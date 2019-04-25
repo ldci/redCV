@@ -1166,23 +1166,26 @@ _rcvMedianFilter: routine [
     op	 	[integer!]
     /local
         pix1 	[int-ptr!]
+        pix2	[int-ptr!]
         pixD 	[int-ptr!]
         idx 	[int-ptr!]
         handle1 handleD h w x y n pos
         imx imy 
         kBase ptr
-        edgex edgey
+        edgex edgey mcenter ct
         fx fy 
 ][
     handle1: 0
     handleD: 0
     pix1: image/acquire-buffer src :handle1
+    pix2: pix1; image/acquire-buffer src :handle1
     pixD: image/acquire-buffer dst :handleD
     idx: image/acquire-buffer src :handle1
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     edgex: kWidth / 2
     edgey: kHeight / 2
+    mcenter: (kWidth * kHeight) / 2
     kBase: vector/rs-head kernel
     ptr: as int-ptr! kBase
     n: vector/rs-length? kernel
@@ -1193,6 +1196,7 @@ _rcvMedianFilter: routine [
        	while [x < w ][
            	vector/rs-clear kernel
     		fy: 0
+    		ct: 0
     		while [fy < kHeight][
     			fx: 0
     			while [fx < kWidth][
@@ -1200,8 +1204,10 @@ _rcvMedianFilter: routine [
     				imx: (x + fx - edgex + w) % w
     				imy: (y + fy - edgey + h) % h 
     				idx: pix1 + (imy * w) + imx 
-       				vector/rs-append-int kernel idx/value
+    				;if ct <> mcenter [vector/rs-append-int kernel idx/value]
+    				vector/rs-append-int kernel idx/value
     				fx: fx + 1	
+    				ct: ct + 1
     			]
     			fy: fy + 1
     		]
@@ -1210,7 +1216,12 @@ _rcvMedianFilter: routine [
     			0 [pixD/value: ptr/pos] 	; median filter
     			1 [pixD/value: ptr/1] 		; minimum filter
     			2 [pixD/value: ptr/n] 		; maximum filter
+    			3 [if all [pix2/value >= ptr/1 pix2/value <= ptr/n] [pixD/value: pix2/value] 
+    			   if pix2/value < ptr/1 [pixD/value: ptr/1]
+    			   if pix2/value > ptr/n [pixD/value: ptr/n]
+    			   ]; conservative non linear filter
     		]
+    		pix2: pix2 + 1
     		pixD: pixD + 1
            	x: x + 1
        	]
@@ -1282,6 +1293,15 @@ _rcvMeanFilter: routine [
     					2	[prodr: prodr * r
     						 prodg: prodg * g
     						 prodb: prodb * b]
+    					3	[sumr: sumr + as float! (r * r)
+    						 sumg: sumg + as float! (g * g)
+    						 sumb: sumb + as float! (b * b)]
+    					4	[sumr: sumr + as float! (r * r * r)
+    						 sumg: sumg + as float! (g * g * g)
+    						 sumb: sumb + as float! (b * b * b)]
+    					5	[sumr: sumr + as float! (r * r)
+    						 sumg: sumg + as float! (g * g)
+    						 sumb: sumb + as float! (b * b)]
     				]
     				kx: kx + 1	
     			]
@@ -1290,13 +1310,22 @@ _rcvMeanFilter: routine [
     		switch op [
     			0 	[r: as integer! 1.0 / n * sumr
     				 g: as integer! 1.0 / n * sumg
-    				 b: as integer! 1.0 / n * sumb]			; arithmetic mean
+    				 b: as integer! 1.0 / n * sumb]				; arithmetic mean
     			1 	[r: as integer! (1.0 * n / sumr)
     				 g: as integer! (1.0 * n / sumg)
-    				 b: as integer! (1.0 * n / sumb)]		; harmonic mean
+    				 b: as integer! (1.0 * n / sumb)]			; harmonic mean
     			2	[r: as integer! pow  prodr  (1.0 / n)
     				 g: as integer! pow  prodg  (1.0 / n)
-    				 b: as integer! pow  prodb  (1.0 / n)]	; geometric mean
+    				 b: as integer! pow  prodb  (1.0 / n)]		; geometric mean
+    			3	[r: as integer! sqrt (sumr / n)
+    			     g: as integer! sqrt (sumg / n)
+    			     b: as integer! sqrt (sumb / n)]			;quadratic mean
+    			4	[r: as integer! pow (sumr / n) (1.0 / 3.0)
+    			     g: as integer! pow (sumg / n) (1.0 / 3.0)
+    			     b: as integer! pow (sumb / n) (1.0 / 3.0)]	;cubic mean
+    			5 	[r: as integer! sqrt (1.0 / n * sumr)
+    				 g: as integer! sqrt (1.0 / n * sumg)
+    				 b: as integer! sqrt (1.0 / n * sumb)]				;rms 
     		]
     		pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
     		pixD: pixD + 1

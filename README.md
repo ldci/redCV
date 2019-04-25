@@ -7,7 +7,7 @@ For Windows and macOS. Available for Linux ASAP.
 
 ### You need the lastest Red master version.
 
-Developped under macOS 10.12
+Developped under macOS 10.14
 
 Tested with macOS, Windows XP and Windows 10.
 
@@ -18,6 +18,9 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+
+### UPDATE APRIL 25 2019
+Updated documentation. New distance functions and samples (/samples/voronoi).
 
 ### UPDATE MARCH 25 2019
 

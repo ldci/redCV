@@ -17,13 +17,80 @@ Red [
 
 ;general distances functions 
 
-rcvGetEuclidianDistance: function [p [pair!] cg [pair!] return: [float!]
-"Gets Euclidian distance between 2 points"
+rcvNSquareRoot: function [num [number!] nroot [number!] return: [float!]
+"Returns the nth root of Num"
+][
+	num ** (1.0 / nroot)
+]
+
+_rcvGetEuclidianDistance: function [p [pair!] cg [pair!] return: [float!]
+"Returns Euclidian distance between 2 points"
 ][
 	x2: (p/x - cg/x) * (p/x - cg/x)
 	y2: (p/y - cg/y) * (p/y - cg/y)
 	sqrt (x2 + y2) 
 ]
+
+;new version
+rcvGetEuclidianDistance: function [a [pair!] b [pair!] return: [float!]
+"Returns Euclidian distance between 2 points"
+][
+	dxy: b - a
+	_rcvDotsDistance dxy/x dxy/y 1 0
+]
+
+rcvGetManhattanDistance: function [a [pair!] b [pair!] return: [float!]
+"Returns Manhattan distance between 2 points"
+][
+	dxy: absolute b - a
+	_rcvDotsDistance dxy/x dxy/y 2 0
+]
+
+rcvGetChebyshevDistance: function [a [pair!] b [pair!] return: [float!]
+"Returns Chebyshev distance between 2 points"
+][
+	dxy: absolute b - a
+	_rcvDotsDistance dxy/x dxy/y 3 0
+]
+
+rcvGetMinkowskiDistance: function [a [pair!] b [pair!] p [float!] return: [float!]
+"Returns Minkowski distance between 2 points"
+][
+	dxy: absolute b - a
+	if p = 0.0 [p: 2.0]	; euclidian by default
+	_rcvDotsDistance dxy/x dxy/y 4 p
+]
+
+
+; fractional distances
+rcvGetCamberraDistance: function [a [pair!] b [pair!] return: [float!]
+"Returns Camberra distance between 2 points"
+][
+	dx1: to-float a/x - to-float b/x
+	dx2: to-float a/x + to-float b/x
+	dy1: to-float a/y - to-float b/y
+	dy2: to-float a/y + to-float b/y
+	_rcvDotsFDistance dx1 dx2 dy1 dy2 1
+]
+
+; Sorensen or Bray Curtis Distance
+rcvGetSorensenDistance: function [a [pair!] b [pair!] return: [float!]
+"Returns Sorensen or Bray Curtis distance between 2 points"
+][
+	dx1: to-float a/x - to-float b/x
+	dx2: to-float a/x + to-float b/x
+	dy1: to-float a/y - to-float b/y
+	dy2: to-float a/y + to-float b/y
+	_rcvDotsFDistance dx1 dx2 dy1 dy2 2
+]
+
+rcvDistance2Color: function [dist [float!] t [tuple!] return: [tuple!]
+"Returns tuple value modified by distance"
+][
+	_rcvDistance2Color dist t
+]
+
+
 
 rcvGetAngle: function [p [pair!] cg [pair!]return: [float!]
 "Gets angle in degrees from points coordinates"
@@ -46,6 +113,24 @@ rcvGetAngleRadian: function [p [pair!] return: [float!]
 ][
 	atan2 p/y p/x
 ]
+
+;*************** Voronoï and Distance Diagrams *********
+
+rcvVoronoiDiagram: function [peaks [block!] peaksC [block!] img [image!] param1 [logic!]
+param2 [integer!] param3 [float!]
+"Creates Voronoï diagram"
+][
+	_rcvVoronoiDiagram peaks peaksC img param1 param2 param3
+]
+
+;Based on Boleslav Březovský's sample
+rcvDistanceDiagram: function [peaks [block!] peaksC [block!] img [image!] param1 [logic!]
+param2 [integer!] param3 [float!]
+"Creates Distance diagram"
+][
+	_rcvDistanceDiagram peaks peaksC img param1 param2 param3
+]
+
 
 ; ************** Chamfer distance **********
 

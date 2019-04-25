@@ -187,10 +187,19 @@ Using Draw DSL
 * **rcvSkewImage**: Sets a coordinate system skewed from the original by the given number of degrees
 
 Using RedCV Routines
-## Distances function
+## Distances functions
+* **rcvNSquareRoot:**: Returns the nth root of Num
 * **rcvGetEuclidianDistance**: Gets Euclidian distance between 2 points
+* **rcvGetManhattanDistance**: Gets Manhattan distance between 2 points
+* **rcvGetChebyshevDistance**: Gets Chebyshev distance between 2 points
+* **rcvGetMinkowskiDistance**: Gets Minkowski distance between 2 points
+* **rcvGetCamberraDistance**:Gets Camberra distance between 2 points
+* **rcvGetSorensenDistance**: Gets Sorensen or Bray Curtis distance between 2 points
+* **rcvDistance2Color**: "Returns tuple value modified by distance
 * **rcvGetAngle**: Gets angle in degrees from points coordinates
 * **rcvGetAngleRadian**: Gets angle in radian
+* * **rcvVoronoiDiagram**: Creates Voronoï diagram
+* **rcvDistanceDiagram**: Creates Distance diagram
 * **rcvMakeGradient**: Makes a gradient matrix for contour detection (similar to Sobel) and returns max gradient value
 * **rcvMakeBinaryGradient**: Makes a binary [0 1] matrix for contour detection
 * **rcvFlowMat**: Calculates the distance map to binarized gradient
@@ -201,7 +210,6 @@ Using RedCV Routines
 * **rcvChamferInitMap**: Initializes distance map 
 * **rcvChamferCompute**: Calculates the distance map to binarized gradient
 * **rcvChamferNormalize**: Normalizes calculated distance map
-
 
 
 ##Image enhancement
