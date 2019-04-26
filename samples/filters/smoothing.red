@@ -35,10 +35,17 @@ view win: layout [
 	button "Min"				[if isFile [rcvMinFilter src dst kSize canvas2/image: dst]]
 	button "Max"				[if isFile [rcvMaxFilter src dst kSize canvas2/image: dst]]
 	button "MidPoint"			[if isFile [rcvMidPointFilter src dst kSize canvas2/image: dst]]
+	button "Gaussian"			[if isFile [rcvGaussianFilter src dst kSize canvas2/image: dst]]
+	button "Non Linear"			[if isFile [rcvNLFilter src dst kSize canvas2/image: dst]]
+	button "Quit" 				[quit]
+	return
 	button "Arithmetic Mean" 	[if isFile [rcvMeanFilter src dst kSize 0 canvas2/image: dst]]
 	button "Harmonic Mean" 		[if isFile [rcvMeanFilter src dst kSize 1 canvas2/image: dst]]
 	button "Geometric Mean" 	[if isFile [rcvMeanFilter src dst kSize 2 canvas2/image: dst]]
-	button "Quit" 				[quit]
+	button "Quadratic Mean" 	[if isFile [rcvMeanFilter src dst kSize 3 canvas2/image: dst]]
+	button "Cubic Mean" 		[if isFile [rcvMeanFilter src dst kSize 4 canvas2/image: dst]]
+	button "Root Mean Square" 	[if isFile [rcvMeanFilter src dst kSize 5 canvas2/image: dst]]
+	
 	return
 	canvas1: base 512x512 white
 	canvas2: base 512x512 white
