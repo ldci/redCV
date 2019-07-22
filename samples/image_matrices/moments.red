@@ -46,16 +46,16 @@ loadImage: does [
 		sb0/text: form img1/size
 		sb01/text: form img1/size/x * img1/size/y
 		append sb01/text " pixels"
-		xyb: rcvGetMatCentroid mat1 img1/size/x img1/size/y 
+		xyb: rcvGetMatCentroid mat1 img1/size 
 		sb1/text: form xyb + 1
 		plot: compose [line-width 1 fill-pen green circle (xyb) 5.0]
 		img: draw img2 plot
 		canvas2/image: img2
-		;cm/text: form rcvGetMatCentralMoment mat1 img1/size/x img1/size/y 0.0 0.0
-		cm/text: form rcvGetMatSpatialMoment mat1 img1/size/x img1/size/y 0.0 0.0
+		;cm/text: form rcvGetMatCentralMoment mat1 img1/size 0.0 0.0
+		cm/text: form rcvGetMatSpatialMoment mat1 img1/size 0.0 0.0
 		
 		
-		hu: rcvGetMatHuMoments mat1 img1/size/x img1/size/y
+		hu: rcvGetMatHuMoments mat1 img1/size
 		hu1/text: form hu/1
 		hu2/text: form hu/2
 		hu3/text: form hu/3

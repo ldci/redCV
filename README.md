@@ -26,7 +26,7 @@ A lot of important changes before summer break
 
 Updated libs
 
-New functions for image effect. K-means algorithm implemented ...
+New functions for image effect. K-means algorithm implemented
 
 New sample directory organization
 
@@ -248,8 +248,10 @@ Image resizing and Gaussian Pyramid Decomposition are added with this function:
 
 rcvResizeImage: function [src [image!] canvas iSize [pair!]/gaussian return: [pair!]]
 
-Only Gaussian 5x5 kernel is currently supported. Canvas is a base facet.If you don’t call /Gaussian refinement image is just resized by Red.
-Documentation updated.
+Only Gaussian 5x5 kernel is currently supported. Canvas is a base facet.
+If you don’t call /Gaussian refinement image is just resized by Red.
+
+Documentation updated.
 
 
 ### NEW AUGUST 29 2016

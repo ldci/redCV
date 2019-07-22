@@ -611,6 +611,53 @@ rcvMeanFilter: function [
 	_rcvMeanFilter src dst kSize/x kSize/y op
 ]
 
+; new median and mean filter for image smoothing
+
+rcvMedianFilter: function [src [image!] dst [image!] kSize [pair!]
+"Median Filter for images"
+][	n: kSize/x * kSize/y
+	kernel: make vector! n
+	_rcvMedianFilter src dst kSize/x kSize/y kernel 0
+]
+
+
+rcvMinFilter: function [src [image!] dst [image!] kSize [pair!]
+"Minimum Filter for images"
+][	n: kSize/x * kSize/y
+	kernel: make vector! n
+	_rcvMedianFilter src dst kSize/x kSize/y kernel 1
+]
+
+
+rcvMaxFilter: function [src [image!] dst [image!] kSize [pair!]
+"Maximum Filter for images"
+][	n: kSize/x * kSize/y
+	kernel: make vector! n
+	_rcvMedianFilter src dst kSize/x kSize/y kernel 2
+]
+
+rcvNLFilter: function [src [image!] dst [image!] kSize [pair!]
+"Non linear conservative filter for images"
+][	n: kSize/x * kSize/y
+	kernel: make vector! n
+	_rcvMedianFilter src dst kSize/x kSize/y kernel 3
+]
+
+rcvMidPointFilter: function [src [image!] dst [image!] kSize [pair!]
+"Midpoint Filter for images"
+][	
+	_rcvMidPointFilter src dst kSize/x kSize/y
+]
+
+
+rcvMeanFilter: function [src [image!] dst [image!] kSize [pair!] op [integer!]
+"Mean Filter for images"
+][	
+	;op = 0 arithmetic, 1 harmonic, 2 geometric mean
+	;3 quadratic mean, 4 cubic mean, 5 rms
+	_rcvMeanFilter src dst kSize/x kSize/y op
+]
+
 
 ;***************** Fast edges detectors*******************
 

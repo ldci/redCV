@@ -28,7 +28,7 @@ fTemp: %video.rvf.tmp
 d: 0.0
 fps: 0
 zComp: 0
-isCreated: true
+isCreated: false
 isRecording: false
 
 getResolution: does [
@@ -67,9 +67,9 @@ upDateWin: does [
 
 
 createVideo: does [
-	;fn: request-file/save/filter ["Red Video Files" "*.rvf"] 
+	fn: request-file/save/filter ["Red Video Files" "*.rvf"] 
 	;gets problems with FileSave Mode /save
-	fn: request-file
+	;fn: request-file/save
 		if not none? fn [
 			ff: copy to-string fn
 			append ff ".tmp"
@@ -94,6 +94,7 @@ updateFile: does[
 	write/binary/append fn to-binary zComp		 	;compressed data (1) or not (0)
 	f: read/binary fTemp
 	write/binary/append fn f
+	Alert "Video Saved"
 ]
 
 
