@@ -134,10 +134,10 @@ rcvSaveTiffImage: func [anImage [image!] f [file!] mode [integer!]] [
 	nx: anImage/size/x ny: anImage/size/y
 	nChannels: 3
 	nEntries: 15
-	baseOffset: nEntries + (nEntries * 12)
-	if odd? baseOffset [baseOffset: baseOffset + 1]
+	;baseOffset: nEntries + (nEntries * 12)
+	;if odd? baseOffset [baseOffset: baseOffset + 1]
 	
-	
+	baseOffset: (nEntries * 12)
 	; creates tiff file and file header
 	either ( mode = 1)  [write/binary f TIFF_LITTLEENDIAN] 
 						[write/binary f TIFF_BIGENDIAN]

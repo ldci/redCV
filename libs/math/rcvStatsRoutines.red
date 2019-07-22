@@ -317,9 +317,9 @@ _rcvHisto: routine [
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
         switch op [
-            1 [tvalue: base + r + 1 tvalue/value: tvalue/value + 1 ]	;Red Channel
-            2 [tvalue: base + g + 1 tvalue/value: tvalue/value + 1] 	;Green Channel 
-            3 [tvalue: base + b + 1 tvalue/value: tvalue/value + 1] 	;blue Channel
+            1 [tvalue: base + r tvalue/value: tvalue/value + 1]	;Red Channel
+            2 [tvalue: base + g tvalue/value: tvalue/value + 1] ;Green Channel 
+            3 [tvalue: base + b tvalue/value: tvalue/value + 1] ;Blue Channel
         ]
         x: x + 1
         pix1: pix1 + 1
@@ -329,6 +329,206 @@ _rcvHisto: routine [
     ]
     image/release-buffer src handle1 no
 ]
+
+_rcvHisto2: routine [
+    src  	[image!]
+    array  	[block!]	; block of vectors
+    /local
+        pix1 [int-ptr!]
+        handle1  h w x y
+        lines 	[integer!]
+		cols	[integer!]
+        bsvalue [red-value!] 
+        bstail	[red-value!]
+        base	[red-value!] 
+        rvalue	[int-ptr!]
+        gvalue	[int-ptr!]
+        bvalue	[int-ptr!]
+        p		[int-ptr!]
+        vectBlk	[red-vector!]
+        r g b a
+        sBins
+        unit
+        
+][
+    handle1: 0
+    pix1: image/acquire-buffer src :handle1
+    bsvalue: block/rs-head array
+    bstail:  block/rs-tail array
+	lines:   block/rs-length? array 
+	vectBlk: as red-vector! bsvalue
+    cols: vector/rs-length? vectBlk
+    unit: _rcvGetMatBitSize vectBlk
+   	sBins: as integer! (ceil (256.0 / cols))
+    y: 1
+    ;get the address of each vector
+    while [bsvalue < bstail][
+    	vectBlk: as red-vector! bsvalue
+    	if y = 1 [rvalue: as int-ptr! vector/rs-head vectBlk]; R bin values
+    	if y = 2 [gvalue: as int-ptr! vector/rs-head vectBlk]; G bin Values
+    	if y = 3 [bvalue: as int-ptr! vector/rs-head vectBlk]; B bin values
+    	bsvalue: bsvalue + 1
+    	y: y + 1
+    ] 
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		a: pix1/value >>> 24
+       		r: pix1/value and 00FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh 
+        	r: r / sBins 
+        	g: g / sBins 
+        	b: b / sBins
+        	; process r and inc bin
+        	p: rvalue + r
+        	p/value: 1 + vector/get-value-int p unit
+        	; process g and inc bin
+        	p: gvalue + g
+        	p/value: 1 + vector/get-value-int p unit
+        	; process b and inc bin
+        	p: bvalue + b
+        	p/value: 1 + vector/get-value-int p unit
+        	pix1: pix1 + 1
+        	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+]
+
+_meanShift: routine [
+	src 	[image!] 
+	dst 	[image!] 
+	array 	[block!]
+	colorBW	[float!]
+	converg	[float!]
+	/local
+	pix1 	[int-ptr!]
+	pixD 	[int-ptr!]
+    handle1
+    handleD  
+    h w x y
+    lines 	[integer!]
+	cols	[integer!]
+    bsvalue [red-value!] 
+    bstail	[red-value!]
+    rvalue	[float-ptr!]
+    gvalue	[float-ptr!]
+    bvalue	[float-ptr!]
+    p		[float-ptr!]
+    vectBlk	[red-vector!]
+    r g b a
+    binR binG binB
+    sR sG sB
+    weightR weightG weightB
+    hr lr hg lg hb lb
+    rd gd bd
+    colorR colorG colorB
+    factor
+    unit
+    dist
+][
+	handle1: 0
+    pix1: image/acquire-buffer src :handle1
+    handleD: 0
+    pixD: image/acquire-buffer dst :handle1
+    bsvalue: block/rs-head array
+    bstail:  block/rs-tail array
+	lines:   block/rs-length? array 
+	vectBlk: as red-vector! bsvalue
+    cols: vector/rs-length? vectBlk
+    unit: _rcvGetMatBitSize vectBlk
+    factor: 256 / cols
+    y: 1
+    ;get the address of each vector
+    while [bsvalue < bstail][
+    	vectBlk: as red-vector! bsvalue
+    	if y = 1 [rvalue: as float-ptr! vector/rs-head vectBlk]; R bin values
+    	if y = 2 [gvalue: as float-ptr! vector/rs-head vectBlk]; G bin values
+    	if y = 3 [bvalue: as float-ptr! vector/rs-head vectBlk]; B bin values
+    	bsvalue: bsvalue + 1
+    	y: y + 1
+    ] 
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		a: as float! (pix1/value >>> 24)
+       		r: as float! (pix1/value and 00FF0000h >> 16) 
+        	g: as float! (pix1/value and FF00h >> 8)
+        	b: as float! (pix1/value and FFh) 
+        	binR: ceil (r / factor)
+			binG: ceil (g / factor)
+			binB: ceil (b / factor)
+        	dist: converg + 1.0
+        	while [dist > converg] [
+        		hr: as integer! minFloat as float! cols (binR + colorBW)
+				lr: as integer! maxFloat 1.0 (binR - colorBW)
+				hg: as integer! minFloat as float! cols (binG + colorBW)
+				lg: as integer! maxFloat 1.0 (binG - colorBW)
+				hb: as integer! minFloat as float! cols (binB + colorBW)
+				lb: as integer! maxFloat 1.0 (binB - colorBW)
+				sR: 0.0 
+				weightR: 0.0
+				while [lr <= hr] [
+					p: rValue + lr
+					p/value: vector/get-value-float as byte-ptr! p unit
+				 	sR: sR + (1.0 * lr * p/value)
+				 	weightR: weightR + p/value
+					lr: lr + 1
+				]
+				sG: 0.0 
+				weightG: 0.0
+				while [lg <= hg] [
+					p: gValue + lg
+					p/value: vector/get-value-float as byte-ptr! p unit
+					sG: sG + (1.0 * lg * p/value) 
+					weightG: weightG + p/value
+					lg: lg + 1
+				]
+				sB: 0.0
+				weightB: 0.0
+				while [lb <= hb] [
+					p: bValue + lb
+					p/value: vector/get-value-float as byte-ptr! p unit
+					sB: sB + (1.0 * lb * p/value) 
+					weightB: weightB + p/value
+					lb: lb + 1
+				]
+				sR: sR / weightR 
+				sG: sG / weightG
+				sB: sB / weightB
+				rd: sR - binR 
+				gd: sG - binG 
+				bd: sB - binB
+				rd: rd * rd
+				gd: gd * gd
+				bd: bd * bd
+				binR: ceil sR
+				binG: ceil sG 
+				binB: ceil sB 
+				dist: sqrt (rd + gd + bd)
+        	]
+        	colorR: (as integer! sR * factor) and 255
+			colorG: (as integer! sG * factor) and 255
+			colorB: (as integer! sB * factor) and 255
+			pixD/value: (255 << 24) OR ( colorR << 16 ) OR (colorG << 8) OR colorB
+        	pix1: pix1 + 1
+        	pixD: pixD + 1
+        	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
 
 ;***************** STATISTICAL ROUTINES ON MATRIX ***********************
 ; exported as functions in /libs/math/rcvStats.red
@@ -575,6 +775,115 @@ _rcvEqualizeContrast: routine [mat [vector!] table [vector!]
 		svalue: svalue + unit
 	]	
 ]
+
+; sorting images
+
+_sortPixels: func [bl][sort bl]
+_sortReversePixels: func [bl][sort/reverse bl]
+
+_rcvXSortImage: routine [
+	src1 	[image!]
+	dst		[image!]
+	b		[vector!]
+	flag	[logic!]
+	/local
+	pix1 	[int-ptr!]
+    pixD 	[int-ptr!]
+    handle1 [integer!]
+    handleD [integer!]
+    h 		[integer!]
+    w 		[integer!]
+    x		[integer!]	 
+    y		[integer!]
+    n		[integer!]
+    idx 	[int-ptr!]
+    vBase 	[byte-ptr!]
+    ptr 	[int-ptr!]
+][
+	handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    vBase: vector/rs-head b
+    y: 0
+    while [y < h] [
+    	x: 0 
+    	vector/rs-clear b
+    	while [x < w] [
+    		idx: pix1 + (y * w) + x
+    		vector/rs-append-int b idx/value
+    		x: x + 1
+    	]
+    	either flag [#call [_sortReversePixels b]] 
+    				[#call [_sortPixels b]]
+    	ptr: as int-ptr! vBase
+    	x: 0
+		while [x < w] [
+			idx: pixD + (y * w) + x
+			n: x + 1			; ptr/0 returns vector size
+			idx/value: ptr/n
+			x: x + 1
+		]
+    	y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+	image/release-buffer dst handleD yes
+]
+
+
+_rcvYSortImage: routine [
+	src1 	[image!]
+	dst		[image!]
+	b		[vector!]
+	flag	[logic!]
+	/local
+	pix1 	[int-ptr!]
+    pixD 	[int-ptr!]
+    handle1 [integer!]
+    handleD [integer!]
+    h 		[integer!]
+    w 		[integer!]
+    x		[integer!]	 
+    y		[integer!]
+    n		[integer!]
+    idx 	[int-ptr!]
+    vBase 	[byte-ptr!]
+    ptr 	[int-ptr!]
+][
+	handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    vBase: vector/rs-head b
+    x: 0
+    while [x < w] [
+    	y: 0 
+    	vector/rs-clear b
+    	while [y < h] [
+    		idx: pix1 + (y * w) + x
+    		vector/rs-append-int b idx/value
+    		y: y + 1
+    	]
+    	either flag [#call [_sortReversePixels b]] 
+    				[#call [_sortPixels b]]
+    	ptr: as int-ptr! vBase
+    	y: 0
+		while [y < h] [
+			idx: pixD + (y * w) + x
+			n: y + 1		; ptr/0 returns vector size
+			idx/value: ptr/n 
+			y: y + 1
+		]
+    	x: x + 1
+    ]
+    image/release-buffer src1 handle1 no
+	image/release-buffer dst handleD yes
+]
+
 
 
 

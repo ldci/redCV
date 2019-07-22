@@ -13,30 +13,28 @@ Red [
 
 ;***************** PIXEL ACCESS *****************************
 	
+
 _rcvGetPixel: routine [src1 [image!] coordinate [pair!] return: [integer!]
 	/local 
-		stride1 
-		bmp1 
-		data1 
+		pix1 [int-ptr!]
+		handle1 
 		w x y h pos
-		r g b a
+		a r g b
 ][
-    stride1: 0
-    ;bmp1: OS-image/lock-bitmap as-integer src1/node no ;0.6.2
-    bmp1: OS-image/lock-bitmap src1 no	; >= 0.6.3
-    data1: OS-image/get-data bmp1 :stride1   
+    handle1: 0
+    pix1: image/acquire-buffer src1 :handle1
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: coordinate/x
     y: coordinate/y
-    pos: stride1 >> 2 * y + x + 1
-    a: 255 - (data1/pos >>> 24)
-    r: data1/pos and 00FF0000h >> 16
-    g: data1/pos and FF00h >> 8
-    b: data1/pos and FFh
-    ;OS-image/unlock-bitmap as-integer src1/node bmp1 ; 0.6.2
-    OS-image/unlock-bitmap src1 bmp1 ;  0.6.3
-    (a << 24) OR (r << 16 ) OR (g << 8) OR b 
+    pos: (y * w) + x
+    pix1: pix1 + pos
+    a: 255 - (pix1/value >>> 24)
+    r: pix1/value and 00FF0000h >> 16
+    g: pix1/value and FF00h >> 8
+    b: pix1/value and FFh
+    image/release-buffer src1 handle1 no
+    (a << 24) OR (r << 16 ) OR (g << 8) OR b
 ]
 
 
@@ -57,6 +55,21 @@ _rcvSetPixel: routine [src1 [image!] coordinate [pair!] val [integer!]
     pix1/Value: FF000000h or val
     image/release-buffer src1 handle1 yes
 ]
+
+_rcvIsAPixel: routine [src [image!] coordinate [pair!] threshold [integer!] return: [logic!]
+	/local 
+		v a r g b
+		mean
+][
+	v: _rcvGetPixel src coordinate
+	a: 255 - (v >>> 24)
+    r: v and 00FF0000h >> 16 
+    g: v and FF00h >> 8 
+    b: v and FFh
+    mean: (r + g + b) / 3
+    either mean > threshold [true] [false]
+]
+
 
 
 ;***************** IMAGE CONVERSION ROUTINES *****************
@@ -106,6 +119,7 @@ _rcvConvert: routine [
         pixD [int-ptr!]
         handle1 handleD h w x y
         r g b a s mini maxi
+        rf gf bf sf
 ][
     handle1: 0
     handleD: 0
@@ -116,14 +130,19 @@ _rcvConvert: routine [
     x: 0
     y: 0
     s: 0
+    sf: 0.0
     mini: 0
     maxi: 0
     while [y < h] [
+       x: 0
        while [x < w][
        	a: pix1/value >>> 24
        	r: pix1/value and 00FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
+        rf: as float! r
+        gf: as float! g
+        bf: as float! b
         switch op [
         	0 [pixD/value: pix1/value]
         	1 [s: (r + g + b) / 3 
@@ -139,18 +158,29 @@ _rcvConvert: routine [
               		  either b > maxi [maxi: b][ maxi: maxi] 
               		  s: (mini + maxi) / 2
               		  pixD/value: (a << 24) OR (s << 16 ) OR (s << 8) OR s] ;RGB2Gray lightness
+          113 [sf: rf + gf + bf 
+          		r: as integer! ((rf / sf) * 255)
+          		g: as integer! ((gf / sf) * 255)
+          		b: as integer! ((bf / sf) * 255)
+          		pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b
+          	] ; Normalized RGB by sum
+          114 [ sf: sqrt((pow rf 2.0) + (pow gf 2.0) + (pow bf 2.0))
+          		r: as integer! ((rf  / sf) * 255)
+          		g: as integer! ((gf  / sf) * 255)
+          		b: as integer! ((bf  / sf) * 255)
+          		pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b
+          	] ; Normalized RGB by square sum
         	2 [pixD/value: (a << 24) OR (b << 16 ) OR (g << 8) OR r] ;2BGRA
             3 [pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2RGBA
-            4 [either r >= 128 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
+            4 [either r > 127 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
             	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2BW
-            5 [either r >= 128 [r: 0 g: 0 b: 0] [r: 255 g: 255 b: 255] 
+            5 [either r > 127 [r: 0 g: 0 b: 0] [r: 255 g: 255 b: 255] 
             	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2WB
         ]
         pix1: pix1 + 1
         pixD: pixD + 1
         x: x + 1
        ]
-       x: 0
        y: y + 1
     ]
     image/release-buffer src1 handle1 no
@@ -249,7 +279,53 @@ _rcvChannel: routine [
     image/release-buffer dst handleD yes
 ]
 
-
+_rcvMerge: routine [
+    src1  [image!]
+    src2  [image!]
+    src3  [image!]
+    dst   [image!]
+    /local
+        pix1 [int-ptr!]
+        pix2 [int-ptr!]
+        pix3 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handle2 handle3 handleD 
+        h w x y
+        r g b a
+][
+    handle1: 0
+    handle2: 0
+    handle3: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pix2: image/acquire-buffer src2 :handle2
+    pix3: image/acquire-buffer src3 :handle3
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		a: pix1/value >>> 24
+       		r: pix1/value and 00FF0000h >> 16 
+       	 	g: pix2/value and FF00h >> 8 
+        	b: pix3/value and FFh 
+        	pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b
+        	pix1: pix1 + 1
+        	pix2: pix2 + 1
+        	pix3: pix3 + 1
+        	pixD: pixD + 1
+        	x: x + 1
+       ]
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer src2 handle2 no
+    image/release-buffer src3 handle3 no
+    image/release-buffer dst handleD yes
+]
 
 
 ;***************** MATH OPERATOR ON IMAGE ROUTINES ************
@@ -290,8 +366,6 @@ _rcvMath: routine [
 				7 [either pix1/Value > pix2/Value [pixD/value: FF000000h or (pix1/Value - pix2/Value) ]
 				                       [pixD/value: FF000000h or (pix2/Value - pix1/Value)]]
 				8 [pixD/value: FF000000h or ((pix1/Value + pix2/value) / 2)]
-				9 [pixD/value: FF000000h or ((pix1/Value + pix2/value) - ((pix1/Value * pix2/value) / 1024))]
-			   10 [pixD/value: FF000000h or ((1024 * (pix1/value - pix2/value)) / (1024 - pix2/value))]
 			]
 			pix1: pix1 + 1
 			pix2: pix2 + 1
@@ -331,8 +405,8 @@ _rcvMathT: routine [
 		while [x < w][
 			switch op [
 				0 [pixD/value: pix1/Value]
-				1 [pixD/value: FF000000h or (pix1/Value + tp)]
-				2 [pixD/value: FF000000h or (pix1/Value - tp)]
+				1 [pixD/value: FF000000h or (pix1/Value + as integer! tp)]
+				2 [pixD/value: FF000000h or (pix1/Value - as integer! tp)]
 				3 [pixD/value: FF000000h or (pix1/Value * as integer! tp)]
 				4 [pixD/value: FF000000h or (pix1/Value / as integer! tp)]
 				5 [pixD/value: FF000000h or (pix1/Value // as integer! tp)]
@@ -687,6 +761,37 @@ _rcvInRange: routine [
     image/release-buffer src1 handle1 no
     image/release-buffer dst handleD yes
 ]
+
+; Random New To be documented
+
+_rcvRandImage: routine [
+	src1	[image!]
+	/local
+    pix1 [int-ptr!]
+    handle1 h w x y
+    r g b int
+][
+	handle1: 0
+    pix1: image/acquire-buffer src1 :handle1
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    while [y < h] [
+    	 x: 0
+      	 while [x < w][
+      	 	r: _random/rand and FFh
+      	 	g: _random/rand and FFh
+      	 	b: _random/rand and FFh
+      	 	x: x + 1
+      	 	pix1/value: (255 << 24) OR (r << 16 ) OR (g  << 8) OR b
+           	pix1: pix1 + 1
+      	 ]
+      	 y: y + 1
+	]  
+	image/release-buffer src1 handle1 yes	
+]
+
 
 
 

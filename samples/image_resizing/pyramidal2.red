@@ -9,7 +9,7 @@ Red [
 ; last Red Master required!
 #include %../../libs/redcv.red ; for red functions
 margins: 10x10
-knl: rcvMakeGaussian 5x5
+knl: rcvMakeGaussian 5x5 1.0
 img1: rcvCreateImage 512x512
 dst: rcvCreateImage 512x512
 iSize: 0x0
@@ -23,7 +23,7 @@ loadImage: does [
 	isFile: false
 	tmp: request-file
 	if not none? tmp [
-		fileName: to string! to-local-file tmp
+		fileName: to string! to-file tmp
 		win/text: fileName
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1

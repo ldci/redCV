@@ -10,25 +10,659 @@ Red [
 	}
 ]
 
+;#system-global [#include %kmeans.reds]
 
-; ******************** Tools **********************
-maxInt: routine [
-	a 		[integer!] 
-	b 		[integer!]
-	return: [integer!]
-][ 
-		either (a > b) [a] [b]
-]
 
-maxFloat: routine [
-	a 		[float!] 
-	b 		[float!]
+; ****************** Vorono• and Distances diagrams******************
+;absolute distances
+_rcvDotsDistance: routine [
+	dx		[float!] 	; x distance between 2 dots
+	dy		[float!] 	; y distance between 2 dots
+	op		[integer!]	; distance function
+	p		[float!]	; power for Minkowski
 	return: [float!]
-][ 
-		either (a > b) [a] [b]
+	/local
+	x2		[float!] 
+	y2		[float!]
+	m1		[float!]
+	m2		[float!]
+	s		[float!]		
+] [
+	if dx < 0.0 [dx: 0.0 - dx]
+	if dy < 0.0 [dy: 0.0 - dy]
+	x2: dx * dx
+	y2: dy * dy
+	; for absolute distances
+	switch op [
+		1	[sqrt (x2 + y2)]				; Euclidian
+		2	[dx + dy]						; Manhattan
+		3	[maxFloat dx dy]				; Chessboard
+		4	[m1: pow dx p m2: pow dy p
+			 s: m1 + m2 pow s (1.0 / p)]	; Minkowsky
+		5	[either (dx > dy) [dx] [dy]]	; Chebyshev
+		6	[x2 + y2]						; D2 Euclidian
+		 
+	]
+]
+
+; fractional distances
+_rcvDotsFDistance: routine [
+	dx1		[float!] 	; x1 - x2  distance
+	dx2		[float!] 	; x1 + x2 distance 
+	dy1		[float!] 	; y1 - y2 distance 
+	dy2		[float!] 	; y1 + y2 distance 
+	op		[integer!]	; distance op
+	return: [float!]
+	/local
+	r
+] [
+	switch op [
+		1 [r: (dx1 / dx2) + (dy1 / dy2)]; Camberra
+		2 [r: (dx1 + dy1) / (dx2 + dy2)]; Sorensen
+	]
+	if r < 0.0 [r: 0.0 - r]
+	r
 ]
 
 
+_rcvDistance2Color: routine [
+		dist 	[float!] 
+		t 		[tuple!]
+		/local
+		r g b
+		rf gf bf
+		arr1
+][
+	r: t/array1 and FFh 
+	g: t/array1 and FF00h >> 8 
+	b: t/array1 and 00FF0000h >> 16 
+	rf: as integer! (dist * r)
+	gf: as integer! (dist * g)
+	bf: as integer! (dist * b)
+	arr1: (bf << 16) or (gf << 8 ) or rf
+	stack/set-last as red-value! tuple/push 3 arr1 0 0
+]
+
+_rcvVoronoiDiagram: routine [
+	peaks	[block!]
+	peaksC	[block!]
+	img		[image!]
+	param1	[logic!]
+	param2	[integer!]
+	param3	[float!]
+	/local
+	pix1 	[int-ptr!]
+	idxim	[int-ptr!]
+	pt		[int-ptr!]
+	n 		[integer!]
+	x 		[integer!]
+	y 		[integer!]
+	s		[integer!] 
+	w		[integer!] 
+	h		[integer!] 
+	sMin	[integer!]
+	handle1 [integer!]
+	d 		[float!]
+	dMin 	[float!]
+	p		[red-pair!] 		
+	bxy		[red-value!]
+	bcl 	[red-value!]
+	idxy	[red-value!]
+	idxc	[red-value!]
+][
+	handle1: 0
+	n: block/rs-length? peaks
+	bxy: block/rs-head peaks
+	bcl: block/rs-head peaksC
+	pix1: image/acquire-buffer img :handle1
+	w: IMAGE_WIDTH(img/size)
+    h: IMAGE_HEIGHT(img/size)
+	y: 0
+	 while [y < h] [
+    	x: 0
+       	while [x < w ][
+       		dMin: _rcvDotsDistance as float! w as float! h param2 param3
+       		s: 0
+       		;calculate distance 
+       		while [s < n] [
+       			idxy: bxy + s
+       			p: as red-pair! idxy
+       			d: _rcvDotsDistance as float! p/x - x  as float! p/y - y param2 param3
+       			if d < dMin [
+					sMin: s
+					dMin: d
+				]
+				s: s + 1
+       		]
+       		idxc: bcl + sMin
+			pt: as int-ptr! idxc		; get seed color (a tuple)
+			idxim: pix1 + (y * w) + x
+			idxim/value: (255 << 24) OR pt/1 OR pt/2 OR pt/3
+       		x: x + 1
+       	]
+    y: y + 1
+    ]
+    
+    if param1 = true [
+    	s: 0 
+    	while [s < n] [
+    		idxy: bxy + s
+       		p: as red-pair! idxy
+       		;make a cross for better seed visualization
+       		if all [p/x > 1 p/y > 1 p/x < (w - 1) p/y < (h - 1)][
+       			idxim: pix1 + (p/y * w) + p/x
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y * w) + p/x - 1
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y * w) + p/x + 1
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y - 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y + 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       		]
+       		s: s + 1
+    	]
+    ]
+	image/release-buffer img handle1 yes
+]
+
+
+
+_rcvDistanceDiagram: routine [
+	peaks	[block!]
+	peaksC	[block!]
+	img		[image!]
+	param1	[logic!]
+	param2	[integer!]
+	param3	[float!]
+	/local
+	pix1 	[int-ptr!]
+	idxim	[int-ptr!]
+	n 		[integer!]
+	x 		[integer!]
+	y 		[integer!]
+	s		[integer!] 
+	w		[integer!] 
+	h		[integer!] 
+	sMin	[integer!]
+	handle1 [integer!]
+	d 		[float!]
+	dMin 	[float!]
+	dMax	[float!]
+	p		[red-pair!] 		
+	bxy		[red-value!]
+	idxy	[red-value!]
+	bcl 	[red-value!]
+	idxc	[red-value!]	
+	r 		[integer!]
+	g 		[integer!]
+	b		[integer!]
+	dr 		[integer!]
+	dg 		[integer!]
+	db		[integer!]
+	t		[red-tuple!]
+][
+	handle1: 0
+	n: block/rs-length? peaks
+	bxy: block/rs-head peaks
+	bcl: block/rs-head peaksC
+	pix1: image/acquire-buffer img :handle1
+	w: IMAGE_WIDTH(img/size)
+    h: IMAGE_HEIGHT(img/size)
+	y: 0
+	 while [y < h] [
+    	x: 0
+       	while [x < w ][
+       		;calculate distance 
+       		dMax: 0.1 * _rcvDotsDistance as float! w as float! h param2 param3 
+       		dMin: 0.1 * _rcvDotsDistance as float! w as float!  h param2 param3
+       		s: 0
+       		while [s < n] [
+       			idxy: bxy + s
+       			p: as red-pair! idxy
+       			d: _rcvDotsDistance as float! p/x - x  as float! p/y - y param2 param3
+       			d: d / dMax
+       			if d < dMin [
+					sMin: s
+					dMin: d
+				]
+				s: s + 1
+       		]
+       		d: 1.0 - dMin * 0.75
+       		if d < 0.0 [d: 0.0]
+       		idxc: bcl + sMin		
+			t: as red-tuple! idxc		; get seed color (a tuple)
+			r: t/array1 and 00FF0000h >> 16
+			g: t/array1 and FF00h >> 8 
+			b: t/array1 and FFh 
+			dr: as integer! (d * r)
+			dg: as integer! (d * g)
+			db: as integer! (d * b)
+			idxim: pix1 + (y * w) + x
+			idxim/value: (255 << 24) OR (dr << 16 ) OR (dg << 8) OR db
+       		x: x + 1
+       	]
+    y: y + 1
+    ]
+    ; show seeds if required
+    if param1 [
+    	s: 0 
+    	while [s < n] [
+    		idxy: bxy + s
+       		p: as red-pair! idxy
+       		;make a cross for better seed visualization
+       		if all [p/x > 1 p/y > 1 p/x < (w - 1) p/y < (h - 1)][
+       			idxim: pix1 + (p/y * w) + p/x
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y * w) + p/x - 1
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y * w) + p/x + 1
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y - 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y + 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       		]
+       		s: s + 1
+    	]
+    ]
+    
+	image/release-buffer img handle1 yes
+]
+
+; ****************** KMeans alogorithm ******************
+
+_genCentroid: routine [
+	array		[block!]	; array type
+	/local
+	bvalue 		[red-value!] 	
+   	p			[float-ptr!]
+    vectBlk		[red-vector!]
+    vvalue		[byte-ptr!] 
+    i			[integer!]
+    j			[integer!]
+    nCluster	[integer!]
+    unit		[integer!]
+][
+	;Generate centroids initial values
+	bvalue: block/rs-head array
+	nCluster:  block/rs-length? array
+	vectBlk: as red-vector! bvalue
+	unit: _rcvGetMatBitSize vectBlk
+	i: 0
+    while [i < nCluster][
+    	vectBlk: as red-vector! bvalue ; 3 values in vectBlk
+    	vvalue: vector/rs-head vectBlk
+		j: 0
+		while [j < 3] [
+			p: as float-ptr! vvalue
+			case [
+				j = 0 [p/value: 0.0]
+				j = 1 [p/value: 0.0]
+				j = 2 [p/value: as float! i]
+			]
+			vvalue: vvalue + unit
+			j: j + 1
+		]
+    	bvalue: bvalue + 1
+    	i: i + 1
+    ] 
+]
+
+
+_nearest: routine [
+	pt	 		[vector!] 
+	centroid 	[block!] 
+	op			[integer!] 
+	return: 	[float!]
+	/local
+	bcvalue		[red-value!]
+	vvalue		[byte-ptr!]
+	pvalue		[byte-ptr!]
+	vectBlk		[red-vector!]
+	nCluster	[integer!]
+	unit		[integer!]
+    i			[integer!]
+    j			[integer!]
+    min_d		[float!]
+    min_i		[float!]
+    cx 			[float!]
+    cy 			[float!]
+    cg			[float!]
+    px			[float!] 
+    py 			[float!]
+    pg			[float!]
+    x			[float!]
+    y			[float!] 
+    d			[float!]
+    r			[float!]
+] [
+"Distance and index of the closest cluster center."
+	min_d: 1E100
+	min_i: 0.0
+	bcvalue: block/rs-head centroid
+	nCluster: block/rs-length? centroid
+	vectBlk: as red-vector! bcvalue
+	pvalue: vector/rs-head pt 
+	unit: _rcvGetMatBitSize vectBlk
+	i: 0
+	;get point value as a vector
+	while [i < 3][
+		case [
+			i = 0 [px: vector/get-value-float pvalue unit]
+			i = 1 [py: vector/get-value-float pvalue unit]
+			i = 2 [pg: vector/get-value-float pvalue unit]
+		]
+		pvalue: pvalue + unit
+		i: i + 1
+	]
+	;get distance and index of the closest cluster center
+	j: 0
+	bcvalue: block/rs-head centroid
+	while [j < nCluster][
+		vectBlk: as red-vector! bcvalue
+		vvalue: vector/rs-head vectBlk
+		i: 0
+		while [i < 3][
+			case [
+			  i = 0 [cx: vector/get-value-float vvalue unit]
+			  i = 1 [cy: vector/get-value-float vvalue unit]
+			  i = 2 [cg: vector/get-value-float vvalue unit]
+			]
+			vvalue: vvalue + unit
+			i: i + 1
+		]
+		x: cx - px
+	    y: cy - py
+	    d: _rcvDotsDistance x y 6 0.0 ; Squared Euclidian
+		;d: (x * x) + (y * y)
+		if min_d > d [
+            min_d: d
+            min_i: as float! j 
+        ]
+        bcvalue: bcvalue + 1
+        j: j + 1
+    ]
+	if op = 1 [r: min_i]
+	if op = 2 [r: min_D]
+	r
+]
+
+
+; first initialization with k-means++ method
+_kpp: routine [
+	points 		[block!] ;array
+	centroid 	[block!] ;array
+	tmpblk		[block!] ;simple block for sum
+	/local
+	bcvalue		[red-value!]
+	bpvalue		[red-value!]
+	btvalue		[red-value!]
+	cvectBlk	[red-vector!]
+	pvectBlk	[red-vector!]
+	cvvalue		[byte-ptr!]
+	pvvalue		[byte-ptr!]	
+	p			[int-ptr!]
+	ptrc		[float-ptr!]
+	ptrp		[float-ptr!]
+	unit		[integer!]
+	d			[float!]
+	sum			[float!]
+	i			[integer!]
+	j			[integer!]
+	k			[integer!]
+	nCluster	[integer!]
+	len			[integer!]
+	dd
+][
+	bcvalue: block/rs-head centroid
+	bpvalue: block/rs-head points
+	btvalue: block/rs-head tmpblk
+	cvectBlk: as red-vector! bcvalue
+	pvectBlk: as red-vector! bpvalue
+	unit: _rcvGetMatBitSize pvectBlk
+	len: block/rs-length? points
+	nCluster: block/rs-length? centroid
+	int64!:  alias struct! [int1 [integer!] int2 [integer!]]
+	d: 0.0
+	; centroid clusters
+	btvalue: block/rs-head tmpblk
+	block/rs-clear tmpblk
+	i: 0
+	while [i < nCluster] [
+		sum: 0.0
+		bpvalue: block/rs-head points
+		cvectBlk: as red-vector! bcvalue
+		cvvalue: vector/rs-head cvectBlk
+		j: 0	;for each point
+		while [j < len][
+			pvectBlk: as red-vector! bpvalue
+			d:  _nearest pvectBlk centroid 2 ; distance
+			dd: as int64! :d
+			sum: sum + d
+			;integer/make-in tmpblk as integer! sum
+			float/make-in tmpblk dd/int1 dd/int2
+			bpvalue: bpvalue + 1
+			j: j + 1
+		]
+		sum: randf(sum)
+		bpvalue: block/rs-head points
+		btvalue: block/rs-head tmpblk
+		j: 0
+		while [j < len][
+			p: as int-ptr! btvalue
+			sum: sum -  as float! p/value
+			if sum > 0.0 [
+				pvectBlk: as red-vector! bpvalue
+				pvvalue: vector/rs-head pvectBlk
+				cvectBlk: as red-vector! bcvalue
+				cvvalue: vector/rs-head cvectBlk
+				;d:  _nearest pvectBlk centroid 1 ; index
+				k: 0 
+				while [k < 3] [
+					ptrp: as float-ptr! pvvalue
+					ptrc: as float-ptr! cvvalue
+					;if k = 2 [ptrp/value: d]
+					ptrc/value: ptrp/value
+					cvvalue: cvvalue + unit
+					pvvalue: pvvalue + unit
+					k: k + 1
+				]
+			]
+			btvalue: btvalue + 1
+			bpvalue: bpvalue + 1
+			j: j + 1
+		]
+		bcvalue: bcvalue + 1
+		i: i + 1
+	]
+	; update point group index
+	bcvalue: block/rs-head centroid
+	bpvalue: block/rs-head points
+	j: 0
+	while [j < len ][
+		pvectBlk: as red-vector! bpvalue
+		; group index [0..nCluster]
+		d:  _nearest pvectBlk centroid 1 ; index
+		pvectBlk: as red-vector! bpvalue
+		pvvalue: vector/rs-head pvectBlk
+		k: 0 
+		while [k < 3] [
+			ptrp: as float-ptr! pvvalue
+			if k = 2 [ptrp/value: d]	;update group
+			pvvalue: pvvalue + unit
+			k: k + 1
+		]
+		bpvalue: bpvalue + 1
+		j: j + 1
+	]
+]
+
+;Lloyd K-means Clustering with convergence
+;group element for centroids are used as counters
+
+_lloyd: routine [
+	points 		[block!] 
+	centroid 	[block!]
+	/local
+	bcvalue		[red-value!]
+	bpvalue		[red-value!]
+	cvectBlk	[red-vector!]
+	pvectBlk	[red-vector!]
+	cvvalue		[byte-ptr!]
+	pvvalue		[byte-ptr!]	
+	f			[float-ptr!]
+	lenpts10	[integer!]
+	changed		[integer!]
+	i			[integer!]
+	j			[integer!]
+	idx			[integer!]
+	unit		[integer!]
+	len			[integer!]
+	nCluster	[integer!]
+	cx 			[float!]
+    cy 			[float!]
+    cg			[float!]
+    px			[float!] 
+    py 			[float!]
+    pg			[float!]
+    min_I
+][
+	bcvalue: block/rs-head centroid
+	nCluster: block/rs-length? centroid
+	bpvalue: block/rs-head points
+	pvectBlk: as red-vector! bpvalue
+	len: block/rs-length? points
+	unit: _rcvGetMatBitSize pvectBlk
+	
+	lenpts10: len >> 10
+	changed: 0
+	;Find clusters centroids
+	until [
+		_genCentroid centroid
+		bpvalue: block/rs-head points
+		bcvalue: block/rs-head centroid
+		i: 0
+		while [i < len] [
+			; get each point values
+			pvectBlk: as red-vector! bpvalue
+			pvvalue: vector/rs-head pvectBlk
+			j: 0
+			while [j < 3] [
+				case [
+					j = 0 [px: vector/get-value-float pvvalue unit]
+					j = 1 [py: vector/get-value-float pvvalue unit]
+					j = 2 [pg: vector/get-value-float pvvalue unit]
+				]
+				pvvalue: pvvalue + unit
+				j: j + 1
+			]
+			bcvalue: block/rs-head centroid
+			;pg: between 0 and K - 1
+			; select centroid (c: centroid/(p/group))
+			idx: as integer! pg ;
+			cvectBlk: as red-vector! bcvalue + idx
+			cvvalue: vector/rs-head cvectBlk
+			;get  and update selected centroid values
+			j: 0
+			while [j < 3] [
+			f: as float-ptr! cvvalue
+				case [
+					j = 0 [cx: vector/get-value-float cvvalue unit f/value: cx + px]
+					j = 1 [cy: vector/get-value-float cvvalue unit f/value: cy + py]
+					j = 2 [cg: vector/get-value-float cvvalue unit f/value: cg + 1.0]
+				]
+				cvvalue: cvvalue + unit
+				j: j + 1
+			]
+			bpvalue: bpvalue + 1
+			i: i + 1
+		]
+		
+		;calculate centroid means
+		bcvalue: block/rs-head centroid
+		cvectBlk: as red-vector! bcvalue
+		i: 0
+		while [i < nCluster][
+			cvectBlk: as red-vector! bcvalue
+			cvvalue: vector/rs-head cvectBlk
+			j: 0
+			while [j < 3][
+				case [
+					j = 0 [cx: vector/get-value-float cvvalue unit]
+					j = 1 [cy: vector/get-value-float cvvalue unit]
+					j = 2 [cg: vector/get-value-float cvvalue unit]
+				]
+				cvvalue: cvvalue + unit
+				j: j + 1
+			]
+			;mean value
+			cx: cx / cg
+			cy: cy / cg
+			
+			cvvalue: vector/rs-head cvectBlk
+			j: 0
+			while [j < 3][
+				f: as float-ptr! cvvalue
+				case [
+					j = 0 [f/value: cx]
+					j = 1 [f/value: cy]
+					j = 2 [f/value: cg]
+				]
+				cvvalue: cvvalue + unit
+				j: j + 1
+			]
+			bcvalue: bcvalue + 1
+			i: i + 1
+		]
+		
+		;find closest centroid of each point
+		bpvalue: block/rs-head points
+		i: 0
+		while [i < len][
+			pvectBlk: as red-vector! bpvalue
+			pvvalue: vector/rs-head pvectBlk
+			j: 0
+			; get group index
+			while [j < 3 ][
+				f: as float-ptr! pvvalue
+				if j = 2 [pg: vector/get-value-float pvvalue unit]
+				pvvalue: pvvalue + unit
+				j: j + 1
+			]
+			
+			min_I: _nearest pvectBlk centroid 1
+			if min_I <> pg [
+				f/value: min_I 
+				changed: changed + 1
+			]
+		
+			bpvalue: bpvalue + 1
+			i: i + 1
+		]
+		;stop when 99.9% of points are good
+		changed > lenpts10
+	]
+	;update centroid group element OK
+	bcvalue: block/rs-head centroid
+	i: 0
+	while [i < nCluster][
+		cvectBlk: as red-vector! bcvalue
+		cvvalue: vector/rs-head cvectBlk
+		;update only group
+		j: 0
+		while [j < 3][
+			f: as float-ptr! cvvalue
+			if j = 2 [f/value: as float! i]
+			cvvalue: cvvalue + unit
+			j: j + 1
+		]	
+		bcvalue: bcvalue + 1
+		i: i + 1
+	]
+	
+]
 
 ; ******************** Chamfer distance ******************************
 
@@ -412,175 +1046,6 @@ _rcvChamferCompute: routine [
 		]
 		y: y - 1
 	]
-]
-
-;********************* DTW Dynamic Time Warping ****************************
-_rcvDTWMin: routine [
-	x [float!] 
-	y [float!] 
-	z [float!] 
-	return: [float!]
-	/local 
-	r
-][
-	if all [x <= y x <= z] [r: x]
-	if all [y <= x y <= z] [r: y]
-	if all [z <= x z <= y] [r: z]
-	r
-]
-
-
-_rcvDTWDistances: routine [
-	x		[block!]
-	y		[block!]
-	dmat	[vector!]
-	op		[integer!]
-	/local
-	dist
-	headD
-	xLength xHead vxi vyi vxf vyf fvx fvy
-	yLength yHead
-	i j idxx idxy idxD
-	p
-][
-	fvx: 0.0
-	fvy: 0.0
-	dist: 0.0
-	xHead: block/rs-head x
-	yHead: block/rs-head y
-	xLength:  block/rs-length? x
-	yLength:  block/rs-length? y
-	headD: vector/rs-head dMat
-	i: 0
-	while [i < yLength] [
-		j: 0
-		while [j < xLength][
-			idxx: xHead + j
-			idxy: yHead + i
-			idxD: headD + ((i * xLength + j) * 8)
-			switch op [
-				0 [ vxi: as red-integer! idxx vyi: as red-integer! idxy
-					fvx: as float! vxi/value
-					fvy: as float! vyi/value	
-					]
-				1 [ vxf: as red-float! idxx vyf: as red-float! idxy
-					fvx: as float! vxf/value
-					fvy: as float! vyf/value]
-			]
-			
-			dist: (sqrt ((fvx - fvy) * (fvx - fvy)))
-			p: as float-ptr! idxD
-			p/value: dist
-			j: j + 1
-		]
-		i: i + 1
-	]
-]
-
-_rcvDTWRun: routine [
-	w 		[integer!] 
-	h 		[integer!] 
-	dMat 	[vector!] 
-	cMat 	[vector!]
-	/local
-	headD headC idxD idxC  v u
-	v1 v2 v3
-	i j 
-	p
-
-][
-	
-	headD: vector/rs-head dMat
-	headC: vector/rs-head cMat
-
-	i: 0
-	while [i < h] [
-		j: 0
-		while [j < w][
-			idxD: headD + ((i * w + j) * 8)
-			idxC: headC + ((i * w + j) * 8)
-			p: as float-ptr! idxC
-			v: vector/get-value-float  idxD 8
-			; first value
-			if all [i = 0 j = 0] [p/value: v]
-			; first line
-			if (i = 0) and (j > 0) [
-				idxC: headC + ((i * w + j - 1) * 8)
-				u: vector/get-value-float idxC 8
-				idxC: headC + ((i * w + j) * 8)
-				p: as float-ptr! idxC
-				p/value: v + u
-			]
-			; first column
-			if (i > 0) and (j = 0) [
-				idxC: headC + ((i - 1 * w + j) * 8)
-				u: vector/get-value-float idxC 8
-				idxC: headC + ((i * w + j) * 8)
-				p: as float-ptr! idxC
-				p/value: v + u
-			]
-			; other values
-			if (i > 0) and (j > 0) [
-				idxC: headC + ((i - 1 * w + j - 1) * 8)
-				v1: vector/get-value-float idxC 8
-				idxC: headC + ((i - 1 * w + j) * 8)
-				v2: vector/get-value-float  idxC 8
-				idxC: headC + ((i * w + j - 1) * 8)
-				v3: vector/get-value-float  idxC 8
-				idxC: headC + ((i * w + j) * 8)
-				p: as float-ptr! idxC
-				p/value: v  + _rcvDTWMin v1 v2 V3
-			]
-			j: j + 1
-		]
-		i: i + 1
-	]
-]
-
-_rcvDTWGetPath: routine [
-	x 		[block!] 
-	y 		[block!] 
-	cMat	[vector!] 
-	xPath 	[block!]
-	/local
-	i j w
-	minD v1 v2 v3
-	headC idxC idx1 idx2
-][
-	i: (block/rs-length? y) - 1
-	j: (block/rs-length? x) - 1
-	w: block/rs-length? x 
-	headC: vector/rs-head cMat
-	block/rs-clear xPath
-	pair/make-in xPath j i
-	while [all [i > 0 j > 0]] [
-		if i = 0 [j: j - 1] 
-		if j = 0 [print ["yes" lf] i: i - 1]	
-		idxC: headC + ((i - 1 * w + j - 1) * 8)
-		v1: vector/get-value-float idxC 8
-		
-		idxC: headC + ((i - 1 * w + j) * 8)
-		v2: vector/get-value-float  idxC 8
-		
-		idxC: headC + ((i * w + j - 1) * 8)
-		v3: vector/get-value-float  idxC 8
-		
-		minD: _rcvDTWMin v1 v2 v3
-		
-		idx1: headC + ((i - 1 * w + j) * 8)
-		v1: vector/get-value-float idx1 8
-		
-		idx2: headC + ((i * w + j - 1) * 8)
-		v2: vector/get-value-float idx2 8
-		
-		either  any [v1 = minD v2 = minD][
-			if v1 = minD [i: i - 1]
-			if v2 = minD [j: j - 1]
-		] [i: i - 1 j: j - 1]
-		
-		pair/make-in xPath j i
-	]
-	pair/make-in xPath 0 0
 ]
 
 

@@ -1007,6 +1007,68 @@ _rcvSobelMat: routine [
 ]
 
 
+;median filter 
+
+_sortMKernel: function [knl][sort knl]
+
+_rcvMatrixMedianFilter: routine [
+    src  	[vector!]
+    dst  	[vector!]
+    mSize	[pair!]
+    kWidth 	[integer!]
+    kHeight	[integer!] 
+    kernel 	[vector!]
+    /local
+        h w x y i j
+        svalue dvalue idx 
+        edgex edgey
+        pos ptr n
+        mx my 
+		kBase kValue  
+		unit
+][
+    ;get mat size will be improved in future
+    w: mSize/x
+    h: mSize/y
+    edgex: kWidth / 2
+    edgey: kHeight / 2
+	kBase: vector/rs-head kernel ; get pointer address of the kernel first value
+	svalue: vector/rs-head src   ; get pointer address of the source matrix first value
+	dvalue: vector/rs-head dst	 ; a byte ptr
+	;vector/rs-clear dst 		 ; clears destination matrix
+	unit: _rcvGetMatBitSize src
+	ptr: as int-ptr! kBase
+    n: vector/rs-length? kernel
+    pos: n / 2
+    y: 0
+    while [y < h] [
+    	x: 0
+        while [x < w][
+   		j: 0
+		vector/rs-clear kernel
+		while [j < kHeight][
+            	i: 0
+            	while [i < kWidth][
+            		; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+            		mx: (x + i - edgex + w) % w
+    				my: (y + j - edgey + h) % h 
+    				idx: svalue + (((my * w) + mx) * unit)
+       				vector/rs-append-int kernel as integer! idx/value
+           			i: i + 1
+            	]
+            	j: j + 1 
+        ]
+        
+        #call [_sortMKernel kernel]
+        _setIntValue as integer! dvalue ptr/pos unit
+        dvalue: dvalue + unit
+        x: x + 1
+       ]
+    y: y + 1
+    ]
+]
+
+
 ; ******************* morphological Operations**************************
 ; exported as functions in /libs/matrix/rcvMatrixRoutines.red
 ; for 8-bits matrices

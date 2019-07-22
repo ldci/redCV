@@ -3,11 +3,13 @@
 ### This library needs View 
 
 
-For Windows and macOS. Available for Linux ASAP.
+For Windows and macOS. 
+Due to the excellent work of Regis 
+Available for Linux now with GTK backend.
 
 ### You need the lastest Red master version.
 
-Developped under macOS 10.12
+Developped under macOS 10.14
 
 Tested with macOS, Windows XP and Windows 10.
 
@@ -18,6 +20,30 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+
+### UPDATE JULY 22 2019
+A lot of important changes before summer break
+
+Updated libs
+
+New functions for image effect. K-means algorithm implemented ...
+
+New sample directory organization
+
+New documentation including samples documentation (work in progress)
+
+
+### UPDATE APRIL 25 2019
+Updated documentation. New distance functions and samples (/samples/voronoi).
+
+### UPDATE MARCH 25 2019
+
+Updated documentation. New functions and samples.
+
+### UPDATE FEBRUARY 4 2019
+
+Update for red 0.6.4 version
+
 ### UPDATE AUGUST 26 2018
 
 Dynamic Time Warping added to redCV.

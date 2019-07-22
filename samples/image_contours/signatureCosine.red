@@ -47,8 +47,7 @@ processImage: does [
 		cosC: a2 + b2 - c2 / (2 * a * b)
 		theta: arccosine cosA
 		; to get 0..359 angle value
-		if (p/x >= cg/x) [theta: 180.0 + theta]
-		if theta >= 180 [theta: 360.0 - theta + 180.0]
+		if p/x > cg/x [theta: 360 - theta]
 		theta: round theta
 		bloc: copy []
 		append bloc theta
@@ -62,10 +61,8 @@ processImage: does [
 		p: as-pair first n 384 - second n 
 		p: p + 10x0
 		append plot2 (p)
-		;do-events/no-wait; to show progression
 	]
 	canvas2/draw: reduce [plot2]
-	
 ]
 
 
@@ -80,6 +77,7 @@ view win: layout [
 						plot2: copy [pen green] 
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]
+						processImage
 						]
 	r2: radio "Circle" [canvas/image: none 
 						canvas2/image: none
@@ -87,6 +85,7 @@ view win: layout [
 						plot2: copy [pen green]
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]
+						processImage
 						]
 	r3: radio "Triangle" [canvas/image: none 
 						canvas2/image: none
@@ -94,6 +93,7 @@ view win: layout [
 						plot2: copy [pen green]
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]
+						processImage
 						]
 	r4: radio "Polygon" [canvas/image: none 
 						canvas2/image: none
@@ -101,9 +101,9 @@ view win: layout [
 						plot2: copy [pen green]
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]
+						processImage
 						]
-	button "Process" [processImage]
-	pad 395x0
+	pad 480x0
 	button "Quit" [ rcvReleaseImage img
 					rcvReleaseMat mat
 					rcvReleaseMat bmat
@@ -111,5 +111,4 @@ view win: layout [
 	return
 	canvas: base 512x512 black draw plot
 	canvas2: base 380x512 black draw plot2
-	do  [r1/data: true]
 ]

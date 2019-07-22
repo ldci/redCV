@@ -55,16 +55,8 @@ processImage: does [
 		idx: (p/y * iSize/x + p/x) + 1	
 		visited/:idx: 0; pixel is visited
 		append s form d
-		switch d [
-			0	[p/x: p/x + 1]				; east
-			1	[p/x: p/x + 1 p/y: p/y + 1]	; southeast
-			2	[p/y: p/y + 1]				; south
-			3	[p/x: p/x - 1 p/y: p/y + 1]	; southwest
-			4	[p/x: p/x - 1]				; west
-			5	[p/x: p/x - 1 p/y: p/y - 1]	; northwest
-			6	[p/y: p/y - 1]				; north
-			7	[p/x: p/x + 1 p/y: p/y - 1]	; northeast
-		]
+		;get the next pixel to process
+		p: rcvGetContours p d
 		i: i + 1
 	]
 	r/text: s

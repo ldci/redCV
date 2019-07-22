@@ -19,8 +19,9 @@ Red [
 screenSize: system/view/screens/1/size
 winBorder: 20x40 ; OK mac OS
 
-rcvNamedWindow: function [title [string!] return: [window!]
+rcvNamedWindow: function [
 "Creates and returns a window"
+	title [string!]
 ][
 	win: layout [
 		title title
@@ -31,8 +32,9 @@ rcvNamedWindow: function [title [string!] return: [window!]
 ]
 
 
-rcvDestroyWindow: function [window [face!]
+rcvDestroyWindow: function [
 "Destroys a window"
+	window [face!]
 ][
 	unview/only window
 ]
@@ -43,30 +45,39 @@ rcvDestroyAllWindows: function [
 	unview/all
 ]
 
-rcvResizeWindow: function [window [face!] wSize [pair!] 
+rcvResizeWindow: function [
 "Sets window size"
+	window [face!] 
+	wSize [pair!] 
 ][
 	window/pane/1/size: wSize
 	window/size: window/pane/1/size + winBorder
 ]
 
-rcvMoveWindow: function [window [face!] position [pair!]
+rcvMoveWindow: function [
 "Sets window position"
+	window [face!] 
+	position [pair!]
 ][
 	window/offset: position
 ]
 
-rcvShowImage: function [window [face!] image [image!] /full
+rcvShowImage: function [
 "Shows image in window"
-] [
+	window [face!] 
+	image [image!] 
+	/full
+][
 	window/pane/1/image: image
 	window/size: window/pane/1/size + winBorder
 	show window
 ]
 
-rcvDrawPlot: function [window [face!] plot [block!] /clear
-"Draws in window"
-] [
+rcvDrawPlot: function [
+	"Draws in window"
+	window [face!] 
+	plot [block!] /clear
+][
 	if clear [window/pane/1/image: black]
 	window/pane/1/draw: plot
 	show window

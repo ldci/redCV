@@ -413,6 +413,62 @@ _rcvLuv: routine [
 ]
 
 
+_logOpp: routine [
+	value [float!]
+	return: [float!]
+] [
+	105.0 * log-10 (value + 1.0)
+]
+
+_rcvIRgBy: routine [
+    src1 [image!]
+    dst  [image!]
+    val	 [integer!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD 
+        h w x y
+        r g b a rf gf bf 
+        i rG bY 
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+       		a: pix1/value >>> 24
+       		r: pix1/value and FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh 
+        	rf: as float! r * val
+			gf: as float! g * val
+			bf: as float! b * val
+			i: (_logOpp rf + _logOpp bf + _logOpp gf) / 3.0
+			rG: _logOpp rf - _logOpp gf 
+			bY: _logOpp bf  - ((_logOpp gf + _logOpp rf) / 2.0)
+			r: as integer! i
+			g: as integer! rg
+			b: as integer! by
+    		pixD/value: (a << 24) OR (b << 16 ) OR (g << 8) OR r	
+        	pix1: pix1 + 1
+        	pixD: pixD + 1
+        	x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 ;***************** IMAGE TRANSFORMATION ROUTINES ***********************
 ; exported as functions in /libs/imgproc/rcvImgProc.red
 
@@ -453,6 +509,140 @@ _rcvFlipHV: routine [
     image/release-buffer src handle1 no
     image/release-buffer dst handleD yes
 ]
+
+; Image effects
+_rcvEffect: routine [
+    src  	[image!]
+    dst  	[image!]
+    param1	[float!]
+    op		[integer!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        idx2	[int-ptr!]
+        handle1 handleD h w x y 
+        xF yF  
+        xm ym   
+        xx yy  
+        x0 y0 
+        d theta
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    x0: w / 2.0 
+    y0: h / 2.0
+    d: 0.0
+    theta: 0.0
+    y: 0
+    while [y < h] [
+    	x: 0
+    	while [x < w][
+    		xF: as float! x
+    		yF: as float! y
+        	switch op [
+        		1 [	; Glass effect HZ
+        			xF: xF + (randf param1 * 5.0) 
+        			yF: as float! y
+        		]
+        		
+        		2 [	; Glass effect Vx 
+        			xF: as float! x
+        		    yF: yF + (randf param1 * 5.0)
+        		]
+        		
+        		3 [	; Glass effect both
+        			xF: xF + (randf param1 * 5.0) 
+        		    yF: yF + (randf param1 * 5.0)
+        		]
+        		
+        		4 [	; Glass effect O1
+        			xF: xF + (randf param1 * 5.0) 
+        		    yF: yF - (randf param1 * 5.0)
+        		]
+        		5 [	; Glass effect O2
+        			xF: xF - (randf param1 * 5.0) 
+        		    yF: yF + (randf param1 * 5.0)
+        		]
+        		6 [; Swirl effect
+        			xx: xF - x0 
+					yy: yF - y0
+					d: sqrt((xx * xx) + (yy * yy))
+        			theta: pi / param1 * d
+					xf: (xx * cos theta) - (yy * sin theta) + x0
+					yf: (xx * sin theta) + (yy * cos theta) + y0 
+        		]
+        	]
+        	xm: as integer! xF
+        	ym: as integer! yF
+        	if all [xm > 0 ym > 0 xm < w ym < h] [
+        		idx:  pix1 + (y * w + x) 	; source pixel
+        		idx2: pixD + (ym * w + xm) 	; dest pixel
+        		idx2/value: idx/value
+        	]
+        	x: x + 1
+       ]
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+_rcvWave: routine [
+    src  	[image!]
+    dst  	[image!]
+    param1	[float!]
+    param2	[float!]
+    op		[integer!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx	 	[int-ptr!]
+        idx2	[int-ptr!]
+        handle1 handleD h w x y 
+        yF xF
+        xm ym 
+        xx  yy 
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    y: 0
+    while [y < h] [
+    	yF: as float! y
+    	yy: yF
+    	x: 0
+    	while [x < w][
+        	xF: as float! x
+        	xx: xF
+        	switch op [
+        		1 [yy: yF + (param1 * sin(2.0 * pi * xF / param2))]
+        	 	2 [xx: xF + (param1 * sin(2.0 * pi * yF / param2))]
+        	]
+        	xm: as integer! xx 
+        	ym: as integer! yy
+        	if all [xm > 0 ym > 0 xm < w ym < h] [
+        		idx:  pix1 + (y * w + x) 	; source pixel
+        		idx2: pixD + (ym * w + xm) 	; dst pixel
+				idx2/value: idx/value
+			]
+        	x: x + 1
+       ]
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 
 ; *************** IMAGE CONVOLUTION *************************
 ; exported as functions in /libs/imgproc/rcvImgProc.red
@@ -524,16 +714,16 @@ _rcvConvolve: routine [
        				b: idx/value and FFh  
            			;get kernel values OK 
         			f: as red-float! kValue
-        			; calculate weighted values
-        			accR: accR + (f/value * r)
-        			accG: accG + (f/value * g)
-        			accB: accB + (f/value * b)
+        			; calculate weighted sums
+        			accR: accR + ((as float! r) * f/value)
+        			accG: accG + ((as float! g) * f/value)
+        			accB: accB + ((as float! b) * f/value)
         			kValue: kBase + (j * kWidth + i + 1)
            			i: i + 1
             	]
             	j: j + 1 
         ]
-        
+        ; multiply and delta parameters
         r: as integer! ((accR * factor) + delta)				 
         g: as integer! ((accG * factor) + delta)
         b: as integer! ((accB * factor) + delta)				 
@@ -553,11 +743,6 @@ _rcvConvolve: routine [
     image/release-buffer src handle1 no
     image/release-buffer dst handleD yes
 ]
-
-
-
-;-2147483648 to 2147483647
-
 
 
 
@@ -646,14 +831,16 @@ _rcvFilter2D: routine [
     src  	[image!]
     dst  	[image!]
     kernel 	[block!] 
-    delta	[integer!]
+    factor	[float!]
+    delta	[float!]
     /local
         pix1 	[int-ptr!]
         pixD 	[int-ptr!]
         idx	 	[int-ptr!]
         handle1 handleD h w x y i j
-        pixel
+        ;pixel
         r g b
+        rf gf bf
         accR accG accB
         weightSum
         f  imx imy 
@@ -695,7 +882,7 @@ _rcvFilter2D: routine [
        				b: idx/value and FFh  
            			;get kernel values OK 
         			f: as red-float! kValue
-        			; calculate weighted values
+        			; calculate  Sigma of weighted values
         			accR: accR + ((as float! r) * f/value)
         			accG: accG + ((as float! g) * f/value)
         			accB: accB + ((as float! b) * f/value)
@@ -705,21 +892,25 @@ _rcvFilter2D: routine [
             	]
             	j: j + 1 
         ]
-        either (weightSum > 0.0) [r: as integer! (accR / weightSum)] 
-        						 [r: as integer! (accR)]
-        either (weightSum > 0.0) [g: as integer! (accG / weightSum)] 
-        						 [g: as integer! (accG)]
-        either (weightSum > 0.0) [b: as integer! (accB / weightSum)] 
-        						 [b: as integer! (accB)]
-        r: r + delta
-        g: g + delta
-        b: b + delta
+        if weightSum = 0.0 [weightSum: 1.0]; no division by zero!
+        rf: accR / weightSum	
+        gf: accG / weightSum
+        bf: accB / weightSum
+        
+        rf: rf * factor + delta
+        gf: gf * factor + delta
+        bf: bf * factor + delta
+    						 						 
+        r: as integer! rf
+        g: as integer! gf
+        b: as integer! bf
         if r < 0 [r: 0]
         if r > 255 [r: 255]
         if g < 0 [g: 0]
         if g > 255 [g: 255]
         if b < 0 [b: 0]
-        if b > 255 [b: 255]				 
+        if b > 255 [b: 255]	
+       			 
         pixD/value: (255 << 24) OR (r << 16 ) OR (g << 8) OR b
         pixD: pixD + 1
         x: x + 1
@@ -1009,6 +1200,7 @@ _rcvDilate: routine [
 ]
 
 
+
 _rcvMMean: routine [
     src  	[image!]
     dst  	[image!]
@@ -1022,7 +1214,9 @@ _rcvMMean: routine [
         idx2	[int-ptr!]
         idxD	[int-ptr!]
         handle1 handleD h w x y i j
-        maxi
+        r g b
+        minr ming minb
+        maxr maxg maxb
         count
         k  imx imy imx2 imy2
        	radiusX radiusY
@@ -1050,8 +1244,13 @@ _rcvMMean: routine [
        		idx: pix1 + (y * w) + x  
        		kValue: kBase
         	j: 0 
-        	maxi: 0
         	count: 0
+        	minr: 255
+           	ming: 255
+			minb: 255
+           	maxr: 0
+           	maxg: 0
+           	maxb: 0
         	; process neightbour
         	while [j < rows][
         		i: 0
@@ -1063,7 +1262,12 @@ _rcvMMean: routine [
         			
         			if k/value = 1 [
         				count: count + 1
-        				maxi: maxi + idx2/value
+        				r: idx2/value and 00FF0000h >> 16 
+        				g: idx2/value and FF00h >> 8 
+       					b: idx2/value and FFh  
+        				maxr: maxr + r
+        				maxg: maxg + g
+        				maxb: maxb + b
         			]
         			kValue: kBase + (j * cols + i + 1)
         			i: i + 1
@@ -1071,7 +1275,10 @@ _rcvMMean: routine [
         		j: j + 1
         	]
        		pixD: idxD + (y * w) + x
-           	pixD/value: maxi / count
+       		r: maxr / count
+       		g: maxg / count
+       		b: maxb / count
+           	pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
            	x: x + 1
        ]
        x: 0
@@ -1080,6 +1287,269 @@ _rcvMMean: routine [
     image/release-buffer src handle1 no
     image/release-buffer dst handleD yes
 ]
+
+
+; new for image smoothing
+_sortKernel: function [knl][sort knl]
+
+_rcvMedianFilter: routine [
+    src  	[image!]
+    dst  	[image!]
+    kWidth 	[integer!]
+    kHeight	[integer!] 
+    kernel 	[vector!]
+    op	 	[integer!]
+    /local
+        pix1 	[int-ptr!]
+        pix2	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx 	[int-ptr!]
+        handle1 handleD h w x y n pos
+        imx imy 
+        kBase ptr
+        edgex edgey mcenter ct
+        fx fy 
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pix2: pix1; image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    edgex: kWidth / 2
+    edgey: kHeight / 2
+    mcenter: (kWidth * kHeight) / 2
+    kBase: vector/rs-head kernel
+    ptr: as int-ptr! kBase
+    n: vector/rs-length? kernel
+    pos: n / 2
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w ][
+           	vector/rs-clear kernel
+    		fy: 0
+    		ct: 0
+    		while [fy < kHeight][
+    			fx: 0
+    			while [fx < kWidth][
+    				;OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+    				imx: (x + fx - edgex + w) % w
+    				imy: (y + fy - edgey + h) % h 
+    				idx: pix1 + (imy * w) + imx 
+    				;if ct <> mcenter [vector/rs-append-int kernel idx/value]
+    				vector/rs-append-int kernel idx/value
+    				fx: fx + 1	
+    				ct: ct + 1
+    			]
+    			fy: fy + 1
+    		]
+    		#call [_sortKernel kernel]
+    		switch op [
+    			0 [pixD/value: ptr/pos] 	; median filter
+    			1 [pixD/value: ptr/1] 		; minimum filter
+    			2 [pixD/value: ptr/n] 		; maximum filter
+    			3 [if all [pix2/value >= ptr/1 pix2/value <= ptr/n] [pixD/value: pix2/value] 
+    			   if pix2/value < ptr/1 [pixD/value: ptr/1]
+    			   if pix2/value > ptr/n [pixD/value: ptr/n]
+    			   ]; conservative non linear filter
+    		]
+    		pix2: pix2 + 1
+    		pixD: pixD + 1
+           	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
+
+_rcvMeanFilter: routine [
+    src  	[image!]
+    dst  	[image!]
+    kWidth 	[integer!]
+    kHeight	[integer!] 
+    op	 	[integer!]
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx 	[int-ptr!]
+        handle1 handleD h w x y n 
+        imx imy 
+        edgex edgey
+        kx ky
+        sumr sumg sumb
+        prodr prodg prodb
+        r g b
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    edgex: kWidth / 2
+    edgey: kHeight / 2
+    n: kWidth * kHeight
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w ][
+           	sumr: 0.0
+           	sumg: 0.0
+			sumb: 0.0
+           	prodr: 1.0
+           	prodg: 1.0
+           	prodb: 1.0
+    		ky: 0
+    		while [ky < kHeight][
+    			kx: 0
+    			while [kx < kWidth][
+    				;OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+    				imx: (x + kx - edgex + w) % w
+    				imy: (y + ky - edgey + h) % h 
+    				idx: pix1 + (imy * w) + imx 
+    				r: idx/value and 00FF0000h >> 16 
+        			g: idx/value and FF00h >> 8 
+       				b: idx/value and FFh  
+    				switch op [
+    					0	[sumr: sumr + r
+    						 sumg: sumg + g
+    						 sumb: sumb + b]
+    					1	[sumr: sumr + (1.0 / r)
+    						 sumg: sumg + (1.0 / g)
+    						 sumb: sumb + (1.0 / b)]
+    					2	[prodr: prodr * r
+    						 prodg: prodg * g
+    						 prodb: prodb * b]
+    					3	[sumr: sumr + as float! (r * r)
+    						 sumg: sumg + as float! (g * g)
+    						 sumb: sumb + as float! (b * b)]
+    					4	[sumr: sumr + as float! (r * r * r)
+    						 sumg: sumg + as float! (g * g * g)
+    						 sumb: sumb + as float! (b * b * b)]
+    					5	[sumr: sumr + as float! (r * r)
+    						 sumg: sumg + as float! (g * g)
+    						 sumb: sumb + as float! (b * b)]
+    				]
+    				kx: kx + 1	
+    			]
+    			ky: ky + 1
+    		]
+    		switch op [
+    			0 	[r: as integer! 1.0 / n * sumr
+    				 g: as integer! 1.0 / n * sumg
+    				 b: as integer! 1.0 / n * sumb]				; arithmetic mean
+    			1 	[r: as integer! (1.0 * n / sumr)
+    				 g: as integer! (1.0 * n / sumg)
+    				 b: as integer! (1.0 * n / sumb)]			; harmonic mean
+    			2	[r: as integer! pow  prodr  (1.0 / n)
+    				 g: as integer! pow  prodg  (1.0 / n)
+    				 b: as integer! pow  prodb  (1.0 / n)]		; geometric mean
+    			3	[r: as integer! sqrt (sumr / n)
+    			     g: as integer! sqrt (sumg / n)
+    			     b: as integer! sqrt (sumb / n)]			;quadratic mean
+    			4	[r: as integer! pow (sumr / n) (1.0 / 3.0)
+    			     g: as integer! pow (sumg / n) (1.0 / 3.0)
+    			     b: as integer! pow (sumb / n) (1.0 / 3.0)]	;cubic mean
+    			5 	[r: as integer! sqrt (1.0 / n * sumr)
+    				 g: as integer! sqrt (1.0 / n * sumg)
+    				 b: as integer! sqrt (1.0 / n * sumb)]				;rms 
+    		]
+    		pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
+    		pixD: pixD + 1
+           	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
+_rcvMidPointFilter: routine [
+    src  	[image!]
+    dst  	[image!]
+    kWidth 	[integer!]
+    kHeight	[integer!] 
+    /local
+        pix1 	[int-ptr!]
+        pixD 	[int-ptr!]
+        idx 	[int-ptr!]
+        handle1 handleD h w x y n 
+        imx imy 
+        edgex edgey
+        kx ky
+        r g b
+        minr ming minb
+        maxr maxg maxb
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    edgex: kWidth / 2
+    edgey: kHeight / 2
+    n: kWidth * kHeight
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w ][
+           	minr: 255
+           	ming: 255
+			minb: 255
+           	maxr: 0
+           	maxg: 0
+           	maxb: 0
+    		ky: 0
+    		while [ky < kHeight][
+    			kx: 0
+    			while [kx < kWidth][
+    				;OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+    				imx: (x + kx - edgex + w) % w
+    				imy: (y + ky - edgey + h) % h 
+    				idx: pix1 + (imy * w) + imx 
+    				r: idx/value and 00FF0000h >> 16 
+        			g: idx/value and FF00h >> 8 
+       				b: idx/value and FFh  
+       				if r > maxr [maxr: r]
+       				if g > maxg [maxg: g]
+       				if b > maxb [maxb: b]
+       				if r < minr [minr: r]
+       				if g < ming [ming: g]
+       				if b < minb [minb: b]
+       				
+    				kx: kx + 1	
+    			]
+    			ky: ky + 1
+    		]
+    		
+    		r: minr + maxr / 2
+    		g: ming + maxg / 2
+    		b: minb + maxb / 2
+    		
+    		pixD/value: (255 << 24) OR ( r << 16 ) OR (g << 8) OR b
+    		pixD: pixD + 1
+           	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
+
 
 _rcvBlend: routine [
     src1  	[image!]
@@ -1145,15 +1615,15 @@ _rcvBlend: routine [
 
 ; ************tools for edges detection***********
 ; exported as functions in /libs/imgproc/rcvImgProc.red
-;G= Sqrt Gx^2 +Gy^2
+;G= Sqrt Gx^2 +Gy^2 Gets Gradient 
 
 _rcvMagnitude: routine [
-    src1  	[image!]
-    src2  	[image!]
+    srcX  	[image!]
+    srcY  	[image!]
     dst  	[image!]
     /local
-        pix1 	[int-ptr!]
-        pix2 	[int-ptr!]
+        pixX 	[int-ptr!]
+        pixY 	[int-ptr!]
         pixD 	[int-ptr!]
         handle1 handle2 handleD 
         h w x y
@@ -1164,11 +1634,11 @@ _rcvMagnitude: routine [
 	handle1: 0
 	handle2: 0
     handleD: 0
-    pix1: image/acquire-buffer src1 :handle1
-    pix2: image/acquire-buffer src2 :handle1
-    pixD: image/acquire-buffer dst :handleD
-	w: IMAGE_WIDTH(src1/size)
-    h: IMAGE_HEIGHT(src1/size)
+    pixX: image/acquire-buffer srcX :handle1
+    pixY: image/acquire-buffer srcY :handle2
+    pixD: image/acquire-buffer dst  :handleD
+	w: IMAGE_WIDTH(srcX/size)
+    h: IMAGE_HEIGHT(srcY/size)
     x: 0
     y: 0
     r3: 0
@@ -1176,38 +1646,38 @@ _rcvMagnitude: routine [
     b3: 0
     while [y < h] [
 		while [x < w][
-       			r1: pix1/value and 00FF0000h >> 16 
-        		g1: pix1/value and FF00h >> 8 
-        		b1: pix1/value and FFh 
-       			r2: pix2/value and 00FF0000h >> 16 
-        		g2: pix2/value and FF00h >> 8 
-        		b2: pix2/value and FFh 
+       			r1: pixX/value and 00FF0000h >> 16 
+        		g1: pixX/value and FF00h >> 8 
+        		b1: pixX/value and FFh 
+       			r2: pixY/value and 00FF0000h >> 16 
+        		g2: pixY/value and FF00h >> 8 
+        		b2: pixY/value and FFh 
         		r3: as integer! sqrt as float! ((r1 * r1) + (r2 * r2)) 
         		g3: as integer! sqrt as float! ((g1 * g1) + (g2 * g2))
         		b3: as integer! sqrt as float! ((b1 * b1) + (b2 * b2))
         		pixD/value: (255 << 24) OR (r3 << 16 ) OR (g3 << 8) OR b3
-				pix1: pix1 + 1
-				pix2: pix2 + 1
+				pixX: pixX + 1
+				pixY: pixY + 1
 				pixD: pixD + 1
 				x: x + 1
 		]
 		x: 0
 		y: y + 1
 	]
-	image/release-buffer src1 handle1 no
-	image/release-buffer src2 handle1 no
+	image/release-buffer srcX handle1 no
+	image/release-buffer srcY handle1 no
 	image/release-buffer dst handleD yes
 ]
 
 
-; atan Gy / Gx to be improved 
+; atan Gy / Gx 
 _rcvDirection: routine [
-    src1  	[image!]
-    src2  	[image!]
+    srcX  	[image!]
+    srcY  	[image!]
     dst  	[image!]
     /local
-        pix1 	[int-ptr!]
-        pix2 	[int-ptr!]
+        pixX 	[int-ptr!]
+        pixY 	[int-ptr!]
         pixD 	[int-ptr!]
         handle1 handle2 handleD 
         h w x y
@@ -1218,11 +1688,11 @@ _rcvDirection: routine [
 	handle1: 0
 	handle2: 0
     handleD: 0
-    pix1: image/acquire-buffer src1 :handle1
-    pix2: image/acquire-buffer src2 :handle1
+    pixX: image/acquire-buffer srcX :handle1
+    pixY: image/acquire-buffer srcY :handle2
     pixD: image/acquire-buffer dst :handleD
-	w: IMAGE_WIDTH(src1/size)
-    h: IMAGE_HEIGHT(src1/size)
+	w: IMAGE_WIDTH(srcX/size)
+    h: IMAGE_HEIGHT(srcY/size)
     x: 0
     y: 0
     r3: 0
@@ -1230,32 +1700,279 @@ _rcvDirection: routine [
     b3: 0
     while [y < h] [
 		while [x < w][
-       			r1: as float! pix1/value and 00FF0000h >> 16 
-        		g1: as float! pix1/value and FF00h >> 8 
-        		b1: as float! pix1/value and FFh 
-       			r2: as float! pix2/value and 00FF0000h >> 16 
-        		g2: as float! pix2/value and FF00h >> 8 
-        		b2: as float! pix2/value and FFh 
-        		either r1 > 0.0 [r3: as integer! atan (r2 / r1)]
+       			r1: as float! pixX/value and 00FF0000h >> 16 
+        		g1: as float! pixX/value and FF00h >> 8 
+        		b1: as float! pixX/value and FFh 
+       			r2: as float! pixY/value and 00FF0000h >> 16 
+        		g2: as float! pixY/value and FF00h >> 8 
+        		b2: as float! pixY/value and FFh 
+        					  
+        		either r1 > 0.0 [r3: 180 * (atan (r2 / r1) / 3.14159)]
         		 			  [r3: 0]
-        		either g1 > 0.0 [g3: as integer! atan (g2 / g1)]
+        		either g1 > 0.0 [g3: 180 * (atan (g2 / g1) / 3.14159)]
         		     		  [g3: 0]
-        		either b1 > 0.0 [b3: as integer! atan (b2 / b1)]
+        		either b1 > 0.0 [b3: 180 * (atan (b2 / b1) / 3.14159)]
         					  [b3: 0]
+        		;print [r3 " " g3 " " b3 lf]
         		pixD/value: (255 << 24) OR (r3 << 16 ) OR (g3 << 8) OR b3
-				pix1: pix1 + 1
-				pix2: pix2 + 1
+				pixX: pixX + 1
+				pixY: pixY + 1
 				pixD: pixD + 1
 				x: x + 1
 		]
 		x: 0
 		y: y + 1
 	]
-	image/release-buffer src1 handle1 no
-	image/release-buffer src2 handle1 no
+	image/release-buffer srcX handle1 no
+	image/release-buffer srcY handle1 no
 	image/release-buffer dst handleD yes
 ]
 
+; for Canny detector
+; for grayscale image -> just process R channel
+; gradient 0..255
+_rcvEdgesGradient: routine [
+    srcX  	[image!]	;X Sobel Derivative
+    srcY  	[image!]	;Y Sobel Derivative
+    mat		[vector!]	;G result matrix (float)
+    /local
+        pixX 	[int-ptr!]
+        pixY 	[int-ptr!]
+        mValue 	[byte-ptr!]
+        handle1 handle2 
+        h w x y
+        derivX
+        derivY
+        grd
+        unit
+][
+	handle1: 0
+	handle2: 0
+    pixX: image/acquire-buffer srcX :handle1
+    pixY: image/acquire-buffer srcY :handle2
+    mValue: vector/rs-head mat	; a byte ptr
+	unit: _rcvGetMatBitSize mat ; bit size
+	w: IMAGE_WIDTH(srcX/size)
+    h: IMAGE_HEIGHT(srcX/size)
+    y: 0
+    while [y < h] [
+    	x: 0
+		while [x < w][
+       			derivX: as float! (pixX/value and 00FF0000h >> 16)
+       			derivY: as float! (pixY/value and 00FF0000h >> 16)
+       			grd: rcvHypot derivX derivY
+        		_setFloatValue as integer! mValue grd unit
+				pixX: pixX + 1
+				pixY: pixY + 1
+				mValue: mValue + unit
+				x: x + 1
+		]
+		y: y + 1
+	]
+	image/release-buffer srcX handle1 no
+	image/release-buffer srcY handle1 no
+]
+
+; for grayscale image -> just process R channel
+_rcvEdgesDirection: routine [
+    srcX  	[image!]	;X Sobel Derivative
+    srcY  	[image!]	;Y Sobel Derivative
+    matA	[vector!]	;Angles matrix
+    /local
+        pixX 	[int-ptr!]
+        pixY 	[int-ptr!]
+        mValue 	[byte-ptr!]
+        handle1 handle2 
+        h w x y
+        derivX 
+        derivY 
+        angle 
+        unit
+][
+	handle1: 0
+	handle2: 0
+    pixX: image/acquire-buffer srcX :handle1
+    pixY: image/acquire-buffer srcY :handle2
+    mValue: vector/rs-head matA	; a byte ptr
+	unit: _rcvGetMatBitSize matA ; bit size
+	w: IMAGE_WIDTH(srcX/size)
+    h: IMAGE_HEIGHT(srcY/size)
+    y: 0
+    while [y < h] [
+    	x: 0
+		while [x < w][
+       			derivX: as float! (pixX/value and 00FF0000h >> 16) 
+       			derivY: as float! (pixy/value and 00FF0000h >> 16)
+       			angle: atan2 derivY  derivX 	; radians
+       			angle: angle  * 180.0 / pi 		; degrees
+       			_setFloatValue as integer! mValue angle unit
+       			pixX: pixX + 1
+				pixY: pixY + 1
+				mValue: mValue + unit
+				x: x + 1
+		]
+		y: y + 1
+	]
+	image/release-buffer srcX handle1 no
+	image/release-buffer srcY handle1 no
+]
+
+_rcvEdgesSuppress: routine [
+	matA	[vector!]	; Angles matrix
+	matG	[vector!]	; gradient matrix
+	matS	[vector!]	; result matrix
+	mSize	[pair!]
+	/local
+	mSValue [byte-ptr!]
+	mAValue [byte-ptr!]
+	mGValue [byte-ptr!]
+	w
+	h
+	x y
+	unit
+	angle 
+	idx 
+	v1 v2 v3
+][
+	mAValue: vector/rs-head matA	; a byte ptr
+	mGValue: vector/rs-head matG	; a byte ptr
+	mSValue: vector/rs-head matS	; a byte ptr
+	unit: _rcvGetMatBitSize matS 	; bit size
+	w: mSize/x - 1
+	h: mSize/y - 1
+	y: 1
+    while [y < h] [
+    	x: 1
+		while [x < w][
+			idx: ((y * w) + x) * unit
+			angle: _getFloatValue as integer! (mAValue + idx)
+			if angle < 0.0 [ angle: 0.0 + angle] ; abs value
+			v1: _getFloatValue as integer! (mGValue + idx)
+			case [
+				;0° E-W (horizontal)
+				any [angle < 22.5 (angle >= 157.5) AND (angle <= 180.0)][
+					idx: (y * w + x - 1) * unit
+					v2: _getFloatValue as integer! (mGValue + idx)
+					idx: (y * w + x + 1) * unit
+					v3: _getFloatValue as integer! (mGValue + idx)
+				]
+				;45° NE-SW
+				all [angle >= 22.5 angle < 67.5] [
+					idx: (y - 1 * w + x + 1) * unit
+					v2: _getFloatValue as integer! (mGValue + idx)
+					idx: (y + 1 * w + x - 1) * unit
+					v3: _getFloatValue as integer! (mGValue + idx)
+				]
+				; 90° N-S (vertical)
+			 	all [angle >= 67.5 angle < 112.5] [
+					idx: (y - 1 * w + x) * unit
+					v2: _getFloatValue as integer! (mGValue + idx)
+					idx: (y + 1 * w + x) * unit
+					v3: _getFloatValue as integer! (mGValue + idx)
+				]
+				;135° NW-SE
+				 all [angle >= 112.5 angle < 157.5] [
+					idx: (y - 1 * w + x - 1) * unit
+					v2: _getFloatValue as integer! (mGValue + idx)
+					idx: (y + 1 * w + x + 1) * unit
+					v3: _getFloatValue as integer! (mGValue + idx)
+				]
+			]
+			idx: ((y * w) + x) * unit
+			_setFloatValue as integer! (mSValue + idx) 0.0 unit
+			if all [v1 >= v2 v1 >= v3] [_setFloatValue as integer! (mSValue + idx) v1 unit]
+			x: x + 1
+		]
+		y: y + 1
+	]
+]
+
+_doubleThresholding: routine [
+	gradS			[vector!] ; Non-maximum suppression matrix
+	doubleT			[vector!] ; integer matrix for result
+	lowThreshold	[integer!]
+	highThreshold	[integer!]
+	weak			[integer!]
+	strong			[integer!]			
+	/local
+	mSValue 		[byte-ptr!]
+	mDTValue		[byte-ptr!]
+	v len i
+	unit1
+	unit2
+][
+	mSValue: 	vector/rs-head gradS	; a byte ptr
+	mDTValue: 	vector/rs-head doubleT	; a byte ptr
+	unit1: _rcvGetMatBitSize gradS
+	unit2: _rcvGetMatBitSize doubleT
+	len: vector/rs-length? gradS
+	i: 0
+	while [i < len] [
+		v: as integer! (_getFloatValue as integer! mSValue)
+		if v < lowThreshold [_setIntValue as integer! mDTValue 0 unit2]
+		if all [v >= lowThreshold v <= highThreshold]
+				[_setIntValue as integer! mDTValue weak unit2]
+		if v >= highThreshold [_setIntValue as integer! mDTValue strong unit2]		
+		mDTValue: mDTValue + unit2
+		mSValue: mSValue + unit1
+		i: i + 1
+	]
+]
+
+_hysteresis: routine [
+	doubleT		[vector!] ; integer matrix
+	finalEdges	[vector!] ; integer matrix
+	iSize		[pair!]	  ; image size
+	weak		[integer!]; weak value
+	strong		[integer!]; strong value
+	/local
+	mDTValue 	[byte-ptr!]
+	mFEValue	[byte-ptr!]
+	x y 
+	w h
+	v
+	idx idx2
+	unit
+	strong?
+][
+	mDTValue: vector/rs-head doubleT	; a byte ptr
+	mFEValue: vector/rs-head finalEdges	; a byte ptr
+	unit: 	_rcvGetMatBitSize doubleT
+	w: iSize/x
+	h: iSize/y
+	y: 1 
+	while [y < h] [
+		x: 1
+		while [x < w] [
+			idx: (y * w + x) * unit
+			v: _getIntValue as integer! (mDTValue + idx) unit
+			if v = 0 [_setIntValue as integer! (mFEValue + idx) 0 unit]
+			if v = strong [_setIntValue as integer! (mFEValue + idx) strong unit]
+			if v = weak [
+				strong?: false
+				idx2: (y - 1 * w + x + 1) * unit
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				idx2: (y * w + x + 1) * unit
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				idx2: (y + 1 * w + x + 1) * unit
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				idx2: (y - 1 * w + x ) * unit
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				idx2: (y + 1 * w + x) * unit 
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				idx2: (y - 1 * w + x - 1) * unit
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				idx2: (y * w + x - 1) * unit
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				idx2: (y + 1 * w + x - 1) * unit
+				if (_getIntValue as integer! (mDTValue + idx2) unit) = strong [strong?: true]
+				if strong? [_setIntValue as integer! (mFEValue + idx) strong unit]
+			]
+			x: x + 1
+		]
+		y: y + 1
+	]
+]
 
 
 
@@ -1522,9 +2239,51 @@ _rcvGetHoughLines: routine [
 ]
 
 
+; new routine for Gaussian noise on image
+
+_rcvGenerateNoise: routine [
+	src 	[image!]
+	noise   [float!]
+	t		[tuple!]
+	/local
+	pix		[int-ptr!] 
+	idx		[int-ptr!] 
+	handle 	[integer!]
+	nPixels [float!] 	
+	n		[integer!]
+	x 		[integer!]
+	y 		[integer!]
+	pos 	[integer!]
+	r 		[integer!]
+	g		[integer!] 
+	b		[integer!]
+	w		[integer!]
+	h		[integer!]
+] [
+	handle: 0
+    pix: image/acquire-buffer src :handle 
+    idx: pix
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+	nPixels: as float! (w * h) 
+	nPixels: nPixels * noise 
+	n: as integer! nPixels
+	r: t/array1 and FFh 
+	g: t/array1 and FF00h >> 8 
+	b: t/array1 and 00FF0000h >> 16 
+	loop n [
+		x: as integer! ((as float! _random/rand) / 2147483647.0 * w)
+      	y: as integer! ((as float! _random/rand) / 2147483647.0 * h)
+      	pos: (y * w) + x
+    	idx: pix + pos
+		idx/Value: (255 << 24) OR (r << 16 ) OR (g << 8) OR b
+	]
+	image/release-buffer src handle yes	
+]
 
 
-; doesn't work ???
+
+; doesn't work yet OS-IMAGE not updated
 _rcvResize: routine [src [image!] w [integer!] h [integer!] return: [image!]
 ][
 	image/resize src w h

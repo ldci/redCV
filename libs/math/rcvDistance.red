@@ -17,16 +17,113 @@ Red [
 
 ;general distances functions 
 
-rcvGetEuclidianDistance: function [p [pair!] cg [pair!] return: [float!]
+_rcvGetEuclidianDistance: function [
 "Gets Euclidian distance between 2 points"
+	p 	[pair!] 
+	cg 	[pair!]
 ][
 	x2: (p/x - cg/x) * (p/x - cg/x)
 	y2: (p/y - cg/y) * (p/y - cg/y)
 	sqrt (x2 + y2) 
 ]
 
-rcvGetAngle: function [p [pair!] cg [pair!]return: [float!]
-"Gets angle in degrees form points coordinates"
+;new version
+rcvGetEuclidianDistance: function [
+"Gets Euclidian distance between 2 points"
+	a [pair!] 
+	b [pair!]
+][
+	dxy: b - a
+	_rcvDotsDistance to-float dxy/x to-float dxy/y 1 0.0
+]
+
+rcvGetEuclidian2Distance: function [
+"Gets Squared Euclidian distance between 2 points"
+	a [pair!] 
+	b [pair!]
+][
+	dxy: b - a
+	_rcvDotsDistance to-float dxy/x to-float dxy/y 6 0.0
+]
+
+rcvGetManhattanDistance: function [
+"Gets Manhattan distance between 2 points"
+	a [pair!] 
+	b [pair!]
+][
+	dxy: absolute b - a
+	_rcvDotsDistance to-float dxy/x to-float dxy/y 2 0.0
+]
+
+rcvGetChessboardDistance: function [
+"Gets Chessboard distance between 2 points"
+	a [pair!] 
+	b [pair!] 
+][
+	dxy: absolute b - a
+	_rcvDotsDistance to-float dxy/x to-float dxy/y 3 0.0
+]
+
+rcvGetMinkowskiDistance: function [
+"Gets Minkowski distance between 2 points"
+	a [pair!] 
+	b [pair!] 
+	p [float!]
+][
+	dxy: absolute b - a
+	if p = 0.0 [p: 2.0]	; euclidian by default
+	_rcvDotsDistance to-float dxy/x to-float dxy/y 4 p
+]
+
+rcvGetChebyshevDistance: function [
+"Gets Chebyshev distance between 2 points"
+	a [pair!] 
+	b [pair!]
+][
+	dxy: absolute b - a
+	_rcvDotsDistance to-float dxy/x to-float dxy/y 5 0.0
+]
+
+; fractional distances
+rcvGetCamberraDistance: function [
+"Gets Camberra distance between 2 points"
+	a [pair!] 
+	b [pair!]
+][
+	dx1: to-float a/x - to-float b/x
+	dx2: to-float a/x + to-float b/x
+	dy1: to-float a/y - to-float b/y
+	dy2: to-float a/y + to-float b/y
+	_rcvDotsFDistance dx1 dx2 dy1 dy2 1
+]
+
+; Sorensen or Bray Curtis Distance
+rcvGetSorensenDistance: function [
+"Gets Sorensen or Bray Curtis distance between 2 points"
+	a [pair!] 
+	b [pair!]
+][
+	dx1: to-float a/x - to-float b/x
+	dx2: to-float a/x + to-float b/x
+	dy1: to-float a/y - to-float b/y
+	dy2: to-float a/y + to-float b/y
+	_rcvDotsFDistance dx1 dx2 dy1 dy2 2
+]
+
+rcvDistance2Color: function [
+"Returns tuple value modified by distance"
+	dist [float!] 
+	t [tuple!]
+][
+	_rcvDistance2Color dist t
+]
+
+
+
+rcvGetAngle: function [
+"Gets angle in degrees from points coordinates"
+	p 	[pair!] 
+	cg 	[pair!]
 ][		
 	rho: rcvGetEuclidianDistance p cg		; rho
 	uY: to-float p/y - cg/y					; uY ->
@@ -39,8 +136,95 @@ rcvGetAngle: function [p [pair!] cg [pair!]return: [float!]
 	theta
 ]
 
+;needs a coordinate translation p - shape centroid
+; angle * 180 / pi -> degrees
+rcvGetAngleRadian: function [
+"Gets angle in radian "
+	p [pair!]
+][
+	atan2 p/y p/x
+]
 
 
+rcvRhoNormalization: function [
+"Returns normalized block [0.0..1.0] of rho values" 
+	b [block!] 
+][
+ 	tmpb: copy b
+ 	sort tmpb
+ 	maxRho: last tmpb
+ 	normf: 1.0 / maxRho
+	tmpv: make vector! reduce b
+	tmpv * normf
+	to block! tmpv
+]
+
+;*************** Voronoï and Distance Diagrams *********
+
+rcvVoronoiDiagram: function [
+"Creates Voronoï diagram"
+	peaks 	[block!] 
+	peaksC 	[block!] 
+	img 	[image!] 
+	param1 	[logic!]
+	param2 	[integer!] 
+	param3 	[float!]
+][
+	_rcvVoronoiDiagram peaks peaksC img param1 param2 param3
+]
+
+;Based on Boleslav Březovský's sample
+rcvDistanceDiagram: function [
+"Creates Distance diagram"
+	peaks 	[block!] 
+	peaksC 	[block!] 
+	img [	image!] 
+	param1 	[logic!]
+	param2 	[integer!] 
+	param3 	[float!]
+][
+	_rcvDistanceDiagram peaks peaksC img param1 param2 param3
+]
+
+;*************** kMeans Algorithm ********************
+; All functions require redCV array data type
+rcvKMInitData: function [
+"Creates data or centroid array"
+	count [integer!]
+][
+	blk: copy []
+	i: 0
+	while [i < count] [
+		append blk make vector! [float! 64 [0.0 0.0 0.0]]
+		i: i + 1
+	]
+	blk
+]
+
+rcvKMGenCentroid: function [
+"Generates centroids initial values"
+	array [block!]
+][
+	_genCentroid array
+]
+rcvKMInit: function [
+"k Means first initialization"
+	points 		[block!] 
+	centroid 	[block!] 
+	tmpblk 		[block!]
+][
+	_kpp points centroid tmpblk
+]
+
+rcvKMCompute: function [
+"Lloyd K-means clustering with convergence"
+	points 		[block!] 
+	centroid 	[block!]
+][
+	_lloyd points centroid
+]
+
+	
 ; ************** Chamfer distance **********
 
 { Thanks to Pierre Schwartz & Xavier Philippeau
@@ -60,43 +244,59 @@ chamfer:	 copy []
 
 
 ;src and dst are integer matrices
-rcvMakeGradient: function [src [vector!] dst [vector!] mSize [pair!] return: [integer!]
+rcvMakeGradient: function [
 "Makes a gradient matrix for contour detection (similar to Sobel) and returns max value"
+	src 	[vector!] 
+	dst 	[vector!] 
+	mSize 	[pair!] 
 ][
 	w: mSize/x
 	h: mSize/y
 	_makeGradient src dst w h
 ]
 
-rcvMakeBinaryGradient: function [src [vector!] mat [vector!] maxG [integer!] threshold [integer!]
+rcvMakeBinaryGradient: function [
 "Makes a binary [0 1] matrix for contour detection"
+	src 		[vector!] 
+	mat 		[vector!] 
+	maxG 		[integer!] 
+	threshold 	[integer!]
 ][
 	_makeBinaryGradient src mat maxG threshold 
 ]
 
 ; input float mat output integer mat
-rcvFlowMat: function [input [vector!] output[vector!] scale [float!] return: [float!]
+rcvFlowMat: function [
 "Calculates the distance map to binarized gradient"
+	input [vector!] 
+	output[vector!] 
+	scale [float!]
 ][
 	_rcvFlowMat input output scale
 ]
 
-rcvnormalizeFlow: function [input [vector!]  factor [float!]
+rcvnormalizeFlow: function [
 "Normalizes distance into 0..255 range"
-] [
+	input 	[vector!]  
+	factor 	[float!]
+][
 	_rcvnormalizeFlow input factor
 ]
 
 
-rcvGradient&Flow: function [input1 [vector!] input2	[vector!] dst [image!]
+rcvGradient&Flow: function [
 "Creates an image including flow and gradient calculation"
-] [
+	input1 	[vector!] 
+	input2	[vector!] 
+	dst 	[image!]
+][
 	_rcvGradient&Flow input1 input2 dst
 ]
 
 
-rcvChamferDistance: function [chamferMask [block!] return: [block!]
+rcvChamferDistance: function [
 "Selects a pre-defined chamfer kernel"
+	chamferMask [block!] 
 ][
 	chamfer: copy chamferMask
 	normalizer: chamfer/3  ;[0][2]
@@ -105,124 +305,41 @@ rcvChamferDistance: function [chamferMask [block!] return: [block!]
 
 ; output must be a vector of float!
 
-rcvChamferCreateOutput: function [mSize [pair!] return: [vector!]
+rcvChamferCreateOutput: function [
 "Creates a distance map (float!)" 
+	mSize [pair!] 
 ][
 	n: mSize/x * mSize/y
 	make vector! reduce ['float! 64 n]
 ]
 
 
-rcvChamferInitMap: function [input [vector!] output [vector!]
+rcvChamferInitMap: function [
 "Initializes distance map inside the object distance=0  outside the object distance to be computed"
+	input 	[vector!] 
+	output 	[vector!]
 ][
 	_initDistance input output
 ]
 
 
-rcvChamferCompute: function [output [vector!] chamfer [block!] mSize [pair!]
+rcvChamferCompute: function [
 "Calculates the distance map to binarized gradient"
+	output 	[vector!] 
+	chamfer [block!] 
+	mSize 	[pair!]
 ][
 	w: mSize/x
 	h: mSize/y
 	_rcvChamferCompute output chamfer w h
 ]
 
-rcvChamferNormalize: function [output [vector!] value [integer!]
+rcvChamferNormalize: function [
+"Normalization"
+	output [vector!] 
+	value [integer!]
 ][
 	_Normalize output value
 ]
 
-
-;********************* DTW Dynamic Time Warping ****************************
-; a very basic DTW algorithm
-; thanks to Nipun Batra (https://nipunbatra.github.io/blog/2014/dtw.html)
-
-
-
-
-
-rcvDTWGetPath1: function [x [block!] y [block!] cMat [block!] return: [block!]
-"Find the path minimizing the distance "
-][
-	xPath: copy []
-	i: length? y
-	j: length? x
-	while [(i >= 1) and (j >= 1)] [
-		either any [i = 1 j = 1][
-			case/all [
-				i = 1 [j: j - 1 ] 
-				j = 1 [i: i - 1 ]	
-			]
-		]
-		[minD: rcvDTWMin cMat/(i - 1)/(j - 1) cMat/(i - 1)/(j) cMat/(i)/(j - 1)
-		t0: false
-			case/all [
-				cMat/(i - 1)/(j) = minD [i: i - 1 t0: true]
-				cMat/(i)/(j - 1) = minD [j: j - 1 t0: true]
-			]
-			unless t0 [i: i - 1 j: j - 1]
-		]
-		b: copy []
-		append b j ; x
-		append b i ; y
-		append/only xPath b
-	]
-	append/only xPath [0 0]
-	reverse xPath
-]
-
-
-rcvDTWMin: function [x [number!] y [number!] z [number!] return: [number!]
-"Minimal value between 3 values"
-][
-	_rcvDTWMin x y z
-]
-
-rcvDTWDistances: function [x [block!] y [block!] return: [vector!]
-"Making a 2d matrix to compute distances between all pairs of x and y series"
-][
-	xl: length? x
-	yl: length? y
-	matSize: xl * yl
-	dMat: make vector! reduce ['float! 64 matSize]
-	t: type? first x
-	if t = integer! [_rcvDTWDistances x y dmat 0]
-	if t = float! [_rcvDTWDistances x y dmat 1]
-	dMat
-]
-
-rcvDTWRun: function [x [block!] y [block!] dMat [vector!] return: [vector!]
-"Making a 2d matrix to compute minimal distance cost "
-] [
-	xl: length? x
-	yl: length? y
-	matSize: xl * yl
-	cMat: make vector! reduce ['float! 64 matSize]
-	_rcvDTWRun xl yl dMat cMat
-	cMat
-]
-
-rcvDTWGetPath: function [x [block!] y [block!] cMat [vector!] return: [block!]
-"xx"
-] [
-	xPath: copy []
-	_rcvDTWGetPath x y cMat xPath
-	reverse xPath
-]
-
-
-rcvDTWGetDTW: function [cMat [vector!] return: [number!]
-"Returns DTW value"
-][
-	last cMat
-]
-
-rcvDTWCompute: function [x [block!] y [block!] return: [number!]
-"Short-cut to get DTW value if you don't need distance and cost matrices"
-][
-	dMat: rcvDTWDistances x y
-	cMat: rcvDTWRun x y dMat	
-	last cMat
-]
 
