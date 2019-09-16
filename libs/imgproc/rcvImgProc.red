@@ -132,7 +132,99 @@ rcvIRgBy: function [
 ][
 	_rcvIRgBy src dst val
 ]
-; ************ image transform **********
+
+
+;******************* Image Transformations *****************************
+
+__rcvResizeImage: function [
+"Resizes image and applies filter for Gaussian pyramidal resizing if required"
+	src [image!] 
+	canvas 
+	iSize [pair!]
+	/Gaussian return: [pair!]
+][
+	tmpImg: rcvCloneImage src
+	case [
+		gaussian [
+			knl: rcvMakeGaussian 5x5
+			_rcvFilter2D tmpImg src knl 1.0 0.0
+		]
+	]
+	rcvReleaseImage tmpImg
+	canvas/size: iSize
+	src: to-image canvas
+	src/size
+]
+;modified
+
+rcvResizeImage: function [
+"Resizes image and applies filter for Gaussian pyramidal resizing if required"
+	src 	[image!] 
+	iSize 	[pair!] 
+	/Gaussian 
+][
+	tmpImg: rcvCloneImage src
+	case [
+		gaussian [
+			knl: rcvMakeGaussian 5x5
+			_rcvFilter2D tmpImg src knl 1.0 0.0
+		]
+	]
+	rcvReleaseImage tmpImg
+	_rcvResize src iSize/x iSize/y
+]
+
+
+
+rcvScaleImage: function [
+"Returns a Draw block for image scaling"
+	factor [float!] 
+	img [image!] 
+][
+	compose [scale (factor) (factor) image (img)]
+]
+
+rcvRotateImage: function [
+"Returns a Draw block for image rotation"
+	scaleValue 		[float!] 
+	translateValue 	[pair!] 
+	angle 			[float!] 
+	center 			[pair!]  
+	img 			[image!]
+][
+	compose [scale (scaleValue) (scaleValue) translate (translateValue) rotate (angle) (center) image (img)]
+]
+
+rcvTranslateImage: function [
+"Returns a Draw block for image translation"
+	scaleValue 		[float!] 
+	translateValue 	[pair!] 
+	img 			[image!]
+][
+	compose [scale (scaleValue) (scaleValue) translate (translateValue) image (img)]
+]
+
+rcvSkewImage: function [
+"Returns a Draw block for image transformation"
+	scaleValue 		[float!] 
+	translateValue 	[pair!] 
+	x 				[number!] 
+	y 				[number!] 
+	img 			[image!] 
+][
+	compose [scale (scaleValue) (scaleValue) translate (translateValue) skew (x) (y) image (img)]
+]
+
+
+rcvClipImage: function [
+"Returns a Draw block for image clipping"
+	translateValue 	[pair!] 
+	start 			[pair!] 
+	end 			[pair!] 
+	img 			[image!]  
+][
+	compose [translate (translateValue) clip (start) (end) image (img)]
+]
 
 rcvFlip: function [
 "Left Right, Up down or both directions flip"
@@ -160,7 +252,7 @@ rcvGlass: function [
 
 
 rcvSwirl: function [
-"Glass effect on image"
+"Swirl effect on image"
 	src 	[image!] 
 	dst 	[image!] 
 	theta	[float!]
@@ -170,7 +262,7 @@ rcvSwirl: function [
 
 
 rcvWaveH: function [
-"Glass effect on image"
+"Wawe effect on image"
 	src 	[image!] 
 	dst 	[image!] 
 	alpha	[float!]
@@ -180,7 +272,7 @@ rcvWaveH: function [
 ]
 
 rcvWaveV: function [
-"Glass effect on image"
+"Wave effect on image"
 	src 	[image!] 
 	dst 	[image!] 
 	alpha	[float!]
@@ -189,8 +281,15 @@ rcvWaveV: function [
 	_rcvWave src dst alpha beta 2
 ]
 
-
-
+rcvWaveHV: function [
+"Wave effect on image"
+	src 	[image!] 
+	dst 	[image!] 
+	alpha	[float!]
+	beta	[float!]
+][
+	_rcvWave src dst alpha beta 3
+]
 
 
 ; ********** image intensity and blending ******************
@@ -439,8 +538,45 @@ rcvBinomialHighPass: function [
 	]
 ]
 
+
+
 ; for gaussian filters
 rcvMakeGaussian: function [
+"Creates a gaussian uneven kernel"
+	kSize 	[pair!]
+	sigma	[float!]
+][
+  gaussian: copy []
+  n: kSize/x - 1 / 2
+  sum: 0.0
+  d: 0.0
+  s2: 2.0 * power sigma 2.0
+  j: negate n
+  while [j <= n] [
+  	i: negate n
+  	while [i <= n] [
+  		;(exp(-(r*r)/s))/(M_PI * s);
+  		d: square-root (i * i) + (j * j)
+  		g: exp (negate (d * d) / s2) / (pi * s2)
+  		;g: (exp (negate(d * d) / s2)) / (pi * s2)
+  		append gaussian g
+  		sum: sum + g
+  		i: i + 1
+  	]
+  	j: j + 1
+  ]
+  
+  ; now normalize the kernel -> new sum = 1.0
+  i: 1
+  while [i <= (kSize/x * kSize/y)] [
+  	gaussian/:i: gaussian/:i / sum
+  	i: i + 1
+  ] 
+  gaussian	
+]
+
+; for testing 
+rcvMakeGaussian2: function [
 "Creates a gaussian uneven kernel"
 	kSize 	[pair!]
 	sigma	[float!]
@@ -450,70 +586,43 @@ rcvMakeGaussian: function [
   i: negate n
   j: negate n
   sum: 0.0
-  r: 0.0
-  s: 2.0 * (sigma * sigma)
+  d: 0.0
+  s2: power sigma 2.0
   while [j <= n] [
   	i: negate n
   	while [i <= n] [
-  		r: square-root (i * i) + (j * j)
-  		k: exp  ((negate(r * r) / s) / (pi * s))
-  		append gaussian k
-  		sum: sum + k
-  		i: i + 1
-  	]
-  	j: j + 1
-  ]
-  ; now normalize the kernel
-  i: 0
-  while [i < (kSize/x * kSize/y)] [
-  	gaussian/(i + 1): gaussian/(i + 1) / sum
-  	i: i + 1
-  ] 
-  gaussian	
-]
-
-;new provisoire
-_rcvMakeGaussian2: function [
-"Creates a gaussian uneven kernel with different variance"
-kSize [pair!] "Uneven Kernel size (e.g 3x3)"
-sigma [float!] "Variance"
-][
-  gaussian: copy []
-  n: kSize/x - 1 / 2
-  j: negate n
-  sum: 0.0
-  while [j <= n] [
-  	i: negate n
-  	while [i <= n] [
-  		r: negate (i * i) + (j * j)
-  		s: 2 * (sigma * sigma)
-  		g: exp  (r / s)
-  		append gaussian g
-  		sum: sum + g
+  		d: (power i 2.0) + (power j 2.0)
+  		g1: 1.0 / (2.0 * pi * s2)
+  		g2: exp (negate (d / (2.0 * s2)))
+  		append gaussian g1 * g2
+  		sum: sum + g1 * g2
   		i: i + 1
   	]
   	j: j + 1
   ]
   
-  ; now normalize the kernel 
-  i: 0
-  while [i < (kSize/x * kSize/y)] [
-  		gaussian/(i + 1): gaussian/(i + 1) / sum
+  
+  ; now normalize the kernel
+  i: 1
+  while [i <= (kSize/x * kSize/y)] [
+  	gaussian/:i: gaussian/:i / sum
   	i: i + 1
-  ]
+  ] 
   gaussian	
 ]
 
-; only for images
+
 rcvGaussianFilter: function [
 "Gaussian 2D Filter"
-	src 	[image!] ;source image
-	dst 	[image!] ;destination image
+	src 	[image! vector!] 
+	dst 	[image! vector!]
 	kSize 	[pair!]	 ;kernel size
 	sigma	[float!] ;variance
-] [
+][
 	knl: rcvMakeGaussian kSize sigma
-	_rcvFilter2D src dst knl 1.0 0.0
+	t: type? src
+	if t =  image!  [_rcvFilter2D src dst knl 1.0 0.0]
+	if t  = vector! [_rcvConvolveMat src dst src dst knl 1.0 0.0]
 ]
 
 rcvDoGFilter: function [
@@ -538,7 +647,7 @@ rcvDoGFilter: function [
 	]
 	t: type? src
 	if t =  image!  [_rcvConvolve src dst k factor 0.0]
-	if t  = vector! [ _rcvConvolveMat src dst iSize k 1.0 0.0]
+	if t  = vector! [_rcvConvolveMat src dst iSize k 1.0 0.0]
 	
 ]
 
@@ -605,53 +714,6 @@ rcvMeanFilter: function [
 	dst 	[image!] 
 	kSize 	[pair!] 
 	op 		[integer!]
-][	
-	;op = 0 arithmetic, 1 harmonic, 2 geometric mean
-	;3 quadratic mean, 4 cubic mean, 5 rms
-	_rcvMeanFilter src dst kSize/x kSize/y op
-]
-
-; new median and mean filter for image smoothing
-
-rcvMedianFilter: function [src [image!] dst [image!] kSize [pair!]
-"Median Filter for images"
-][	n: kSize/x * kSize/y
-	kernel: make vector! n
-	_rcvMedianFilter src dst kSize/x kSize/y kernel 0
-]
-
-
-rcvMinFilter: function [src [image!] dst [image!] kSize [pair!]
-"Minimum Filter for images"
-][	n: kSize/x * kSize/y
-	kernel: make vector! n
-	_rcvMedianFilter src dst kSize/x kSize/y kernel 1
-]
-
-
-rcvMaxFilter: function [src [image!] dst [image!] kSize [pair!]
-"Maximum Filter for images"
-][	n: kSize/x * kSize/y
-	kernel: make vector! n
-	_rcvMedianFilter src dst kSize/x kSize/y kernel 2
-]
-
-rcvNLFilter: function [src [image!] dst [image!] kSize [pair!]
-"Non linear conservative filter for images"
-][	n: kSize/x * kSize/y
-	kernel: make vector! n
-	_rcvMedianFilter src dst kSize/x kSize/y kernel 3
-]
-
-rcvMidPointFilter: function [src [image!] dst [image!] kSize [pair!]
-"Midpoint Filter for images"
-][	
-	_rcvMidPointFilter src dst kSize/x kSize/y
-]
-
-
-rcvMeanFilter: function [src [image!] dst [image!] kSize [pair!] op [integer!]
-"Mean Filter for images"
 ][	
 	;op = 0 arithmetic, 1 harmonic, 2 geometric mean
 	;3 quadratic mean, 4 cubic mean, 5 rms
@@ -768,6 +830,7 @@ rcvSobel: function [
 			3 [rcvAdd img1 img2 dst] ; G = abs(Gx) + abs(Gy).
 			4 [_rcvMagnitude img1 img2 dst] ; G= Sqrt Gx^2 +Gy^2
 			5 [_rcvDirection img1 img2 dst] ; T= atan(Gx/gy)
+			6 [_rcvProduct img1 img2 dst]	; Gx*Gy product
 		]
 		rcvReleaseImage img1
 		rcvReleaseImage img2
@@ -1120,29 +1183,14 @@ rcvLaplacianOfGaussian: function [
 	if t = vector! 	[_rcvConvolveMat src dst iSize knl 1.0 0.0]
 ]
 
-; A REVOIR
+; image only
 rcvKuwahara: function [
-" non-linear smoothing filter"
-	src 	[image! vector!] 
-	dst 	[image! vector!]
-	iSize 	[pair!]
+"Kuwahara non-linear smoothing filter"
+	src 	[image!] 
+	dst 	[image!]
+	kSize 	[pair!]
 ][
-	{knl: [1.0 1.0 1.0 2.0 2.0
-		  1.0 1.0 1.0 2.0 2.0
-		  4.0 4.0 0.0 2.0 2.0
-		  4.0 4.0 3.0 3.0 3.0
-		  4.0 4.0 3.0 3.0 3.0
-		]}
-		
-	knl: [-0.5 1.5 -0.5
-		 1.5 -3.0 1.5
-		-0.5 1.5 -0.5
-	]
-	
-	
-	t: type? src
-	if t = image! 	[_rcvConvolve src dst knl 1.0  0.0]
-	if t = vector! 	[_rcvConvolveMat src dst iSize knl 1.0 0.0]
+	_rcvKuwahara src dst kSize
 ]
 
 
@@ -1230,97 +1278,6 @@ rcvProcessIntegralImage: function [
 ]
 
 
-;******************* Image Transformations *****************************
-
-__rcvResizeImage: function [
-"Resizes image and applies filter for Gaussian pyramidal resizing if required"
-	src [image!] 
-	canvas 
-	iSize [pair!]
-	/Gaussian return: [pair!]
-][
-	tmpImg: rcvCloneImage src
-	case [
-		gaussian [
-			knl: rcvMakeGaussian 5x5
-			_rcvFilter2D tmpImg src knl 1.0 0.0
-		]
-	]
-	rcvReleaseImage tmpImg
-	canvas/size: iSize
-	src: to-image canvas
-	src/size
-]
-;modified
-
-rcvResizeImage: function [
-"Resizes image and applies filter for Gaussian pyramidal resizing if required"
-	src 	[image!] 
-	iSize 	[pair!] 
-	/Gaussian 
-][
-	tmpImg: rcvCloneImage src
-	case [
-		gaussian [
-			knl: rcvMakeGaussian 5x5
-			_rcvFilter2D tmpImg src knl 1.0 0.0
-		]
-	]
-	rcvReleaseImage tmpImg
-	_rcvResize src iSize/x iSize/y
-]
-
-
-
-rcvScaleImage: function [
-"Returns a Draw block for image scaling"
-	factor [float!] 
-	img [image!] 
-][
-	compose [scale (factor) (factor) image (img)]
-]
-
-rcvRotateImage: function [
-"Returns a Draw block for image rotation"
-	scaleValue 		[float!] 
-	translateValue 	[pair!] 
-	angle 			[float!] 
-	center 			[pair!]  
-	img 			[image!]
-][
-	compose [scale (scaleValue) (scaleValue) translate (translateValue) rotate (angle) (center) image (img)]
-]
-
-rcvTranslateImage: function [
-"Returns a Draw block for image translation"
-	scaleValue 		[float!] 
-	translateValue 	[pair!] 
-	img 			[image!]
-][
-	compose [scale (scaleValue) (scaleValue) translate (translateValue) image (img)]
-]
-
-rcvSkewImage: function [
-"Returns a Draw block for image transformation"
-	scaleValue 		[float!] 
-	translateValue 	[pair!] 
-	x 				[number!] 
-	y 				[number!] 
-	img 			[image!] 
-][
-	compose [scale (scaleValue) (scaleValue) translate (translateValue) skew (x) (y) image (img)]
-]
-
-
-rcvClipImage: function [
-"Returns a Draw block for image clipping"
-	translateValue 	[pair!] 
-	start 			[pair!] 
-	end 			[pair!] 
-	img 			[image!]  
-][
-	compose [translate (translateValue) clip (start) (end) image (img)]
-]
 
 ;********************** morphological operators *****************************************
 

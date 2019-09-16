@@ -17,6 +17,7 @@ Red/System [
 	}
 ]
 
+;#include %../os/definitions.reds
 
 #define file! int-ptr!
 

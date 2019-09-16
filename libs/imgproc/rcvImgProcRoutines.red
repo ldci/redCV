@@ -496,8 +496,8 @@ _rcvFlipHV: routine [
         switch op [
         	0 [idx: pix1 + (y * w) + x] 				; no change
             1 [idx: pix1 + (y * w) + (w - x) - 1] 		;left/right
-            2 [idx: pix1 + (w * h) - (y * w) + x - w] 	; up/down
-            3 [idx: pix1 + (w * h) - (y * w) - x - 1]	; both flips
+            2 [idx: pix1 + (w * h) - (y * w) + x - w] 	;up/down
+            3 [idx: pix1 + (w * h) - (y * w) - x - 1]	;both flips
         ]  
         pixD/value: idx/value
         pixD: pixD + 1
@@ -622,9 +622,12 @@ _rcvWave: routine [
     	while [x < w][
         	xF: as float! x
         	xx: xF
+        	yy: yF
         	switch op [
         		1 [yy: yF + (param1 * sin(2.0 * pi * xF / param2))]
         	 	2 [xx: xF + (param1 * sin(2.0 * pi * yF / param2))]
+        	 	3 [xx: xF + (param1 * sin(2.0 * pi * yF / param2))
+        	 		yy: yF + (param1 * sin (2.0 * pi * xF / param2))]
         	]
         	xm: as integer! xx 
         	ym: as integer! yy
@@ -1728,6 +1731,61 @@ _rcvDirection: routine [
 	image/release-buffer dst handleD yes
 ]
 
+_rcvProduct: routine [
+    srcX  	[image!]
+    srcY  	[image!]
+    dst  	[image!]
+    /local
+        pixX 	[int-ptr!]
+        pixY 	[int-ptr!]
+        pixD 	[int-ptr!]
+        handle1 handle2 handleD 
+        h w x y
+        r1 g1 b1
+        r2 g2 b2
+        r3 g3 b3
+][
+	handle1: 0
+	handle2: 0
+    handleD: 0
+    pixX: image/acquire-buffer srcX :handle1
+    pixY: image/acquire-buffer srcY :handle2
+    pixD: image/acquire-buffer dst :handleD
+	w: IMAGE_WIDTH(srcX/size)
+    h: IMAGE_HEIGHT(srcY/size)
+    x: 0
+    y: 0
+    r3: 0
+    g3: 0
+    b3: 0
+    while [y < h] [
+		while [x < w][
+       			r1: pixX/value and 00FF0000h >> 16 
+        		g1: pixX/value and FF00h >> 8 
+        		b1: pixX/value and FFh 
+       			r2: pixY/value and 00FF0000h >> 16 
+        		g2: pixY/value and FF00h >> 8 
+        		b2: pixY/value and FFh 
+        		r3: r1 * r2 
+        		g3: g1 * g2 
+        		b3: b1 + b2		  
+        		pixD/value: (255 << 24) OR (r3 << 16 ) OR (g3 << 8) OR b3
+				pixX: pixX + 1
+				pixY: pixY + 1
+				pixD: pixD + 1
+				x: x + 1
+		]
+		x: 0
+		y: y + 1
+	]
+	image/release-buffer srcX handle1 no
+	image/release-buffer srcY handle2 no
+	image/release-buffer dst handleD yes
+]
+
+
+
+
 ; for Canny detector
 ; for grayscale image -> just process R channel
 ; gradient 0..255
@@ -2044,6 +2102,133 @@ _rcvNeumann: routine [
 ]
 
 
+;Kuwahara filter (image only)
+
+_rcvKuwahara: routine [
+    src  	[image!]
+    dst  	[image!]
+    kSize	[pair!]
+    /local
+    pix1 	[int-ptr!]
+    pixD 	[int-ptr!]
+    idx	 	[int-ptr!]
+    handle1 
+    handleD
+    n i j x y w h nr
+    imx imy
+    sumA sumB sumC sumD
+    sum2A sum2B sum2C sum2D
+    sumAR sumBR sumCR sumDR
+    sumAG sumBG sumCG sumDG
+    sumAB sumBB sumCB sumDB
+    meanA meanB meanC meanD
+    meanAR meanBR meanCR meanDR
+    meanAG meanBG meanCG meanDG
+    meanAB meanBB meanCB meanDB
+    varA varB varC varD
+    minVar
+    minMean
+    a r g b lum
+][
+	n: kSize/x - 1 / 2
+	nr: n * n
+	handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    idx:  pix1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		j:  0 - n
+       		sumA: 0.0 sumB: 0.0 sumC: 0.0 sumD: 0.0
+       		sum2A: 0.0 sum2B: 0.0 sum2C: 0.0 sum2D: 0.0
+       		sumAR: 0 sumBR: 0 sumCR: 0 sumDR: 0
+       		sumAG: 0 sumBG: 0 sumCG: 0 sumDG: 0
+       		sumAB: 0 sumBB: 0 sumCB: 0 sumDB: 0
+
+       		while [j <= n] [
+  				i: 0 - n
+  				while [i <= n] [
+  					; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
+  					; pixel ;idx: pix1 + (y * w) + x  
+  					imx:  (x + i - n + w ) % w 
+        			imy:  (y + j - n + h ) % h 
+        			idx: pix1 + (imy * w) + imx
+        			;argb values
+        			a: idx/value >>> 24
+       				r: idx/value and 00FF0000h >> 16 
+        			g: idx/value and FF00h >> 8 
+        			b: idx/value and FFh 
+        			;lumen value for variance estimation
+        			lum: (0.3 * r) + (0.59 * g) + (0.11 * b)
+        			;  region by region
+  					if all [j < 0 i < 0] [sumC: sumC + lum sum2C: sum2C + (lum * lum) 
+  							sumCR: sumCR + r sumCG: sumCG + g
+  							sumCB: sumCB + b] ;C
+  					if all [j > 0 i > 0] [sumD: sumD + lum sum2D: sum2D + (lum * lum) 
+  							sumDR: sumDR + r sumDG: sumDG + g
+  							sumDB: sumDB + b] ;D
+  					if all [j > 0 i < 0] [sumA: sumA + lum sum2A: sum2A + (lum * lum) 
+  							sumAR: sumAR + r sumAG: sumAG + g
+  							sumAB: sumAB + b] ;A
+  					if all [j > 0 i > 0] [sumB: sumB + lum sum2B: sum2B + (lum * lum) 
+  							sumBR: sumBR + r sumBG: sumBG + g
+  							sumBB: sumBB + b] ;B
+  					i: i + 1
+  				]
+  				j: j + 1
+  			]
+  			;mean rgb by region
+  			meanAR: sumAR / nr
+  			meanBR: sumBR / nr
+  			meanCR: sumCR / nr
+  			meanDR: sumDR / nr
+  			meanAG: sumAG / nr
+  			meanBG: sumBG / nr
+  			meanCG: sumCG / nr
+  			meanDG: sumDG / nr
+  			meanAB: sumAB / nr
+  			meanBB: sumBB / nr
+  			meanCB: sumCB / nr
+  			meanDB: sumDB / nr
+			;mean color value by region
+  			meanA: (255 << 24) OR (meanAR << 16) OR (meanAG << 8) OR meanAB
+  			meanB: (255 << 24) OR (meanBR << 16) OR (meanBG << 8) OR meanBB 
+  			meanC: (255 << 24) OR (meanCR << 16) OR (meanCG << 8) OR meanCB 
+  			meanD: (255 << 24) OR (meanCR << 16) OR (meanCG << 8) OR meanCB 
+    		;minimal variance
+    		minvar: 2147483647.0
+    		; calculate variance
+    		varA: sum2A - ((SumA * SumA) / nr)
+    		if varA < minVar [minVar: varA]
+    		varB: sum2B - ((SumB * SumB) / nr)
+    		if varB < minVar [minVar: varB]
+    		varC: sum2C - ((SumC * SumC) / nr)
+    		if varC < minVar [minVar: varC]
+    		varD: sum2D - ((SumD * SumD) / nr)
+    		if varD < minVar [minVar: varD]
+    		; region with minimal variance
+    		if minVar = varA [minMean: meanA]
+			if minVar = varB [minMean: meanB]
+    		if minVar = varC [minMean: meanC]
+    		if minVar = varD [minMean: meanD]
+    		; update destination value
+    		pixD/value: minMean
+  			pixD: pixD + 1
+       		x: x + 1
+       	]
+       	y: y + 1
+    ] 
+    image/release-buffer src handle1 no
+	image/release-buffer dst handleD yes
+]
+
+
+
 ; Hough Transform routines
 
 _rcvHoughTransform: routine [
@@ -2283,11 +2468,13 @@ _rcvGenerateNoise: routine [
 
 
 
-; doesn't work yet OS-IMAGE not updated
+; doesn't work yet, OS-IMAGE not updated
 _rcvResize: routine [src [image!] w [integer!] h [integer!] return: [image!]
 ][
 	image/resize src w h
 ]
+
+
 
     
 

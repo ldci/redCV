@@ -658,15 +658,6 @@ rcvMatrixMedianFilter: function [
 	_rcvMatrixMedianFilter src dst mSize kSize/x kSize/y kernel
 ]
 
-; median filter for matrices NEW!!!
-rcvMatrixMedianFilter: function [src [vector!] dst [vector!] mSize [pair!] kSize [pair!]
-"Median Filter for matrices"
-][	kernel: make vector! []
-	n: kSize/x * kSize/y
-	repeat i n [append kernel 0]
-	_rcvMatrixMedianFilter src dst mSize kSize/x kSize/y kernel
-]
-
 ;***********************Matrices Operations *********************
 __rcvAddMat: function [
 "dst: src1 +  src2"

@@ -17,7 +17,7 @@ Red [
 
 ; ZLib routines for binary values
 
-compressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
+_compressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
 	/local 
 	byte-count
 	data
@@ -30,7 +30,7 @@ compressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
 ]
 
 
-decompressRGB: routine [rgb [binary!] bCount [integer!] return: [binary!]
+_decompressRGB: routine [rgb [binary!] bCount [integer!] return: [binary!]
 	/local 
 	data
 	buffer 
@@ -43,14 +43,18 @@ decompressRGB: routine [rgb [binary!] bCount [integer!] return: [binary!]
 
 ; exported functions
 
-rcvCompressRGB: function [rgb [binary!] level [integer!] return: [binary!]
+rcvCompressRGB: function [
 "Compresses rgb image values"
+	rgb 	[binary!] 
+	level 	[integer!]
 ][
-	compressRGB rgb level
+	_compressRGB rgb level
 ]
 
-rcvDecompressRGB: function [rgb [binary!] bCount [integer!] return: [binary!]
+rcvDecompressRGB: function [
 "Uncompresses rgb image values"
+	rgb 	[binary!] 
+	bCount 	[integer!] 
 ][
-	decompressRGB rgb bcount
+	_decompressRGB rgb bcount
 ]

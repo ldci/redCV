@@ -72,6 +72,7 @@ Red/System [
             flag    [integer!]
             return: [integer!]
         ]
+        
         openFile: "openFile" [
         "Open video file"
             filename    [c-string!]

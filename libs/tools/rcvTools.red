@@ -90,3 +90,9 @@ rcvHypot: routine [
 	t: y / x
 	x * sqrt(1.0 + (t * t))
 ]
+
+{rcvSquish: routine [
+	x	[float!]
+][
+	1.0 / (1.0 + exp (4.0 * x))
+]}
