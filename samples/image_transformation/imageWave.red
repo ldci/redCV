@@ -5,7 +5,12 @@ Red [
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
 margins: 5x10
 img1: rcvCreateImage 512x512
 dst:  rcvCreateImage img1/size
@@ -16,7 +21,7 @@ op: 1
 loadImage: does [
 	tmp: request-file
 	if not none? tmp [
-		canvas/image/rgb: black
+		canvas/image: none
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1
 		bb/image: img1
@@ -26,9 +31,10 @@ loadImage: does [
 ]
 
 process: does [
-	canvas/image/rgb: black
+	canvas/image: none
 	if op = 1 [rcvWaveH img1 dst alpha beta]
 	if op = 2 [rcvWaveV img1 dst alpha beta] 
+	if op = 3 [rcvWaveHV img1 dst alpha beta] 
 	canvas/image: dst
 ]
 
@@ -42,11 +48,11 @@ view win: layout [
 	button 60 "Load"		[loadImage] 
 	pad 65x0
 	text 60 "Wave"
-	drop-down 40 data ["1" "2"] 
+	drop-down 40 data ["1" "2" "3"] 
 			on-change [op: face/selected process]
 			select 1
 	text 60 "Alpha "
-	aF: field 50 "20.0"		[if error? try [alpha: to-float af/text] [alpha: 8.0] process]
+	aF: field 50 "20.0"		[if error? try [alpha: to-float af/text] [alpha: 20.0] process]
 	text 60 "Beta"
 	bF: field 50 "128.0"	[if error? try [beta: to-float bf/text] [alpha: 128.0] process]
 	pad 100x0

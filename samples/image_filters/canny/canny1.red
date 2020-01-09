@@ -8,7 +8,12 @@ Red [
 ;A basic Canny filter by subtraction (smoothed image - original image)
 ;it's works because Gaussian filter + delta function Å Laplacian of Gaussian
 
-#include %../../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../../libs/tools/rcvTools.red
+#include %../../../libs/core/rcvCore.red
+#include %../../../libs/matrix/rcvMatrix.red
+#include %../../../libs/imgproc/rcvImgProc.red
+
 margins: 10x10
 defSize: 512x512
 img1: rcvCreateImage defSize

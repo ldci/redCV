@@ -6,7 +6,11 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
 msize: 256x256
@@ -14,6 +18,7 @@ nBins: 256
 margins: 5x5
 msize: 256x256
 img1:    make image! reduce [msize black]
+img2:    make image! reduce [msize black]
 histor:  make vector! nBins
 histog:  make vector! nBins
 histob:  make vector! nBins
@@ -30,6 +35,7 @@ loadImage: does [
 	if not none? tmp [
 		img1:  load  tmp
 		canvas1/image: img1
+		img2: make image! reduce [img1/size black]
 	]
 ]
 
@@ -40,26 +46,20 @@ processMat: does [
 	append/only histo make vector! nBins
 	append/only histo make vector! nBins
 	
-	rcvRGBHistogram img1 histo
+	rcvRGBHistogram img1 img2 histo
 	histor: histo/1		; R values
 	histog: histo/2		; G Values
 	histob: histo/3		; B Values
 	; we need maxi for Y scale conversion
-	tmp: copy histor
-	sort tmp
-	maxi: last tmp
+	maxi: rcvMaxMat histor
 	rcvConvertMatScale/std histor historc  maxi 200 ; change scale
 	
-	tmp: copy histog
-	sort tmp
-	maxi: last tmp
+	maxi: rcvMaxMat histog
 	rcvConvertMatScale/std histog histogc  maxi 200 ; change scale
 	
-	tmp: copy histob
-	sort tmp
-	maxi: last tmp
+	maxi: rcvMaxMat histob
 	rcvConvertMatScale/std histob histobc  maxi 200 ; change scale
-	
+	canvas3/image: img2
 ]
 
 showPlot: does [
@@ -82,22 +82,24 @@ showPlot: does [
 
 ; ***************** Test Program ****************************
 view win: layout [
-		title "Histogram Tests"
+		title "Histogram Filtering"
 		origin margins space margins
 		button 100 "Load Image" [loadImage processMat showPlot]
+		pad 150x0
 		text 60 "Bins" 	
-		dp: drop-down 60 data ["256" "128" "64" "32" "16" "8" "4"]
-		select 1
-		on-change [
-			nBins: to-integer face/data/(face/selected)
-			t/text: form nBins
-			processMat showPlot
-		]		
-		pad 210x0
+		sl: slider 140 [nBins: 256 - to-integer face/data * 255 
+			f1/text: 	form nBins
+			t/text: 	form nBins
+			if nBins > 2 [processMat showPlot]
+		]
+		f1: field 50 "256"
+		
+		pad 160x0
 		button 60 "Quit" 		[Quit]
 		return
 		canvas1: base msize img1
 		canvas2: base msize black
+		canvas3: base msize black
 		return
 		pad 256x0 
 		text 40 "1" 

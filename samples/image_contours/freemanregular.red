@@ -6,19 +6,23 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+
+;required libs
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvFreeman.red
+
 
 iSize: 512x512
-mat:  rcvCreateMat 'integer! 32 iSize
-bMat: rcvCreateMat 'integer! 32 iSize
-img: rcvCreateImage iSize
-edges: rcvCreateImage iSize
-plot: compose [pen white fill-pen white box 128x128 384x384]
+mat:  	rcvCreateMat 'integer! 32 iSize
+bMat: 	rcvCreateMat 'integer! 32 iSize
+img: 	rcvCreateImage iSize
+edges: 	rcvCreateImage iSize
+plot: 	compose [pen white fill-pen white box 128x128 384x384]
 fgVal: 1
 anim: false
 canvas: none
-
-
 
 processImage: does [
 	img: to-image canvas
@@ -45,19 +49,16 @@ processImage: does [
 	while [i < perim] [
 		d: rcvMatGetChainCode visited iSize p 255
 		rcvSetInt2D visited iSize p 0	; pixel processed
-		;append append append plot 'box (p) (p + 1) 
-		append append append plot 'circle (p) 3 
+		append append append plot 'circle (p) 1 
 		append s form d
+		pgb/data: to-percent (i / to-float perim)
 		if anim [do-events/no-wait]; to show progression
 		;get the next pixel to process
 		p: rcvGetContours p d
-		pgb/data: to-percent (i / to-float perim)
 		i: i + 1
 	]
 	r/text: s
 ]
-
-
 
 ; ***************** Test Program ****************************
 view win: layout [

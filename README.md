@@ -4,12 +4,11 @@
 
 
 For Windows and macOS. 
-Due to the excellent work of Regis 
-Available for Linux now with GTK backend.
+Due to the excellent work of Regis available for Linux now with GTK backend.
 
 ### You need the lastest Red master version.
 
-Developped under macOS 10.14
+Developped under macOS 32-bit
 
 Tested with macOS, Windows XP and Windows 10.
 
@@ -20,6 +19,19 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+
+### UPDATE JANUARY 9 2020
+Happy New Year!
+
+**A new version of redCV**.
+
+Most of functions are now defined as routines for a faster image processing and redCV is now *modular*. This means, that you can use only required libraries for your code and not all redCV library. This modular organization reduces compilation duration, reduces the size of the executable applications and, helps in maintaining redCV.As detailed in /libs/redcv.red file, some libraries are mandatory and other are optional according to specific applications. 
+
+*All code samples included in redCV use modular library calling*. Code sample documentation is quite complete.
+
+Updated documentation. New functions and samples, including Fast Fourier Transform.
+
+
 
 ### UPDATE JULY 22 2019
 A lot of important changes before summer break

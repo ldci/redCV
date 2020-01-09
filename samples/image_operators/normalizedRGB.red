@@ -5,7 +5,9 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../libs/redcv.red ; for red functions
+; required libs
+#include %../../libs/core/rcvCore.red
+
 isFile: false
 
 loadImage: does [
@@ -35,9 +37,10 @@ view win: layout [
 	title "Normalized RGB"
 	button 60 "Load" 				[loadImage]
 	cb: check "Square Sum" false	[showImages]
+	pad 250x0
 	button 80 "Quit" 				[if isFile [rcvReleaseImage img1 rcvReleaseImage dst] 
 									Quit]
 	return
-	canvas1: base 512x512 
-	canvas2: base 512x512 	
+	canvas1: base 256x256
+	canvas2: base 256x256 	
 ]

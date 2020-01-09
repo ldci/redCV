@@ -7,7 +7,10 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+
 
 imgSize: 360x180
 img2Size: 360x360

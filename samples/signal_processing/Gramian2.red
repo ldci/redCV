@@ -6,7 +6,9 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
 
 imgSize: 360x180
 img2Size: 360x360
@@ -106,7 +108,7 @@ view win: layout [
 	dp: drop-down data ["Sine" "Cosine" "Tangent" "Random"]
 	on-change [op: face/selected processSignal]
 	select 1 
-	pad 40x0
+	pad 180x0
 	button "Quit" 				[Quit]
 	return
 	canvas1: base imgSize black img

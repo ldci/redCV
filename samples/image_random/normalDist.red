@@ -1,4 +1,3 @@
-#! /usr/local/bin/red
 Red [
 	Title:   "Statistics/Normal distribution"
 	Author:  "Francois Jouen"

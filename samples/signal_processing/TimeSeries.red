@@ -1,5 +1,5 @@
 Red [
-	Title:   "Faces Processing"
+	Title:   "Signal Processing"
 	Author:  "Francois Jouen"
 	File: 	 %timeSeries.red
 	Needs:	 'View
@@ -9,7 +9,12 @@ Red [
 ; filter is a vector that contains the result of numerical processing
 
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/timeseries/rcvTS.red	
+#include %../../libs/timeseries/rcvSGF.red	
+
 imgSize: 1024x128
 sSize: imgSize/x
 mfilter: 4
@@ -93,7 +98,7 @@ view win: layout [
 		signal4: filterSignal signal
 		signal5: SGfilterSignal signal
 		t2: now/time/precise
-		f/text: form t2 - t1
+		f/text: rejoin [rcvElapsed t1 t2 " ms"]
 	]
 	canvas1: base imgSize black img
 	return

@@ -5,14 +5,15 @@ Red [
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
-
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
 isize: 512x512
 bitSize: 32
 value: 255
 img1: rcvCreateImage isize
 mat:  rcvCreateMat 'integer! bitSize img1/size
-mat1:  rcvCreateMat 'integer! bitSize img1/size
+mat1: rcvCreateMat 'integer! bitSize img1/size
 
 
 ; ***************** Test Program ****************************

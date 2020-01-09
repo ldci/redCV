@@ -13,7 +13,11 @@ Red [
 ]
 
 
-#include %../../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../../libs/core/rcvCore.red
+#include %../../../libs/matrix/rcvMatrix.red
+#include %../../../libs/tools/rcvTools.red	
+#include %../../../libs/math/rcvChamfer.red
 
 
 margins: 10x10
@@ -187,7 +191,7 @@ gflow: routine [
 	mvalue unit
 ][
 	mvalue: vector/rs-head flowMat
-    unit: 4; _rcvGetMatBitSize flowMat
+    unit: 4; rcvGetMatBitSize flowMat
     idx: mvalue + (((cur/y * sWidth) + cur/x) * unit) 
     dcur: vector/get-value-int as int-ptr! idx unit
     idx: mvalue + (((p/y * sWidth) + p/x) * unit)
@@ -207,7 +211,7 @@ inertia: routine [
 	idx d g
 	mvalue unit	
 ][
-	unit: 4; _rcvGetMatBitSize gradMat
+	unit: 4; rcvGetMatBitSize gradMat
 	mvalue: vector/rs-head gradMat
 	idx: mvalue + (((cur/y * sWidth) + cur/x) * unit)
 	d: getDistance2D cur p
@@ -235,7 +239,7 @@ snakeLoop: func [] [
 			removeOverlappingPoints minLen
 			addMissingPoints maxLen snakeData	
 		] 
-		if showAnimation [drawSnake] ; doesn't update view?
+		if showAnimation [drawSnake] 
 		nLoop: nLoop + 1
 		niter/text: form nLoop
 	]

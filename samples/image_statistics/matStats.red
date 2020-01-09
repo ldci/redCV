@@ -5,9 +5,10 @@ Red [
 	Needs:	 'View
 ]
 
-; required last Red Master
-
-#include %../../libs/redcv.red ; for red functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/math/rcvStats.red	
+#include %../../libs/matrix/rcvMatrix.red
 
 margins: 5x5
 img1: rcvCreateImage 512x512
@@ -34,15 +35,13 @@ view win: layout [
 		title "Statistical Tests"
 		origin margins space margins
 		button 80 "Load"	[loadImage]
+		button 50 "Quit" 	[rcvReleaseImage img1 img2 img3 img Quit]
 		return
 		button 80 "NZero" 	[sbar/data: rcvCountNonZero mat canvas/image: img2]
 		button 80 "Sum" 	[sbar/data: rcvSum mat canvas/image: img2]
 		button 80 "Mean" 	[sbar/data: first rcvMean mat canvas/image: img2]
 		button 80 "SD"  	[sbar/data: first rcvSTD mat canvas/image: img2]
 		button 80 "Median"	[sbar/data: first rcvMedian mat canvas/image: img2]
-		
-		button 50 "Quit" 	[rcvReleaseImage img1 img2 img3 img Quit]
-		
 		return 
 		button 80 "Min"		[sbar/data: first rcvMinValue mat canvas/image: img2]
 		button 80 "Max"		[sbar/data: first rcvMaxValue mat canvas/image: img2]

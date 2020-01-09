@@ -4,10 +4,11 @@ Red [
 	File: 	 %ColorEqualization.red
 	Needs:	 'View
 ]
-
-; required last Red Master
-
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
 msize: 256x256
@@ -25,10 +26,10 @@ loadImage: does [
 		img1: rcvLoadImage  tmp
 		imgD: rcvCreateImage img1/size
 		;we need 8-bit matrices for each channel argb
-		mat0: rcvCreateMat 'integer! 8 img1/size
-		mat1: rcvCreateMat 'integer! 8 img1/size
-		mat2: rcvCreateMat 'integer! 8 img1/size
-		mat3: rcvCreateMat 'integer! 8 img1/size
+		mat0: rcvCreateMat 'integer! 32 img1/size
+		mat1: rcvCreateMat 'integer! 32 img1/size
+		mat2: rcvCreateMat 'integer! 32 img1/size
+		mat3: rcvCreateMat 'integer! 32 img1/size
 		canvas1/image: img1
 		canvas2/image: imgD
 	]
@@ -39,6 +40,9 @@ processMat: does [
 	if r [rcvHistogramEqualization mat1 grayLevels]		; equalize R
 	if g [rcvHistogramEqualization mat2 grayLevels]		; equalize G
 	if b [rcvHistogramEqualization mat3 grayLevels]		; equalize B
+	mat1 * 255
+	mat2 * 255
+	mat3 * 255
 	rcvMerge2Image mat0 mat1 mat2 mat3 imgD				; and merge matrices 
 ]
 
@@ -47,7 +51,8 @@ view win: layout [
 		title "Histogram Equalization"
 		origin margins space margins
 		button 100 "Load Image" 		[loadImage processMat]
-		sl: slider 256 					[grayLevels: to integer! sl/data * 255 glTxt/data: form grayLevels processMat]
+		sl: slider 256 					[grayLevels: to integer! sl/data * 255 
+										 glTxt/data: form grayLevels processMat]
 		glTxt: field 40 "128" 
 		button 100 "Quit" 				[rcvReleaseImage img1 rcvReleaseImage imgD Quit]
 		return

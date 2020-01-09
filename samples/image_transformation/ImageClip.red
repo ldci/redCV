@@ -5,11 +5,15 @@ Red [
 	Needs:	 'View
 ]
 
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
 margins: 10x10
 winBorder: 10x50
-img1: rcvCreateImage 512x512 ;rcvLoadImage %../../images/lena.jpg
+img1: rcvCreateImage 512x512
 dst:  rcvCreateImage img1/size
 rLimit: 0x0
 lLimit: 512x512
@@ -18,11 +22,6 @@ end: start + 200
 poffset: negate start
 
 canvas: none
-
-;drawBlk: compose [translate (poffset) clip (start) (end) image img1]
-
-;drawBlk: rcvClipImage poffset start end img1
-;drawRect: compose [line-width 2 pen green box 0x0 200x200]
 
 loadImage: does [
 	canvas/image/rgb: black
@@ -34,7 +33,7 @@ loadImage: does [
 		img1: to-image canvas ; force image in 512x512 size
 		drawBlk: rcvClipImage poffset start end img1
 		drawRect: compose [line-width 2 pen green box 0x0 200x200]
-		p1/draw: [] extrait/draw: []
+		p1/draw: [] ROI/draw: []
 	]
 ]
 
@@ -46,12 +45,11 @@ view/tight [
 		style rect: base 255.255.255.240 202x202 loose draw []
 		origin margins space margins
 		button 90 "Load Image"		[loadImage]
-		button 80 "Show Roi" 		[p1/draw: drawRect extrait/draw: drawBlk]
-		button 80 "Hide Roi" 		[p1/draw: [] extrait/draw: []]
+		button 80 "Show Roi" 		[p1/draw: drawRect ROI/draw: drawBlk]
+		button 80 "Hide Roi" 		[p1/draw: [] ROI/draw: []]
 		button 80 "Quit" 	 		[rcvReleaseImage img1 dst Quit]
 		return 
-		canvas: base 512x512 dst react [
-			
+		canvas: base 512x512 dst react [	
 			if (p1/offset/x > lLimit/x) AND (p1/offset/y > lLimit/y)[
 				if (p1/offset/x  < rLimit/x) AND (p1/offset/y  < rLimit/y)[
 					start: p1/offset - winBorder
@@ -65,7 +63,7 @@ view/tight [
 			]
 			
 		]
-		extrait: base 200x200 white draw []
+		ROI: base 200x200 white draw []
 		return
 		sb: field 512
 		at winBorder p1: rect

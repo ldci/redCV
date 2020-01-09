@@ -1,4 +1,3 @@
-#! /usr/local/bin/red
 Red [
 	Title:   "Red Computer Vision: K Means"
 	Author:  "Francois Jouen"

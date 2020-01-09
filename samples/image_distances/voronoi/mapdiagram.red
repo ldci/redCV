@@ -17,10 +17,16 @@ Red [
 ;it first creates some random points - peaks and 
 ;then it calculates distance from nearest peak from each point in image. 
 ;The shorter the distance is, the brighter the pixel is.
-;This vesrsion includes Red/System code for a laster rendering
+;This version includes Red/System code for a laster rendering
+
+;required libs
+#include %../../../libs/tools/rcvTools.red
+#include %../../../libs/core/rcvCore.red
+#include %../../../libs/math/rcvDistance.red
+
 
 ;'Some variables we need
-#include %../../../libs/redcv.red ; for redCV functions
+
 size: 320x240		
 map: make image! reduce [size black]
 

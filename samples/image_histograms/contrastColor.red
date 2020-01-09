@@ -5,18 +5,18 @@ Red [
 	Needs:	 'View
 ]
 
-; required last Red Master
-
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
-msize: 512x512
+msize: 256x256
 img1: rcvCreateImage msize
 img2: rcvCreateImage msize
 p: 0%
 isFile: false
-
-
 
 loadImage: does [
 	isFile: false
@@ -27,10 +27,10 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
-		mat0: rcvCreateMat 'integer! 8 img1/size
-		mat1: rcvCreateMat 'integer! 8 img1/size
-		mat2: rcvCreateMat 'integer! 8 img1/size
-		mat3: rcvCreateMat 'integer! 8 img1/size
+		mat0: rcvCreateMat 'integer! 32 img1/size
+		mat1: rcvCreateMat 'integer! 32 img1/size
+		mat2: rcvCreateMat 'integer! 32 img1/size
+		mat3: rcvCreateMat 'integer! 32 img1/size
 		canvas1/image: img1
 		isFile: true
 		p: 0%
@@ -52,12 +52,11 @@ processMat: does [
 
 ; ***************** Test Program ****************************
 view win: layout [
-		title "Contrast Tests"
+		title "Color Contrast"
 		origin margins space margins
 		button "Load Image" [loadImage]
-		sl: slider 360 		[p: to percent! face/data  v/data: form face/data processMat]
-		v: field 50 "0%"
-		pad 430x0
+		sl: slider 280 		[p: to percent! face/data  v/data: form face/data processMat]
+		v: field 60 "0%"
 		button 60 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage img2 Quit]
 		return
 		canvas1: base msize img1

@@ -1,12 +1,18 @@
 #! /usr/local/bin/red
 Red [
-	Title:   "Prewitt Filter "
+	Title:   "Gradient Filter "
 	Author:  "Francois Jouen"
 	File: 	 %prewitt.red
 	Needs:	 View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
+
 
 isFile: false
 dir: 1

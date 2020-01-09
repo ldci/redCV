@@ -1,5 +1,5 @@
 Red [
-	Title:   "Red Computer Vision: Red/System routines"
+	Title:   "Red Computer Vision: Red tools"
 	Author:  "Francois Jouen"
 	File: 	 %rcvTools.red
 	Tabs:	 4
@@ -17,21 +17,24 @@ rcvElapsed: function [
 	t1 [time!] 
 	t2 [time!]
 ][
-	h: 		first t2 - t1 * 3600
-	m: 		second t2 - t1 * 360
-	sec: 	third t2 - t1 * 1000
-	round/to (h + m + sec) 0.01
+	d: 		t2 - t1
+	h: 		first d * 3600
+	m: 		second d * 60
+	sec: 	(third d) * 1000 	; in ms	
+	to-integer (h + m + sec)	; return in rounded ms 
 ]
 
+
+; ******************** Tools **********************
 rcvNSquareRoot: function [
-"Returns nth root of Num"
+"Returns the nth root of Num"
 	num 	[number!] 
 	nroot 	[number!]
 ][
 	num ** (1.0 / nroot)
 ]
 
-; ******************** Tools **********************
+
 minInt: routine [
 	a 		[integer!] 
 	b 		[integer!]
@@ -91,8 +94,35 @@ rcvHypot: routine [
 	x * sqrt(1.0 + (t * t))
 ]
 
-{rcvSquish: routine [
+rcvExp: routine [
+"returns exponential value"
+	value	[float!]
+	return: [float!]
+][
+	pow 2.718281828459045235360287471 value
+]
+
+
+rcvLog-2: routine [
+"Return the base-2 logarithm"
+	value	[float!]
+	return: [float!]
+][
+	(log-2 value) / 0.6931471805599453
+]
+
+rcvSquish: routine [
+"For image transform"
 	x	[float!]
 ][
-	1.0 / (1.0 + exp (4.0 * x))
-]}
+	1.0 / (1.0 + rcvExp (4.0 * x))
+]
+
+randf: routine [
+"returns a decimal value beween 0 and 1"
+	m [float!]
+	return: [float!]
+][
+	(m * as float! _random/rand) / 2147483647.0 - 1.0
+]
+

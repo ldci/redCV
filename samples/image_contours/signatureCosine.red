@@ -6,7 +6,11 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvFreeman.red
+
 
 iSize: 512x512
 mat:  rcvCreateMat 'integer! 32 iSize

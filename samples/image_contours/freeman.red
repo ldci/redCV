@@ -6,7 +6,10 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvFreeman.red
 
 plot: []
 iSize: 512x512

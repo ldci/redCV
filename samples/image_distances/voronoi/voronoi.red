@@ -12,10 +12,13 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../../libs/redcv.red ; for redCV functions
-;size: 160x120
+;required libs
+#include %../../../libs/tools/rcvTools.red
+#include %../../../libs/core/rcvCore.red
+#include %../../../libs/math/rcvDistance.red
+
+
 size: 320x240
-;size: 640x480
 
 map: make image! reduce [size black]
 

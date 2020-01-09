@@ -10,11 +10,939 @@ Red [
 	}
 ]
 
+;**********************IMPORTANT**************************
 
-#include %rcvMatrixRoutines.red	; All Red/System Matricesroutines
+; Matrix uses a vector! datatype and will evolve 
+; to Matrix! when available :)
 
-; To be modified when Matrix! datatype will be available
+;**********************MATRICES ROUTINES **************************
 
+; integer or float matrix type
+rcvGetMatType: routine [
+"Returns matrix type (integer or float)"
+	mat  	[vector!]
+	return: [integer!]
+	/local
+	s		[series!] 
+	unit	[integer!] 
+	type	[integer!]
+] [
+	s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	; 1 integer 2 float
+	either unit <= 4 [type: 1] [type: 2] 
+	type
+]
+
+rcvGetMatBitSize: routine [
+"Returns matrice bit size"
+	mat  	[vector!]
+	return: [integer!]
+	/local
+	s		[series!]  
+] [
+	s: GET_BUFFER(mat)
+	GET_UNIT(s)
+]
+
+; gets and sets integer matrix element value
+; p address must be passed as integer! since red routine doesn't know byte-ptr!
+rcvGetIntValue: routine [
+	p		[integer!] ; address of mat element as integer
+	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
+	return:	[integer!]
+] [
+	vector/get-value-int as int-ptr! p unit
+]
+
+rcvSetIntValue: routine [
+	p		[integer!] ; address of mat element as integer
+	value	[integer!]
+	unit	[integer!] ; size of integer 8 16 32 [1 2 4]
+	/local 
+	p4		[int-ptr!]	
+] [
+	 p4: as int-ptr! p
+     p4/value: switch unit [
+			1 [value and FFh or (p4/value and FFFFFF00h)]
+			2 [value and FFFFh or (p4/value and FFFF0000h)]
+			4 [value]
+	]
+]
+
+; gets and sets real matrix element value
+; p address must be passed as integer! since red routine doesn't know byte-ptr!
+rcvGetFloatValue: routine [
+	p		[integer!] ; address of mat element as integer
+	return:	[float!]
+	/local
+	pt64	[float-ptr!]
+] [
+	pt64: as float-ptr! p
+	pt64/value				
+]
+
+
+rcvGetFloat32Value: routine [
+	p		[integer!] ; address of mat element as integer
+	return:	[float!]
+	/local
+	pt32	[pointer! [float32!]]	
+] [
+	vector/get-value-float as byte-ptr! p 4 
+]
+
+
+rcvSetFloatValue: routine [
+	p		[integer!] ; address of mat element as integer address
+	f		[float!]
+	unit	[integer!] ; size of float 32 64  [4 8]
+	/local
+	pt64 	[pointer! [float!]]
+	pt32	[pointer! [float32!]]
+	
+][
+	either unit = 8 [
+					pt64: as float-ptr! p
+					pt64/value: f
+				][
+					pt32: as float32-ptr! p
+					pt32/value: as float32! f
+	]
+]
+
+rcvGetInt2D: routine [
+"Get integer matrix value"
+	mat  		[vector!]
+	width       [integer!] 	; matrix width
+	x           [integer!]	; x coordinate		
+	y           [integer!]	; y coordinate
+	return:		[integer!]
+	/local
+	mvalue		[integer!]
+	unit		[integer!]
+	idx			[integer!]
+][
+	mvalue: as integer! vector/rs-head mat
+    unit: rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    rcvGetIntValue mvalue + idx unit
+] 
+
+rcvGetReal2D: routine [
+"Get float matrix value"
+	mat  		[vector!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	return:		[float!]
+	/local
+	mvalue		[integer!]
+	unit		[integer!]
+	idx			[integer!]
+][
+	mvalue: as integer! vector/rs-head mat
+    unit: rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    rcvGetFloatValue  mvalue + idx
+] 
+
+rcvGetReal322D: routine [
+"Get float matrix value"
+	mat  		[vector!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	return:		[float!]
+	/local
+	mvalue		[integer!]
+	unit		[integer!]
+	idx			[integer!]
+][
+	mvalue: as integer! vector/rs-head mat
+    unit: rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    rcvGetFloat32Value mvalue + idx 
+] 
+
+rcvSetInt2D: routine [
+"Set integer matrix value"
+	mat  		[vector!]
+	mSize		[pair!]
+	coordinate 	[pair!]
+	val			[integer!]
+	/local
+	mvalue		[integer!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	unit		[integer!]
+	idx			[integer!]
+][
+	width: mSize/x
+	x: coordinate/x
+	y: coordinate/y
+	mvalue: as integer! vector/rs-head mat
+    unit: rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    rcvSetIntValue mvalue + idx val unit
+]
+
+rcvSetReal2D: routine [
+"Set float matrix value"
+	mat  		[vector!]
+	mSize		[pair!]
+	coordinate 	[pair!]
+	val			[float!]
+	/local
+	mvalue		[integer!]
+	width       [integer!]
+	x           [integer!]
+	y           [integer!]
+	unit		[integer!]
+	idx			[integer!]
+][
+	width: mSize/x
+	x: coordinate/x
+	y: coordinate/y
+	mvalue: as integer! vector/rs-head mat
+    unit: rcvGetMatBitSize mat
+    idx: (x + (y * width)) * unit
+    rcvSetFloatValue mvalue + idx val unit
+]  
+
+; gets coordinates from a binary mat as x y values
+
+rcvGetPoints: routine [
+"Gets coordinates from a binary matrix as pair values"
+	binMatrix 	[vector!]
+	mSize		[pair!]	
+	points		[vector!]
+	/local
+	svalue 		[integer!]
+	x 			[integer!]
+	y 			[integer!]
+	idx			[integer!]
+	width		[integer!]
+	height		[integer!]	
+	v			[integer!]
+	unit		[integer!]
+][
+	width: mSize/x 
+	height: mSize/y
+	svalue: as integer! vector/rs-head binMatrix
+	vector/rs-clear points
+	unit: rcvGetMatBitSize binMatrix
+    y: 0
+    while [y < height] [
+    	x: 0
+        while [x < width][
+       		v: rcvGetIntValue svalue unit
+       		if (v <> 0) [
+       			vector/rs-append-int points x
+       			vector/rs-append-int points y
+       		]
+       		x: x + 1
+       		svalue: svalue + unit
+       ]
+       y: y + 1
+    ]
+]
+
+
+;Thanks to Nenad
+rcvGetPairs: routine [
+"Gets coordinates from a binary mat as pair values"
+    binMatrix     	[vector!]
+    mSize			[pair!]     
+    points          [block!]
+    /local
+    width           [integer!]
+    height          [integer!]   
+    x y idx x2
+    mvalue 
+    unit
+    v
+][
+	width: 	mSize/x
+	height: mSize/y
+    mvalue: as integer! vector/rs-head binMatrix
+    unit: rcvGetMatBitSize binMatrix
+    block/rs-clear points
+    y: 0
+    while [y < height] [
+    	x: 0
+       	while [x < width][
+               v: rcvGetIntValue mvalue unit
+               if (v <> 0) [pair/make-in points x y]
+               x: x + 1
+               mvalue: mvalue + unit
+       	]
+       	y: y + 1
+    ]
+]
+
+rcvGetMatCentroid: routine [
+"Returns the centroid of the matrix"
+	mat  		[vector!]
+	mSize		[pair!]
+    return: 	[pair!]   
+	/local
+	loc			[red-pair!]
+	mvalue 		[byte-ptr!]
+	width		[integer!]	
+	height		[integer!]
+	x			[integer!]
+	y			[integer!]
+	sumX		[integer!] 
+	sumY 		[integer!]
+	sumXY		[integer!]
+    unit		[integer!]
+    v			[integer!]
+][	
+	width: 	mSize/x
+	height: mSize/y
+	mvalue: vector/rs-head mat
+    unit: rcvGetMatBitSize mat
+    y: 0
+    sumX: 0 sumY: 0 sumXY: 0
+    loc: pair/make-at stack/push* 0 0
+    while [y < height] [
+    	x: 0
+       	while [x < width][
+       		v: rcvGetIntValue as integer! mvalue unit
+       		if v > 0 [v: 1]
+       		sumX: sumX + (x * v)
+       		sumY: sumY + (y * v)
+       		sumXY: sumXY + v
+            x: x + 1
+            mvalue: mvalue + unit
+       	]
+       	y: y + 1
+    ]
+    loc/x: (sumX / sumXY)
+    loc/y: (sumY / sumXY)
+    as red-pair! stack/set-last as cell! loc
+]
+
+
+rcvCopyMatI: routine [
+"Copy integer matrix"
+   	src  	[vector!]
+    dst  	[vector!]
+    /local
+    svalue 	[byte-ptr!]
+    tail 	[byte-ptr!]
+    dvalue 	[byte-ptr!]
+    p4 		[int-ptr!]
+    unit	[integer!] 
+    val		[integer!]
+][
+    svalue: vector/rs-head src  	
+    tail: vector/rs-tail src		
+	dvalue: vector/rs-head dst			
+	unit: rcvGetMatBitSize src 
+   	while [svalue < tail][
+		val: vector/get-value-int as int-ptr! svalue unit
+		p4: as int-ptr! dvalue
+		p4/value: switch unit [
+					1 [val and FFh or (p4/value and FFFFFF00h)]
+					2 [val and FFFFh or (p4/value and FFFF0000h)]
+					4 [val]
+		]
+		svalue: svalue + unit
+		dvalue: dvalue + unit
+    ]
+]
+
+; copy float matrices
+rcvCopyMatF: routine [
+"Copy float matrix"
+   	src  	[vector!]
+    dst  	[vector!]
+    /local
+    svalue	[byte-ptr!] 
+    tail	[byte-ptr!] 
+    dvalue 	[byte-ptr!]
+    p64		[float-ptr!] 
+    p32 	[float32-ptr!]
+    unit	[integer!]  
+    val		[float!] 		
+] [
+    svalue: vector/rs-head src	  
+    tail: vector/rs-tail src	
+	dvalue: vector/rs-head dst	
+	unit: rcvGetMatBitSize src
+   	while [svalue < tail][
+		val: vector/get-value-float svalue unit
+		either unit = 8 [p64: as pointer! [float!] dvalue  p64/value: val]
+					    [p32: as pointer! [float32!] dvalue p32/value: as float32! val]
+		svalue: svalue + unit
+		dvalue: dvalue + unit
+    ]
+]
+
+
+rcvMakeBinaryMat: routine [
+"Makes  0 1 matrix"
+   	src  	[vector!]
+    dst  	[vector!]
+    /local
+    svalue	[byte-ptr!] 
+    tail 	[byte-ptr!]
+    dvalue	[byte-ptr!] 
+    p4 		[int-ptr!]
+    unit 	[integer!]
+    val		[integer!] 
+    val2	[integer!]	
+][
+    svalue: vector/rs-head src  	
+    tail: vector/rs-tail src		
+	dvalue: vector/rs-head dst			
+	unit: rcvGetMatBitSize src 
+   	while [svalue < tail][
+		val: rcvGetIntValue as integer! svalue unit
+		either val > 0 [val2: 1] [val2: 0]
+		p4: as int-ptr! dvalue
+		p4/value: switch unit [
+					1 [val2 and FFh or (p4/value and FFFFFF00h)]
+					2 [val2 and FFFFh or (p4/value and FFFF0000h)]
+					4 [val2]
+		]
+		svalue: svalue + unit
+		dvalue: dvalue + unit
+    ]
+]
+
+;
+; 8 -> 16-bits OK (for 8-bit -127..+127)
+; 8 -> 32-bits OK
+; 16 -> 32-bits OK
+
+; a revoir
+rcvConvertMatScale: function [
+"Converts Matrix Scale"
+	src 		[vector!] 
+	dst 		[vector!] 
+	srcScale 	[number!] 
+	dstScale 	[number!] 
+	/fast /std
+][
+	if type? srcScale = integer! [srcScale: to float! srcScale]
+	if type? dstScale = integer! [dstScale: to float! dstScale]
+	case [
+		std  [n: length? src
+					i: 1
+					while [i <= n] [
+						dst/(i): to integer! ((src/(i) / srcScale) * dstScale)
+	 					i: i + 1]
+	 				]
+		fast	[rcvConvertMatIntScale src dst srcScale dstScale]
+	]	
+]
+; a rajouter
+rcvConvertMatIntScale: routine [
+"Converts integer matrix scale"
+	src			[vector!]
+	dst			[vector!]
+	srcScale	[float!] ; eg FFh
+	dstScale	[float!] ; eg FFFFh	
+	/local
+	svalue 		[byte-ptr!]
+	tail 		[byte-ptr!]
+	int unit	[integer!]
+	v			[float!]
+][
+	svalue: vector/rs-head src  ; get a pointer address of the source matrix first value
+	tail:  vector/rs-tail src	; last
+	vector/rs-clear dst 		; clears destination for append calculated value
+	unit: rcvGetMatBitSize src ; bit size
+	while [svalue < tail][
+		int: vector/get-value-int as int-ptr! svalue unit
+		switch unit [
+			1 [int: int and FFh]
+			2 [int: int and FFFFh]
+			4 [int: int]
+		]
+		v: as float! int
+		v: (v / srcScale) * dstScale 
+		print [v lf]
+		int: as integer! v
+		vector/rs-append-int dst int
+		svalue: svalue + unit
+	]
+]
+
+; Red Image -> 1 channel 2-D matrice with a grayscale 
+; conversion to 8 16 or 32-bit matrices 
+; values are in 0..255 range for Char! matrix
+
+rcvImage2Mat: routine [
+"Red Image to integer or char [0..255] 2-D Matrix "
+	src		[image!]
+	mat		[vector!]
+	/local
+	pix1 	[int-ptr!]
+	dvalue 	[byte-ptr!]
+	handle1	[integer!]
+	unit	[integer!]
+	h 		[integer!]
+	w 		[integer!]
+	x 		[integer!]
+	y 		[integer!]
+	r 		[integer!]
+	g 		[integer!]
+	b		[integer!] 
+	a 		[integer!]
+	rgb		[integer!]
+] [
+	handle1: 0
+    pix1: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size) 
+    h: IMAGE_HEIGHT(src/size) 
+    y: 0 
+    dvalue: vector/rs-head mat	; a byte ptr
+	unit: rcvGetMatBitSize mat ; bit size
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+			a: pix1/value >>> 24
+       		r: pix1/value and FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh 
+        	;OK RGBA are correct
+        	; -> to Grayscale mat
+        	rgb: r + g + b / 3
+        	rcvSetIntValue as integer! dvalue rgb unit
+           	x: x + 1
+           	pix1: pix1 + 1
+           	dValue: dValue + unit
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+]
+
+; 1 channel 2-D matrice (grayscale) -> Red Image 
+; 8 16 and 32-bit integer matrices can be used
+; for 8-bit -127..+127 values are transformed in 0..255 values
+; for 8-bit byte matrix values remain unchnaged
+
+rcvMat2Image: routine [
+"Matrix to Red Image"
+	mat		[vector!]
+	dst		[image!]
+	/local
+	pixD 	[int-ptr!]
+	value	[byte-ptr!]
+	handle	[integer!]
+	unit   	[integer!]
+	i 		[integer!]
+	h		[integer!] 
+	w		[integer!] 
+	x 		[integer!]
+	y		[integer!]	
+][
+	handle: 0
+    pixD: image/acquire-buffer dst :handle
+    w: IMAGE_WIDTH(dst/size) 
+    h: IMAGE_HEIGHT(dst/size) 
+    y: 0
+    value: vector/rs-head mat ; get pointer address of the matrice
+    unit: rcvGetMatBitSize mat ; bit size
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		i: rcvGetIntValue as integer! value unit; get mat value as integer
+       		if unit = 1 [i: i and FFh] ; for 8-bit values [-127 .. 127]
+       		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
+       		value: value + unit
+           	pixD: pixD + 1
+           	x: x + 1
+       ]
+       y: y + 1
+    ]
+    image/release-buffer dst handle yes
+]
+
+; Splits image to 4 matrices including transparency
+; image and matrices must have the same size!
+
+rcvSplit2Mat: routine [
+"Splits an image to 4 8-bit matrices"
+	src			[image!]
+	mat0		[vector!]
+	mat1		[vector!]
+	mat2		[vector!]
+	mat3		[vector!]
+	/local
+	pix1 		[int-ptr!]
+	dvalue0 	[byte-ptr!]
+	dvalue1 	[byte-ptr!]
+	dvalue2 	[byte-ptr!]
+	dvalue3 	[byte-ptr!]
+	handle1		[integer!]
+	h			[integer!] 
+	w 			[integer!]
+	x 			[integer!]
+	y 			[integer!]
+	unit		[integer!]
+] [
+	handle1: 0
+    pix1: image/acquire-buffer src :handle1
+    w: IMAGE_WIDTH(src/size) 
+    h: IMAGE_HEIGHT(src/size) 
+    y: 0 
+    unit: rcvGetMatBitSize mat0
+    dvalue0: vector/rs-head mat0	; a byte ptr
+    dvalue1: vector/rs-head mat1	; a byte ptr
+    dvalue2: vector/rs-head mat2	; a byte ptr
+    dvalue3: vector/rs-head mat3	; a byte ptr
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+        	rcvSetIntValue as integer! dvalue0 pix1/value >>> 24 unit
+        	rcvSetIntValue as integer! dvalue1 pix1/value and 00FF0000h >> 16 unit
+        	rcvSetIntValue as integer! dvalue2 pix1/value and FF00h >> 8 unit
+        	rcvSetIntValue as integer! dvalue3 pix1/value and FFh unit
+           	x: x + 1
+           	pix1: pix1 + 1
+           	dValue0: dValue0 + unit
+           	dValue1: dValue1 + unit
+           	dValue2: dValue2 + unit
+           	dValue3: dValue3 + unit
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+]
+
+; 3 1-channel 2-D matrices (grayscale) -> Red Image 
+
+rcvMerge2Image: routine [
+"Merge 4 8-bit matrices to image"
+	mat0		[vector!]
+	mat1		[vector!]
+	mat2		[vector!]
+	mat3		[vector!]
+	dst			[image!]
+	/local
+	pixD 		[int-ptr!]
+	value0 		[byte-ptr!]
+	value1 		[byte-ptr!]
+	value2 		[byte-ptr!]
+	value3 		[byte-ptr!]
+	handle		[integer!]
+	a			[integer!] 
+	r 			[integer!]
+	g 			[integer!]
+	b  			[integer!]
+	h			[integer!] 
+	w 			[integer!]
+	x 			[integer!]
+	y			[integer!]
+	unit		[integer!]
+	
+] [
+	handle: 0
+    pixD: image/acquire-buffer dst :handle
+    w: IMAGE_WIDTH(dst/size) 
+    h: IMAGE_HEIGHT(dst/size) 
+    
+    y: 0
+	unit: rcvGetMatBitSize mat0
+    value0: vector/rs-head mat0 ; get pointer address of the matrice
+    value1: vector/rs-head mat1 
+    value2: vector/rs-head mat2
+    value3: vector/rs-head mat3
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		a: rcvGetIntValue as integer! value0 unit; get mat value as integer
+       		r: rcvGetIntValue as integer! value1 unit; get mat value as integer
+       		g: rcvGetIntValue as integer! value2 unit; get mat value as integer
+       		b: rcvGetIntValue as integer! value3 unit; get mat value as integer
+       		pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)
+       		value0: value0 + unit
+       		value1: value1 + unit
+       		value2: value2 + unit
+       		value3: value3 + unit
+           	pixD: pixD + 1
+           	x: x + 1
+       	]
+       	y: y + 1
+    ]
+    image/release-buffer dst handle yes
+]
+
+rcvMat2Array: routine [
+"Matrice to array"
+	mat 	[vector!] 
+	matSize [pair!]
+	/local
+	blk		[red-block!]
+	*Mat	[byte-ptr!]
+	idx 	[byte-ptr!]
+	vect 	[red-vector!]
+	s	   	[series!]
+	w 		[integer!]
+	h		[integer!]
+	i 		[integer!]
+	j 		[integer!]	 
+	p		[byte-ptr!]
+	p4		[int-ptr!]
+	p8		[float-ptr!]
+	unit	[integer!]	
+][
+	w: matSize/x
+	h: matSize/y
+	*Mat: vector/rs-head mat
+	s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	blk: as red-block! stack/arguments
+	block/make-at blk h
+	j: 0
+	while [j < h] [
+		i: 0
+		either unit <= 4 [vect: vector/make-at stack/push* w TYPE_INTEGER unit] 
+						 [vect: vector/make-at stack/push* w TYPE_FLOAT unit] 
+		while [i < w] [
+			idx: *Mat + (j * w + i * unit)
+			s: GET_BUFFER(vect)
+			p: alloc-tail-unit s unit
+			p4: as int-ptr! p
+			p8: as float-ptr! p	
+			either unit <= 4 [p4/value: vector/get-value-int as int-ptr! idx unit] 
+				[p8/value: vector/get-value-float idx unit]
+			i: i + 1
+		]
+		block/rs-append blk as red-value! vect
+		j: j + 1
+	]
+	blk
+]
+
+; new to be updated
+rcvImg2Array: routine [
+"Red image to array"
+	src 	[image!] 
+	op		[integer!]
+	return: [block!]
+	/local
+	blk		[red-block!]
+	*Mat	[int-ptr!]
+	idx 	[int-ptr!]
+	p		[byte-ptr!]
+	ptr		[int-ptr!]
+	vect 	[red-vector!]
+	s	   	[series!]
+	w 		[integer!]
+	h		[integer!]
+	i 		[integer!]
+	j 		[integer!]
+	handle  [integer!] 
+	r g b a
+][
+	w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    handle: 0
+	*Mat: image/acquire-buffer src :handle
+	blk: as red-block! stack/arguments
+	block/make-at blk h
+	j: 0
+	while [j < h] [
+		i: 0
+		vect: vector/make-at stack/push* w TYPE_INTEGER 4
+		while [i < w] [
+			idx: *Mat + (j * w + i)
+			s: GET_BUFFER(vect)
+			p: alloc-tail-unit s 4		
+			ptr: as int-ptr! p
+			r: idx/value and FF0000h >> 16
+			g: idx/value and FF00h >> 8
+			b: idx/value and FFh
+			a: idx/value >>> 24
+       		switch op [
+       			1 [ptr/value:  r]				;r channel
+       			2 [ptr/value:  g]				;g channel
+       			3 [ptr/value:  b]				;b channel
+       			4 [ptr/value:  a]				;alpha channel
+       			5 [ptr/value:  idx/value]		;rgba 
+       			6 [ptr/value: (r + b + g) / 3]	;grayscale
+       		]
+			i: i + 1
+		]
+		block/rs-append blk as red-value! vect
+		j: j + 1
+	]
+	image/release-buffer src handle no
+	blk
+]
+
+rcvMat2Array: routine [
+"Vector to block of vectors (Array)"
+	mat 	[vector!] 
+	matSize [pair!]
+	/local
+	blk		[red-block!]
+	*Mat	[byte-ptr!]
+	idx 	[byte-ptr!]
+	vect 	[red-vector!]
+	s	   	[series!]
+	w 		[integer!]
+	h		[integer!]
+	i 		[integer!]
+	j 		[integer!]	 
+	p		[byte-ptr!]
+	p4		[int-ptr!]
+	p8		[float-ptr!]
+	unit	[integer!]	
+][
+	w: matSize/x
+	h: matSize/y
+	*Mat: vector/rs-head mat
+	s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	blk: as red-block! stack/arguments
+	block/make-at blk h
+	j: 0
+	while [j < h] [
+		i: 0
+		either unit <= 4 [vect: vector/make-at stack/push* w TYPE_INTEGER unit] 
+						 [vect: vector/make-at stack/push* w TYPE_FLOAT unit] 
+		while [i < w] [
+			idx: *Mat + (j * w + i * unit)
+			s: GET_BUFFER(vect)
+			p: alloc-tail-unit s unit
+			p4: as int-ptr! p
+			p8: as float-ptr! p	
+			either unit <= 4 [p4/value: vector/get-value-int as int-ptr! idx unit] 
+				[p8/value: vector/get-value-float idx unit]
+			i: i + 1
+		]
+		block/rs-append blk as red-value! vect
+		j: j + 1
+	]
+	as red-block! stack/set-last as cell! blk 
+]
+
+
+rcvArray2Mat: routine [
+"Block of vectors (Array) to matrix (vector)"
+	array 		[block!] 	; array of vectors
+	return: 	[vector!]
+	/local
+	headX		[red-value!]
+	tailX		[red-value!]
+	x* 			[red-vector!]
+	vectBlkX	[red-vector!]
+	vx 			[byte-ptr!]
+	s			[series!]
+	unit		[integer!]
+	nx			[integer!]
+	ny			[integer!]
+	y			[integer!]
+	x			[integer!]
+	idx			[integer!]
+	p4			[int-ptr!]
+	p8			[float-ptr!]
+][
+	headX: block/rs-head array
+	tailX: block/rs-tail array
+	ny: block/rs-length? array
+	vectBlkX: as red-vector! headX
+	vx: vector/rs-head vectBlkX
+    nx: vector/rs-length? vectBlkX
+    s: GET_BUFFER(vectBlkX)
+	unit: GET_UNIT(s)
+	either unit <= 4 [x*: vector/make-at stack/push* nx * ny TYPE_INTEGER unit] 
+					 [x*: vector/make-at stack/push* nx * ny TYPE_FLOAT unit] 
+	y: 0
+	while [headX < tailX] [
+		vectBlkX: as red-vector! headX
+		vx: vector/rs-head vectBlkX
+    	p4: as int-ptr! vector/rs-head x*
+		p8: as float-ptr! vector/rs-head x*
+		x: 0
+		while [x < nx] [
+			idx: y * nx + x + 1
+			either unit <= 4 [p4/idx: vector/get-value-int as int-ptr! vx unit] 
+				[p8/idx: vector/get-value-float vx unit]
+			vx: vx + unit
+			x: x + 1
+		]
+		y: y + 1
+		headX: headX + 1
+	]
+	s: GET_BUFFER(x*)
+	either unit <= 4 [s/tail: as cell! (as int-ptr! s/offset) + (nx * ny)]
+					 [s/tail: as cell! (as float-ptr! s/offset) + (nx * ny)]  
+	as red-vector! stack/set-last as cell! x* 
+]
+
+rcvBlendMat: routine [
+"Computes the alpha blending of two matrices"
+	mat1		[vector!]
+	mat2		[vector!]
+	dst			[vector!]
+	alpha		[float!]
+	/local
+	svalue1 	[byte-ptr!]
+	svalue2 	[byte-ptr!]
+	tail 		[byte-ptr!]
+	unit 		[integer!]
+	int1 		[integer!]
+	int2 		[integer!]
+	v			[integer!]
+	calpha		[float!]
+][
+	calpha: 1.0 - alpha
+	svalue1: vector/rs-head mat1 
+	svalue2: vector/rs-head mat2 
+    tail: vector/rs-tail mat1
+    vector/rs-clear dst 
+	unit: rcvGetMatBitSize mat1
+    while [svalue1 < tail][
+		int1: vector/get-value-int as int-ptr! svalue1 unit
+		int2: vector/get-value-int as int-ptr! svalue2 unit
+		v: as integer! (alpha * int1 + calpha * int2)
+		vector/rs-append-int dst v
+		svalue1: svalue1 + unit
+		svalue2: svalue2 + unit
+	]
+]
+
+rcvInRangeMat: routine [
+"Extracts sub array from matrix according to lower and upper values"
+	mat1		[vector!]
+	dst			[vector!]
+	lower		[integer!]
+	upper		[integer!]
+	op			[integer!]
+	/local
+	svalue1 	[byte-ptr!]
+	tail 		[byte-ptr!]
+	unit 		[integer!]
+	int1 		[integer!]
+	v			[integer!]
+] [
+	vector/rs-clear dst
+	svalue1: vector/rs-head mat1
+	tail: vector/rs-tail mat1
+	unit: rcvGetMatBitSize mat1
+	while [svalue1 < tail][
+		int1: vector/get-value-int as int-ptr! svalue1 unit
+		either ((int1 >= lower) and (int1 <= upper)) [
+			if op = 0 [v: FFh]
+			if op = 1 [v: int1]
+		] [v: 0]
+		vector/rs-append-int dst v
+		svalue1: svalue1 + unit
+	]
+]
+
+
+;************************** Mat Functions ******************************
 rcvCreateMat: function [ 
 "Creates 2D matrix"
 	type [word!] 
@@ -38,9 +966,9 @@ rcvCloneMat: function [
 "Returns a copy of source matrix"
 	src [vector!]
 ][
-	t: _rcvGetMatType src
-	if t = 1 [dst: make vector! reduce  [integer! length? src] _rcvCopyMat src dst]
-	if t = 2 [dst: make vector! reduce  [float! length? src] _rcvCopyMatF src dst] 
+	t: rcvGetMatType src
+	if t = 1 [dst: make vector! reduce  [integer! length? src] rcvCopyMatI src dst]
+	if t = 2 [dst: make vector! reduce  [float!   length? src] rcvCopyMatF src dst] 
 	dst
 ]
 
@@ -49,19 +977,9 @@ rcvCopyMat: function [
 	src [vector!] 
 	dst [vector!]
 ][
-	t: _rcvGetMatType src
-	if t = 1 [_rcvCopyMat src dst]
-	if t = 2 [_rcvCopyMatF src dst] 
-]
-
-
-; modified
-rcvMakeBinaryMat: function [
-"Makes [0 1] matrix"
-	src [vector!] 
-	dst [vector!]
-][
-	_rcvMakeBinaryMat src dst
+	t: rcvGetMatType src
+	if t = 1 [rcvCopyMatI src dst]
+	if t = 2 [rcvCopyMatF src dst] 
 ]
 
 makeRange: func [
@@ -70,7 +988,6 @@ makeRange: func [
 	step 	[number!]][
     collect [i: a - step until [keep i: i + step i = b]]
 ]
-
 
 rcvMakeRangeMat: function [
 "Creates an ordered matrix"
@@ -81,6 +998,15 @@ rcvMakeRangeMat: function [
 	tmp: makeRange a b step
 	make vector! tmp
 ]
+
+; A verifier pas utile
+{rcvCreateRangeMat: function [
+	a [number!] 
+	b [number!] 
+][
+	tmp: makeRange a b
+	make vector! tmp
+]}
 
 rcvMakeIndenticalMat: func [
 "Creates a matrix with identical values"
@@ -93,14 +1019,7 @@ rcvMakeIndenticalMat: func [
 	tmp + value
 ]
 
-; A verifier
-rcvCreateRangeMat: function [
-	a [number!] 
-	b [number!] 
-][
-	tmp: makeRange a b
-	make vector! tmp
-]
+
 
 
 rcvSortMat: func [
@@ -142,6 +1061,14 @@ rcvMeanMat: function [
 	(rcvSumMat mat) / (rcvLengthMat mat)
 ]
 
+rcvMeanMats: function [
+"dst: src1 + src2 / 2"
+	src1 [vector!] 
+	src2 [vector!] 
+][
+	(src1 + src2) / 2
+]
+
 rcvProdMat: function [
 "Matrix product as float value"
 	mat [vector!] 
@@ -163,9 +1090,8 @@ rcvMaxMat: function [
 	n: length? mat
 	vMax: mat/1
 	i: 2
-	while [i <= n] [
+	repeat i n [
 		either (mat/:i > vMax) [vMax: mat/:i] [vMax: vMax]
-		i: i + 1
 	]
 	vMax
 ]
@@ -177,21 +1103,11 @@ rcvMinMat: function [
 	n: length? mat
 	vMin: mat/1
 	i: 2
-	while [i <= n] [
-		either (mat/:i < vMin) [vMin: v/:i] [vMin: vMin]
-		i: i + 1
+	repeat i n [
+		either (mat/:i < vMin) [vMin: mat/:i] [vMin: vMin]
 	]
 	vMin
 ]
-
-
-_rcvRandomMat: function [v [vector!] value [number!]
-][
-	n: length? v
-	collect [i: 0 until [ i: i + 1 keep  v/:i: random value i = n]]
-]
-
-
 
 rcvRandomMat: function [
 "Randomize matrix"
@@ -200,8 +1116,6 @@ rcvRandomMat: function [
 ][
 	forall mat [mat/1: random value]
 ]
-
-
 
 rcvColorMat: function [
 	"Set matrix color"
@@ -215,320 +1129,6 @@ rcvColorMat: function [
 	forall mat [mat/1: value]
 ]
 
-
-; direct pixel access for 1 channel image
-; modified
-
-rcvGetInt2D: function [ 
-"Get integer matrix value"
-	src 		[vector!] 
-	mSize 		[pair!] 
-	coordinate 	[pair!] 
-][
-	;return: [integer!]
-	_rcvGetInt2D src mSize coordinate/x coordinate/y
-]
-
-rcvGetReal2D: function [ 
-"Get float matrix value"
-	src 		[vector!] 
-	mSize 		[pair!] 
-	coordinate 	[pair!] 
-	/f32
-][
-	;return: [float! float32!]
-	either f32 [_rcvGetReal322D src mSize coordinate/x coordinate/y]
-	[_rcvGetReal2D src mSize coordinate/x coordinate/y]
-]
-
-rcvSetInt2D: function [ 
-"Set integer matrix value"
-	dst 		[vector!] 
-	mSize 		[pair!] 
-	coordinate 	[pair!] 
-	val 		[integer!]
-] [
-	_rcvSetInt2D dst mSize coordinate/x coordinate/y val
-]
-
-rcvSetReal2D: function [
-"Set float matrix value"
-	 dst 		[vector!] 
-	 mSize [	pair!] 
-	 coordinate [pair!] 
-	 val 		[float!]
-][
-	_rcvSetReal2D dst mSize coordinate/x coordinate/y val
-]
-
-rcvGetPairs: function [
-"Gets coordinates from a binary matrix as pair values"
-	binMatrix 	[vector!] 
-	mSize 		[pair!] 
-	points 		[block!]
-][
-	width: mSize/x height: mSize/y
-	_rcvGetPairs binMatrix width height points
-]
-
-rcvGetPoints: function [
-"Gets coordinates from a binary matrix as x y values"
-	binMatrix 	[vector!] 
-	width 		[integer!] 
-	height 		[integer!] 
-	points 		[vector!]
-][
-	_rcvGetPoints binMatrix width height points
-]
-
-; for contour detection
-
-rcvMatleftPixel: function [
-"Gets coordinates of first left pixel"
-	mat 	[vector!] 
-	matSize [pair!] 
-	value 	[integer!] 
-][
-	b: copy []
-	_rcvleftPixel  mat matSize value b
-	;return: [pair!]
-	to-pair b/1
-]
-
-rcvMatRightPixel: function [
-"Gets coordinates of first right pixel"
-	mat 	[vector!] 
-	matSize [pair!] 
-	value 	[integer!] 
-][
-	b: copy []
-	_rcvRightPixel  mat matSize value b
-	;return: [pair!]
-	to-pair b/1
-]
-
-rcvMatUpPixel: function [
-"Gets coordinates of first top pixel"
-	mat 	[vector!] 
-	matSize [pair!] 
-	value 	[integer!] 
-][
-	b: copy []
-	_rcvUpPixel  mat matSize value b
-	;return: [pair!]
-	to-pair b/1 
-]
-
-rcvMatDownPixel: function [
-"Gets coordinates of first bottom pixel"
-	mat 	[vector!] 
-	matSize [pair!] 
-	value 	[integer!] 
-][
-	b: copy []
-	_rcvDownPixel  mat matSize value b
-	;return: [pair!]
-	to-pair b/1
-]
-
-rcvMatGetBorder: function [
-"Gets pixels that belong to shape border"
-	mat 	[vector!] 
-	matSize [pair!] 
-	value 	[integer!] 
-	border 	[block!]
-][
-	_rcvGetBorder mat matSize value border
-]
-
-
-rcvMatGetChainCode: function [
-"Gets Freeman Chain code"
-	mat 	[vector!] 
-	matSize [pair!] 
-	coord 	[pair!] 
-	value 	[integer!] 
-][
-	;return: [integer!]
-	_borderNeighbors mat matSize coord/x coord/y value
-]
-
-; new
-rcvGetContours: function [
-"Gets next contour pixel to process"
-	p [pair!] 
-	d [integer!] 
-][
-	r: p
-	switch d [
-		0	[r/x: p/x + 1	r/y: p/y]		; east
-		1	[r/x: p/x + 1 	r/y: p/y + 1]	; southeast
-		2	[r/x: p/x 		r/y: p/y + 1]	; south
-		3	[r/x: p/x - 1 	r/y: p/y + 1]	; southwest
-		4	[r/x: r/x - 1 	r/y: p/y]		; west
-		5	[r/x: p/x - 1 	r/y: p/y - 1]	; northwest
-		6	[r/x: p/x 		r/y: p/y - 1]	; north
-		7	[r/x: p/x + 1 	r/y: p/y - 1]	; northeast
-	]
-	;return: [pair!]
-	r
-]
-
-
-;Image and Contour moments
-
-; Hu Invariant Moments of 2D Matrix
-;uses binary transform for large images
-
-rcvGetMatCentroid: function [
-"Returns the centroid of the image"
-	mat 	[vector!] 
-	matSize [pair!]
-][
-	minLoc: 0x0
-	;return:	[pair!]
-	_rcvGetMatCentroid mat matSize/x matSize/y minLoc
-]
-
-
-;p - the order of the moment
-;q - the repetition of the moment
-; p: q: 0.0 -> moment order 0 -> form area
-
-
-rcvGetMatSpatialMoment: function [
-"Returns the spatial moment of the mat"
-	mat		[vector!] 
-	matSize [pair!]
-	p 		[float!] 
-	q 		[float!] 
-][
-	;return: [float!]
-	_rcvGetMatSpatialMoment mat matSize/x matSize/y p q
-]
-
-rcvGetMatCentralMoment: function [
-"Returns the central moment of the mat"
-	mat		[vector!] 
-	matSize [pair!]
-	p 		[float!] 
-	q 		[float!] 
-	
-][
-	minLoc: 0x0
-	centroid: _rcvGetMatCentroid mat matSize/x matSize/y minLoc
-	;return: [float!]
-	_rcvGetMatCentralMoment mat matSize/x matSize/y centroid p q
-]
-
-
-
-;Return the scale invariant moment of the image
-;p - the order of the moment
-;q - the repetition of the moment
-
-
-
-rcvGetNormalizedCentralMoment: function [
-"Return the scale invariant moment of the image"
-	mat  			[vector!]
-	matSize 		[pair!]
-    p				[float!]
-    q				[float!]
-] [
-	moment1: rcvGetMatCentralMoment mat matSize p q 
-	moment2: rcvGetMatCentralMoment mat matSize 0.0 0.0
-	exponent: p + q / 2.0 + 1.0  
-	m00: power moment2 exponent
-	;return:	[float!]
-	moment1 / m00
-]
-
-rcvGetMatHuMoments: function [
-"Returns Hu moments of the image"
-	mat  			[vector!]
-	matSize 		[pair!]
-][
-	;where ηi,j are normalized central moments of 2-nd and 3-rd orders.
-	n20: rcvGetNormalizedCentralMoment mat matSize 2.0 0.0
-	n02: rcvGetNormalizedCentralMoment mat matSize 0.0 2.0
-	n11: rcvGetNormalizedCentralMoment mat matSize 1.0 1.0
-	n12: rcvGetNormalizedCentralMoment mat matSize 1.0 2.0
-	n21: rcvGetNormalizedCentralMoment mat matSize 2.0 1.0
-	n30: rcvGetNormalizedCentralMoment mat matSize 3.0 0.0
-	n03: rcvGetNormalizedCentralMoment mat matSize 0.0 3.0
-
-	{from OpenCV
-	h1=η20+η02
-	h2=(η20-η02)²+4η11²
-	h3=(η30-3η12)²+ (3η21-η03)²
-	h4=(η30+η12)²+ (η21+η03)²
-	h5=(η30-3η12)(η30+η12)[(η30+η12)²-3(η21+η03)²]+(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]
-	h6=(η20-η02)[(η30+η12)²- (η21+η03)²]+4η11(η30+η12)(η21+η03)
-	h7=(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]-(η30-3η12)(η21+η03)[3(η30+η12)²-(η21+η03)²]
-	}
-	
-	hu1: n20 + n02
-	hu2: power (n20 - n02) 2 +  (4 * power n11 2)
-	hu3: (power n30 - (3 * n12) 2) + (power 3 * n21 - n03 2)
-	hu4: power (n30 + n12) 2 + power (n21 + n03) 2
-	
-	
-	;h5=(η30-3η12)(η30+η12)[(η30+η12)²-3(η21+η03)²]+(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]
-	
-	
-	a: n30 - (3 * n12)
-	b: n30 + n12
-	c: power n30 + n12 2
-	d: 3 * power n21 + n03 2 
-	e: 3 * n21 - n03
-	f: n21 + n03
-	g: 3 * power n30 + n12 2
-	h: power n21 + n03 2
-	
-	hu5: (a * b) * (c - d) + (e * f * (g - h))
-	
-	
-	
-	;hu5: n30 - (3 * n12) * (n30 + n12) - (3 * (n21 + n03) ** 2)))) 
-	;	+ (((3 * n21) - n03) * (n21 + n03)) * (3 * ((n30 + n12) ** 2) - ((n21 + n03) ** 2))
-	a: n20 - n02
-	b: (n30 + n12) ** 2
-	c: (n21 + n03) ** 2
-	d: 4 * n11
-	e: n30 + n12
-	f: n21 + n03
-	;print (a * (b - c)) + (d * e * f)
-	
-	hu6: (n20 - n02) * (((n30 + n12) ** 2) - (n21 + n03) ** 2) + (4 * n11) * ((n30 + n12) * (n21 + n03))
-	hu7: (3 * n21 - n03) * (n30 + n12) * ((n30 + n12) ** 2 - 3 * (n21 + n03) ** 2) -
-			(n30 - 3 * n12) * (n21 + n03) * (3 * (n30 + n12) ** 2 - (n21 + n03) ** 2)
-	; return: 		[block!]		
-	reduce [hu1 hu2 hu3 hu4 hu5 hu6 hu7]
-]
-
-
-
-
-
-;********* Matrices functions **************************
-
-rcvImage2Mat: function [
-"Red Image to integer or char 2-D Matrix "
-	src	[image!] 
-	mat [vector!]
-][
-	_rcvImage2Mat src mat
-]
-
-rcvMat2Image: function [
-"Matrix to Red Image"
-	mat [vector!] 
-	dst [image!]
-][
-	_rcvMat2Image mat dst
-]
-
 rcvMat2Binary: function [
 "Matrix to binary value"
 	mat [vector!] 
@@ -536,56 +1136,7 @@ rcvMat2Binary: function [
 	to-binary to-block mat
 ]
 
-rcvSplit2Mat: function [
-"Split an image to 4 8-bit matrices"
-	src 	[image!] 
-	mat0 	[vector!] 
-	mat1 	[vector!] 
-	mat2 	[vector!] 
-	mat3 	[vector!]  
-][
-	; mat0: a values
-	; mat1: r mat2 g mat3 b values
-	_rcvSplit2Mat src mat0 mat1 mat2 mat3
-]
-
-rcvMerge2Image: function [
-"Merge 4 8-bit matrices to image"
-	 mat0 	[vector!] 
-	 mat1 	[vector!] 
-	 mat2 	[vector!] 
-	 mat3 	[vector!]  
-	 dst 	[image!]
-][
-	_rcvMerge2Image mat0 mat1 mat2 mat3 dst
-]
-
-rcvConvolveMat: function [
-"Classical matrix convolution"
-	src 	[vector!] 
-	dst 	[vector!] 
-	mSize	[pair!] 
-	kernel 	[block!] 
-	factor 	[float!] 
-	delta 	[float!]
-] [
-	_rcvConvolveMat src dst mSize kernel factor delta 
-]
-
-
-rcvConvolveNormalizedMat: function [
-"Normalized fast matrix convolution"
-	src 	[vector!] 
-	dst 	[vector!] 
-	mSize	[pair!] 
-	kernel 	[block!] 
-	factor 	[float!] 
-	delta 	[float!]
-][
-	_rcvConvolveMat2 src dst mSize kernel factor delta 
-]
-
-rcvConvertMatScale: function [
+rcvConvertMatScale2: function [
 "Converts Matrix Scale"
 	src 		[vector!] 
 	dst 		[vector!] 
@@ -595,86 +1146,55 @@ rcvConvertMatScale: function [
 ][
 	if type? srcScale = integer! [srcScale: to float! srcScale]
 	if type? dstScale = integer! [dstScale: to float! dstScale]
-	case [
-		std  [n: length? src
-					i: 1
-					while [i <= n] [
-						dst/(i): to integer! ((src/(i) / srcScale) * dstScale)
-	 					i: i + 1]
-	 				]
-		fast	[_convertMatScale src dst srcScale dstScale]
-	]	
+	rcvConvertMatScale src dst srcScale dstScale
 ]
 
 rcvMatInt2Float: function [
-"Converts Integer Matrix to Float [0..1] matrix"	
+"Converts Integer Matrix to Float [0.0..1.0] matrix"	
 	src 		[vector!] 
 	dst 		[vector!] 
 	srcScale 	[number!]
 ][
 	if type? srcScale = integer! [srcScale: to float! srcScale]
 	n: length? src
-	i: 1
-	while [i <= n] [
-					dst/(i): to float! (src/(i)) / srcScale 
-	 				i: i + 1
-	]
+	repeat i n [dst/(i): to float! (src/(i)) / srcScale]
 ]
 
-;modified scale
 rcvMatFloat2Int: function [
-"Converts float matrix to integer [0..255] matrix"	
+"Converts float matrix [0.0 ..1.0] to integer [0..255] matrix"	
 	src 		[vector!] 
 	dst 		[vector!] 
-	dstScale 	[integer!]
+	dstScale 	[number!]
 ][
+	if type? dstScale = integer! [dstScale: to float! dstScale]
+	mini: rcvMinMat src
+	maxi: rcvMaxMat src
+	f: dstScale / (maxi - mini)
 	n: length? src
-	i: 1
-	while [i <= n] [
-					dst/(i): to integer! (src/(i) * dstScale)
-	 				i: i + 1
+	repeat i n [if error? try [dst/:i: to integer! (src/:i * f)]
+				[dst/:i: to integer! dstScale]
 	]
 ]
 
-rcvMatFastSobel: function [ 
-"Fast Sobel on Matrix"
-	src 	[vector!] 
-	dst 	[vector!] 
-	iSize 	[pair!]
+rcvLogMatFloat: function [
+"Applies log transform"	
+	src 		[vector!] 
+	dst 		[vector!] 
 ][
-	_rcvSobelMat src dst iSize
-]
-
-rcvMatrixMedianFilter: function [
-"Median Filter for matrices"
-	src [vector!] 
-	dst 	[vector!] 
-	mSize 	[pair!] 
-	kSize 	[pair!]
-][	
-	kernel: make vector! []
-	n: kSize/x * kSize/y
-	repeat i n [append kernel 0]
-	_rcvMatrixMedianFilter src dst mSize kSize/x kSize/y kernel
+	n: length? src
+	forall src [src/1: log-10 (1.0 + src/1)]
+	maxi: rcvMaxMat src
+	mini: rcvMinMat src
+	repeat i n [dst/(i): (src/(i) - mini) / (maxi - mini)]
 ]
 
 ;***********************Matrices Operations *********************
-__rcvAddMat: function [
-"dst: src1 +  src2"
-	src1 	[vector!] 
-	src2 	[vector!] 
-	dst 	[vector!]
-][
-	dst: src2 + src1
-	dst
-]
 
 rcvAddMat: function [
 "dst: src1 +  src2"
 	src1 [vector!] 
 	src2 [vector!] 
 ][
-	;return: [vector!]
 	src1 + src2
 ]
 
@@ -684,7 +1204,6 @@ rcvSubMat: function [
 	src1 [vector!] 
 	src2 [vector!] 
 ][
-	;return: [vector!]
 	src1 - src2
 ]
 
@@ -693,7 +1212,6 @@ rcvMulMat: function [
 	src1 [vector!] 
 	src2 [vector!] 
 ][
-	;return: [vector!]
 	src1 * src2
 ]
 
@@ -702,7 +1220,6 @@ rcvDivMat: function [
 	src1 [vector!] 
 	src2 [vector!] 
 ][
-	;return: [vector!]
 	src1 / src2
 ]
 
@@ -711,18 +1228,10 @@ rcvRemMat: function [
 	src1 [vector!] 
 	src2 [vector!] 
 ][
-	;return: [vector!]
 	src1 % src2
 ]
 
-rcvMeanMats: function [
-"dst: src1 + src2 / 2"
-	src1 [vector!] 
-	src2 [vector!] 
-][
-	;return: [vector!]
-	(src1 + src2) / 2
-]
+
 
 
 ; ****************************scalars*******************************
@@ -820,48 +1329,15 @@ rcvXORSMat: function [
 ]
 
 
-; ******************* morphological Operations**************************
-rcvErodeMat: function [
-"Erodes matrice by using structuring element"
-	src 	[vector!] 
-	dst 	[vector!] 
-	mSize 	[pair!] 
-	kSize 	[pair!] 
-	kernel 	[block!]
-][
-	_rcvMorpho src dst mSize kSize/x kSize/y kernel 2
-]
 
-rcvDilateMat: function [
-"Dilates matrice by using structuring element"
-	src 	[vector!] 
-	dst 	[vector!] 
-	mSize 	[pair!] 
-	kSize 	[pair!] 
-	kernel 	[block!]
-][
-	_rcvMorpho src dst mSize kSize/x kSize/y kernel 1 
-]
 
-;************** matrices alpha blending ***********************
 
-rcvBlendMat: function [
-"Computes the alpha blending of two matrices"
-	mat1 	[vector!] 
-	mat2 	[vector!] 
-	dst 	[vector!] 
-	alpha 	[float!] 
-][
-	_rcvBlendMat mat1 mat2 dst alpha
-]
 
-rcvInRangeMat: function [
-"Extracts sub array from matrix according to lower and upper values"
-	src 	[vector!] 
-	dst 	[vector!] 
-	lower 	[integer!] 
-	upper 	[integer!] 
-	op 		[integer!]
-] [
-	_rcvInRangeMat src dst lower upper op
-]
+
+
+
+
+
+
+
+

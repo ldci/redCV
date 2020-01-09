@@ -1,11 +1,14 @@
 Red [
-	Title:   "Test camera Red VID "
+	Title:   "Test ZLib "
 	Author:  "Francois Jouen"
-	File: 	 %compress1.red
+	File: 	 %compress.red
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/core/rcvCore.red
+#include %../../libs/zLib/rcvZLib.red
 
 margins: 5x5
 defSize: 256x256
@@ -42,22 +45,23 @@ loadImage: does [
 
 
 compressImage: does [
+	sb/text: "Compressing image..."
 	f0/text: f2/text:  ""
 	img2/rgb: 0.0.0
 	b2/image: img2
 	img3/rgb: 0.0.0
 	b3/image: img3
+	do-events/no-wait
 	n: length? rgb
 	t1: now/time/precise
 	result: rcvCompressRGB rgb clevel
 	n1: length? result	
 	compression: 100 - (100 * n1 / n)
-	f0/text: rejoin [" Compression: " form compression]
-	append f0/text " %"
+	f0/text: rejoin [" Compression: " form compression " %"]
 	f11/text: rejoin [form n " bytes"]
 	f2/text: rejoin [form n1 " bytes"]
 	; not useful for compression
-	; only to show img2 and avoid pointer error
+	; only to show image compression and avoid pointer error
 	if cb/data [
 		i: n1 
 		while [i < n ] [
@@ -68,12 +72,14 @@ compressImage: does [
 		b2/image: img2
 	]
 	t2: now/time/precise
-	sb/text: rejoin ["Compressed in " form t2 - t1]
+	sb/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
 	isCompressed: true
 ]
 
 uncompressImage: does [
+	sb/text: ""
 	f3/text: ""
+	do-events/no-wait
 	n: length? rgb
 	t1: now/time/precise
 	result2: rcvDecompressRGB result n
@@ -81,7 +87,7 @@ uncompressImage: does [
 	f3/text: rejoin [form length? result2 " bytes"]
 	img3/rgb: copy result2
 	b3/image: img3
-	sb/text: rejoin ["Uncompressed in " form t2 - t1]
+	sb/text: rejoin ["Uncompressed in " rcvElapsed t1 t2 " ms"]
 ]
 
 
@@ -114,7 +120,6 @@ view win: layout [
 	b3: base defSize black
 	return
 	sb: field 778
-	
 ]
 
 

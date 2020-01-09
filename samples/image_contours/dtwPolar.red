@@ -5,14 +5,20 @@ Red [
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/math/rcvDistance.red
+#include %../../libs/imgproc/rcvFreeman.red
+#include %../../libs/timeseries/rcvDTW.red
 
 bitSize: 32
 matSize: 256x256
 img1: rcvCreateImage 256x256
 img2: rcvCreateImage 256x256
-mat1:  	rcvCreateMat 'integer! bitSize matSize
-mat2:  	rcvCreateMat 'integer! bitSize matSize
+mat1: rcvCreateMat 'integer! bitSize matSize
+mat2:  rcvCreateMat 'integer! bitSize matSize
 
 isLoad1: false
 isLoad2: false
@@ -50,7 +56,7 @@ loadImage: func [n [integer!] return: [logic!]][
 			visited1: rcvCreateMat 'integer! bitSize matSize1
 			rcv2WB img1 img11 
 			rcvImage2Mat img11 mat1 		; process image to a bytes matrix [0..255] 
-			rcvMakeBinaryMat mat1 bmat1	; processImages to a binary matrix [0..1]
+			rcvMakeBinaryMat mat1 bmat1		; processImages to a binary matrix [0..1]
 			cg1: rcvGetMatCentroid bmat1 matSize1
 			canvas1/image: img11
 			w1: img1/size/x
@@ -63,7 +69,7 @@ loadImage: func [n [integer!] return: [logic!]][
 			visited2: rcvCreateMat 'integer! bitSize matSize2
 			rcv2WB img2 img21
 			rcvImage2Mat img21 mat2 		; process image to a bytes matrix [0..255] 
-			rcvMakeBinaryMat mat2 bmat2	; processImages to a binary matrix [0..1]
+			rcvMakeBinaryMat mat2 bmat2		; processImages to a binary matrix [0..1]
 			cg2: rcvGetMatCentroid bmat2 matSize2
 			canvas2/image: img21
 			w2: img2/size/x

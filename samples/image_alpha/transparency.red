@@ -4,8 +4,9 @@ Red [
 	File: 	 %transparency.red
 	Needs:	 'View
 ]
+;required libs
+#include %../../libs/core/rcvCore.red
 
-#include %../../libs/redcv.red ; for redCV functions
 margins: 10x10
 img1: rcvCreateImage 512x512
 img2: rcvCreateImage 512x512

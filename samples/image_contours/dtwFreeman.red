@@ -5,7 +5,11 @@ Red [
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvFreeman.red
+#include %../../libs/timeseries/rcvDTW.red
 
 bitSize: 32
 matSize: 256x256
@@ -15,12 +19,12 @@ matSize&: 256x256
 img1: rcvCreateImage 256x256
 img2: rcvCreateImage 256x256
 
-mat1:  rcvCreateMat 'integer! bitSize matSize
-bmat1:  rcvCreateMat 'integer! bitSize matSize
-mat2:  rcvCreateMat 'integer! bitSize matSize
-bmat2:  rcvCreateMat 'integer! bitSize matSize
-visited1: rcvCreateMat 'integer! bitSize matSize
-visited2: rcvCreateMat 'integer! bitSize matSize
+mat1:  		rcvCreateMat 'integer! bitSize matSize
+bmat1:  	rcvCreateMat 'integer! bitSize matSize
+mat2:  		rcvCreateMat 'integer! bitSize matSize
+bmat2:  	rcvCreateMat 'integer! bitSize matSize
+visited1: 	rcvCreateMat 'integer! bitSize matSize
+visited2: 	rcvCreateMat 'integer! bitSize matSize
 border1: copy []
 border2: copy []
 isLoad1: false
@@ -43,11 +47,11 @@ loadImage1: does [
 	isLoad1: false
 	tmp: request-file
 	if not none? tmp [
-		img1: rcvLoadImage tmp
-		img11: rcvCreateImage img1/size
+		img1: 	rcvLoadImage tmp
+		img11: 	rcvCreateImage img1/size
 		clone1: rcvCreateImage img1/size
 		matSize1: img1/size
-		mat1:  rcvCreateMat 'integer! bitSize matSize1
+		mat1:  	rcvCreateMat 'integer! bitSize matSize1
 		bmat1:  rcvCreateMat 'integer! bitSize matSize1
 		;visited1: rcvCreateMat 'integer! bitSize matSize1
 		rcv2WB img1 img11 

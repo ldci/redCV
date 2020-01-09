@@ -8,9 +8,12 @@ Red [
 ;A basic edges detection filter by subtraction (smoothed image - original image)
 ;it's works because Gaussian filter + delta function ≈ Laplacian of Gaussian
 
+; required libs
+#include %../../../libs/tools/rcvTools.red
+#include %../../../libs/core/rcvCore.red
+#include %../../../libs/matrix/rcvMatrix.red
+#include %../../../libs/imgproc/rcvImgProc.red
 
-
-#include %../../../libs/redcv.red ; for redCV functions
 margins: 10x10
 isFile: false
 iSize: 256x256
@@ -29,7 +32,7 @@ loadImage: does [
 		rcv2Gray/average img1 gray 
 		rcvCopyImage gray dst
 		canvas1/image: gray
-		rcvGaussianFilter gray img2 kSize
+		rcvGaussianFilter gray img2 kSize 1.0
 		rcvSub img2 gray dst
 		canvas2/image: dst
 		isFile: true

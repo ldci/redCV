@@ -6,10 +6,15 @@ Red [
 ]
 
 
-; last Red Master required!
-#include %../../../libs/redcv.red ; for red functions
+; required libs
+#include %../../../libs/tools/rcvTools.red
+#include %../../../libs/core/rcvCore.red
+#include %../../../libs/matrix/rcvMatrix.red
+#include %../../../libs/imgproc/rcvImgProc.red
+
 margins: 10x10
 img1: rcvCreateImage 512x512
+cImg: rcvCreateImage 512x512
 dst: rcvCreateImage 512x512
 count: 0
 
@@ -20,7 +25,7 @@ loadImage: does [
 		fileName: to string! to-file tmp
 		win/text: fileName
 		img1: rcvLoadImage tmp
-		currentImage: rcvCloneImage img1
+		cImg: rcvCloneImage img1
 		dst:  rcvCloneImage img1
 		canvas/image: dst
 	]
@@ -36,9 +41,10 @@ view win: layout [
 		
 		button 80 "No Filter" 	[count: 0 f/text: form count
 								rcvCopyImage img1 dst 
-								 rcvCopyImage img1 currentImage]						    								
-		button 80 "Filter +"	[rcvGaussianFilter currentImage dst 3x3 2.0
-								rcvCopyImage dst currentImage
+								 rcvCopyImage img1 cImg]						    								
+		button 80 "Filter +"	[
+								rcvGaussianFilter cImg dst 3x3 2.0
+								rcvCopyImage dst cImg
 								count: count + 1 f/text: form count
 								]		
 		f: field 50	"0"				

@@ -5,8 +5,8 @@ Red [
 	Needs:	 'View
 ]
 
-; required last Red Master
-#include %../../libs/redcv.red ; for red functions
+; required libs
+#include %../../libs/matrix/rcvMatrix.red
 
 margins: 5x5
 ;8, 16 or 32-bit

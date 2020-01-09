@@ -8,7 +8,9 @@ Red [
 ; last Red Master required!
 ; must be improved bt using a routine
 
-#include %../../libs/redcv.red ; for redcv functions
+; required libs
+#include %../../libs/math/rcvRandom.red
+
 margins: 5x5
 img1: make image! reduce [100x100 black]
 img2: make image! reduce [100x100 black]

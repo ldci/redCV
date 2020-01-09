@@ -4,8 +4,9 @@ Red [
 	File: 	 %tiffWriter.red
 	Needs:	 View
 ]
-
-#include %../../libs/redcv.red ; for red functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/tiff/rcvTiff.red
 
 ; **************test program variables and functions*********
 dSize: 512
@@ -21,6 +22,7 @@ loadImage: does [
 	if not none? tmp [
 		img: rcvLoadImage tmp
 		canvas1/image: img
+		canvas2/image: none
 		isFile: true
 	]
 ]
@@ -37,14 +39,14 @@ writeTiff: does [
 
 view win: layout [
 	title "Red to TIFF Image writing"
-	button 100 "Load Image" 	[loadImage]	
-	button 100 "Write Tiff" 	[if isFile [writeTiff]]		
-	pad 730x0
-	button 70 "Quit" 			[Quit]
+	button 120 "Load Red Image" 	[loadImage]	
+	button 100 "Write Tiff" 		[if isFile [writeTiff]]		
+	pad 710x0
+	button 70 "Quit" 				[Quit]
 	return
 	text dSize "Red Source Image"
 	text dSize "24-bit Tiff Converted Image"
 	return
 	canvas1:  base gsize img
-	canvas2:  base gsize img	
+	canvas2:  base gsize black	
 ]

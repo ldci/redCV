@@ -5,7 +5,12 @@ Red [
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
 margins: 5x10
 img1: rcvCreateImage 512x512
 dst:  rcvCreateImage img1/size

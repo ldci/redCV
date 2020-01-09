@@ -5,7 +5,9 @@ Red [
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+
 margins: 5x5
 
 img1: rcvCreateImage 256x256
@@ -13,8 +15,6 @@ img2: rcvCreateImage 256x256
 dst: rcvCreateImage 256x256
 rcvColorImage img1 yellow
 rcvColorImage img2 magenta
-
-
 
 view win: layout [
 	title "Subtractive color"

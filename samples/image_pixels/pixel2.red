@@ -6,7 +6,10 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/tiff/rcvTiff.red	
+
 margins: 10x10
 defSize: 512x512
 img1: rcvCreateImage defSize

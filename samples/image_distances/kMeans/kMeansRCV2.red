@@ -1,4 +1,3 @@
-#! /usr/local/bin/red
 Red [
 	Title:   "Red Computer Vision: K Means"
 	Author:  "Francois Jouen"
@@ -12,7 +11,10 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../../libs/redcv.red ; for redCV functions
+#include %../../../libs/tools/rcvTools.red
+#include %../../../libs/matrix/rcvMatrix.red
+#include %../../../libs/math/rcvDistance.red
+#include %../../../libs/math/rcvCluster.red
 
 ;Some variables we need
 
@@ -59,7 +61,7 @@ genPoints: routine [
 	bvalue: block/rs-head array
 	len:  block/rs-length? array
 	vectBlk: as red-vector! bvalue
-	unit: _rcvGetMatBitSize vectBlk
+	unit: rcvGetMatBitSize vectBlk
 	;note: this is not a really uniform 2-d distribution
 	i: 0
     while [i < len][

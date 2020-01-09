@@ -5,17 +5,17 @@ Red [
 	Needs:	 'View
 ]
 
-; required last Red Master
-
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
 
 margins: 5x5
-msize: 512x512
+msize: 256x256
 img1: rcvCreateImage msize
-img2: rcvCreateImage img1/size
+img2: rcvCreateImage msize
 f: 1
 isFile: false
-
 
 loadImage: does [
 	isFile: false
@@ -26,7 +26,7 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
-		mat: rcvCreateMat 'integer! 8 img1/size
+		mat: rcvCreateMat 'integer! 32 img1/size
 		rcvImage2Mat img1 mat ; -> Grayscale image
 		rcvMat2Image mat img1
 		rcvMat2Image mat img2
@@ -38,11 +38,10 @@ loadImage: does [
 
 ; ***************** Test Program ****************************
 view win: layout [
-		title "Contrast Tests"
+		title "Low Contrast"
 		origin margins space margins
 		button 120 "Load Image"  [loadImage]
-		sl: slider 370 [f: to integer! (face/data * 127)
-						if f = 0 [f: 1]
+		sl: slider 260 [f: 1 + to integer! (face/data * 15)
 						v/data: form f 
 						if isFile [
 							rcvImage2Mat img1 mat 
@@ -51,12 +50,10 @@ view win: layout [
 							canvas2/image: img2
 						]
 			 ]
-		v: field 50 "1"
-		pad 400x0
-		button 60 "Quit" 				[rcvReleaseImage img1 rcvReleaseImage img2 Quit]
+		v: field 60 "1"
+		button 60 "Quit" [rcvReleaseImage img1 rcvReleaseImage img2 Quit]
 		return
 		canvas1: base msize img1
 		canvas2: base msize img2
 		do [sl/data: 0.0]
-		
 ]

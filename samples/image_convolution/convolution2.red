@@ -9,8 +9,11 @@ Red [
 fileName: ""
 isFile: false
 
-; all we need for computer vision with red
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
 
 
 identity: [0.0 0.0 0.0
@@ -47,8 +50,8 @@ loadImage: does [
 	if not none? tmp [
 		fileName: to string! to-file tmp
 		win/text: rejoin ["redCV Convolution: " fileName]
-		rimg: load tmp
-		dst: load tmp
+		rimg: rcvLoadImage tmp
+		dst: rcvLoadImage tmp
 		canvas/image: dst
 		isFile: true
 		op: 1

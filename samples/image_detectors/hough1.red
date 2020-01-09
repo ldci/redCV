@@ -5,7 +5,12 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvHough.red
 
 isFile: false
 isize: 256x256
@@ -56,7 +61,7 @@ loadImage: does [
 
 process: does [
 	acc: rcvMakeHoughAccumulator imgW imgH			; makes Hough accumulator
-	rcvHoughTransform mat acc imgW imgH 			; performs Hough transform
+	rcvHoughTransform mat acc imgW imgH 127			; performs Hough transform
 	hSpace: rcvCreateImage rcvGetAccumulatorSize acc; creates Hough space image
 	rcvHough2Image acc hSpace contrast				; shows Hough space
 	canvas3/image: hSpace

@@ -6,7 +6,9 @@ Red [
 ]
 
 ; required last Red Master
-#include %../../libs/redcv.red ; for red functions
+; required libs
+
+#include %../../libs/matrix/rcvMatrix.red
 
 margins: 5x5
 ; float 32 or 64-bit

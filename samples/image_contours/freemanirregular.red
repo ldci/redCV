@@ -6,7 +6,16 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvMorphology.red
+#include %../../libs/imgproc/rcvFreeman.red
+#include %../../libs/timeseries/rcvDTW.red
+
+
 iSize: 512x512
 rSize: 300x300
 img: rcvCreateImage iSize
@@ -22,12 +31,13 @@ knlSize: 3x3
 knl: rcvCreateStructuringElement/rectangle knlSize
 factor: 1.0
 delta: 0.0
-anim: false
+anim: true
 canny: [-1.0 -1.0 -1.0
 		-1.0 8.0 -1.0 
 		-1.0 -1.0 -1.0]
 		
 generatePolygon: does [
+	random/seed now/time/precise
 	canvas/image: none
 	clear f0/text
 	clear f1/text
@@ -40,6 +50,7 @@ generatePolygon: does [
 	plot: compose [pen white fill-pen white polygon (p1) (p2) (p3) (p4) (p5)]
 	canvas/draw: reduce [plot]
 	pgb/data: 0%
+	processImage
 ]
 
 processImage: does [
@@ -69,16 +80,16 @@ processImage: does [
 	append append plot 'pen 'green
 	pix: 1
 	; repeat until all pixels are processed
-	while [pix > 0] [
-		pix: rcvGetInt2D visited iSize p
+	while [pix <> 0] [
+		pix: rcvGetInt2D visited iSize/x p/x p/y	; get integer value 
 		d: rcvMatGetChainCode visited iSize p 1		; get chain code
 		rcvSetInt2D visited iSize p 0				; pixel processed 
-		append append append plot 'circle (p) 2 
+		append append append plot 'circle (p) 1 
 		if d > -1 [append s form d]
-		if anim [do-events/no-wait]; to show progression
 		;get the next pixel to process
-		p: rcvGetContours p d
 		pgb/data: to-percent (i / to-float perim)
+		if anim [do-events/no-wait]; to show progression
+		p: rcvGetContours p d
 		i: i + 1
 	]
 	r/text: s
@@ -88,9 +99,8 @@ processImage: does [
 view win: layout [
 	title "Chain Code with Canny Detector"
 	button "Generate Polygon" [generatePolygon]
-	cb: check "Show Anination" [anim: face/data]
-	button "Process" [processImage]
-	pgb: progress 160
+	cb: check "Show Anination" true [anim: face/data]
+	pgb: progress 245
 	f0: field 125
 	button "Quit" [
 					rcvReleaseImage img

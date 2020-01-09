@@ -6,8 +6,10 @@ Red [
 ]
 
 
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+
+
 margins: 5x5
 img1: rcvCreateImage 512x512; rcvLoadImage %../../images/lena.jpg
 img2: rcvRandomImage/uniform img1/size 255.255.255 ;

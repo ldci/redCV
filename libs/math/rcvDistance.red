@@ -10,24 +10,90 @@ Red [
 	}
 ]
 
+;******************* absolute distances *****************************
+;general routines for distance
+_rcvDotsDistance: routine [
+	dx		[float!] 	; x distance between 2 dots
+	dy		[float!] 	; y distance between 2 dots
+	op		[integer!]	; distance function
+	p		[float!]	; power for Minkowski
+	return: [float!]
+	/local
+	x2		[float!] 
+	y2		[float!]
+	m1		[float!]
+	m2		[float!]
+	s		[float!]		
+] [
+	if dx < 0.0 [dx: 0.0 - dx]
+	if dy < 0.0 [dy: 0.0 - dy]
+	x2: dx * dx
+	y2: dy * dy
+	; for absolute distances
+	switch op [
+		1	[sqrt (x2 + y2)]				; Euclidian
+		2	[dx + dy]						; Manhattan
+		3	[maxFloat dx dy]				; Chessboard
+		4	[m1: pow dx p m2: pow dy p
+			 s: m1 + m2 pow s (1.0 / p)]	; Minkowsky
+		5	[either (dx > dy) [dx] [dy]]	; Chebyshev
+		6	[x2 + y2]						; D2 Euclidian 
+	]
+]
 
- 
+;******************* fractional distances ******************
+_rcvDotsFDistance: routine [
+	dx1		[float!] 	; x1 - x2  distance
+	dx2		[float!] 	; x1 + x2 distance 
+	dy1		[float!] 	; y1 - y2 distance 
+	dy2		[float!] 	; y1 + y2 distance 
+	op		[integer!]	; distance op
+	return: [float!]
+	/local
+	r
+] [
+	switch op [
+		1 [r: (dx1 / dx2) + (dy1 / dy2)]; Camberra
+		2 [r: (dx1 + dy1) / (dx2 + dy2)]; Sorensen
+	]
+	if r < 0.0 [r: 0.0 - r]
+	r
+]
 
-#include %rcvDistanceRoutines.red
+; distance to color 
+rcvDistance2Color: routine [
+"Returns tuple value modified by distance"
+		dist 	[float!] 
+		t 		[tuple!]
+		/local
+		r g b		;integer!
+		rf gf bf	;integer!
+		arr1		;tuple!
+][
+	r: t/array1 and FFh 
+	g: t/array1 and FF00h >> 8 
+	b: t/array1 and 00FF0000h >> 16 
+	rf: as integer! (dist * r)
+	gf: as integer! (dist * g)
+	bf: as integer! (dist * b)
+	arr1: (bf << 16) or (gf << 8 ) or rf
+	stack/set-last as red-value! tuple/push 3 arr1 0 0
+]
+
+
 
 ;general distances functions 
 
-_rcvGetEuclidianDistance: function [
-"Gets Euclidian distance between 2 points"
-	p 	[pair!] 
-	cg 	[pair!]
+rcvDegree2xy: function [
+"Returns XY coordinates from angle and distance between 2 points"
+	radius [number!]
+	degree [number!]
 ][
-	x2: (p/x - cg/x) * (p/x - cg/x)
-	y2: (p/y - cg/y) * (p/y - cg/y)
-	sqrt (x2 + y2) 
+	as-pair (radius * sine degree) (radius * negate cosine degree)
 ]
 
-;new version
+
+
 rcvGetEuclidianDistance: function [
 "Gets Euclidian distance between 2 points"
 	a [pair!] 
@@ -110,16 +176,6 @@ rcvGetSorensenDistance: function [
 	_rcvDotsFDistance dx1 dx2 dy1 dy2 2
 ]
 
-rcvDistance2Color: function [
-"Returns tuple value modified by distance"
-	dist [float!] 
-	t [tuple!]
-][
-	_rcvDistance2Color dist t
-]
-
-
-
 rcvGetAngle: function [
 "Gets angle in degrees from points coordinates"
 	p 	[pair!] 
@@ -161,185 +217,198 @@ rcvRhoNormalization: function [
 
 ;*************** Voronoï and Distance Diagrams *********
 
-rcvVoronoiDiagram: function [
+rcvVoronoiDiagram: routine [
 "Creates Voronoï diagram"
-	peaks 	[block!] 
-	peaksC 	[block!] 
-	img 	[image!] 
-	param1 	[logic!]
-	param2 	[integer!] 
-	param3 	[float!]
+	peaks	[block!]		; block of seed coordinates
+	peaksC	[block!]		; colors as tuples
+	img		[image!]		; image for rendering
+	param1	[logic!]		; show seeds or not
+	param2	[integer!]		; kind of distance
+	param3	[float!]		; p value for Minkowski distance
+	/local
+	pix1 	[int-ptr!]
+	idxim	[int-ptr!]
+	pt		[int-ptr!]
+	n 		[integer!]
+	x 		[integer!]
+	y 		[integer!]
+	s		[integer!] 
+	w		[integer!] 
+	h		[integer!] 
+	sMin	[integer!]
+	handle1 [integer!]
+	d 		[float!]
+	dMin 	[float!]
+	p		[red-pair!] 		
+	bxy		[red-value!]
+	bcl 	[red-value!]
+	idxy	[red-value!]
+	idxc	[red-value!]
 ][
-	_rcvVoronoiDiagram peaks peaksC img param1 param2 param3
+	handle1: 0
+	n: block/rs-length? peaks
+	bxy: block/rs-head peaks
+	bcl: block/rs-head peaksC
+	pix1: image/acquire-buffer img :handle1
+	w: IMAGE_WIDTH(img/size)
+    h: IMAGE_HEIGHT(img/size)
+	y: 0
+	 while [y < h] [
+    	x: 0
+       	while [x < w ][
+       		dMin: _rcvDotsDistance as float! w as float! h param2 param3
+       		s: 0
+       		;calculate distance 
+       		while [s < n] [
+       			idxy: bxy + s
+       			p: as red-pair! idxy
+       			d: _rcvDotsDistance as float! p/x - x  as float! p/y - y param2 param3
+       			if d < dMin [
+					sMin: s
+					dMin: d
+				]
+				s: s + 1
+       		]
+       		idxc: bcl + sMin
+			pt: as int-ptr! idxc		; get seed color (a tuple)
+			idxim: pix1 + (y * w) + x
+			idxim/value: (255 << 24) OR pt/1 OR pt/2 OR pt/3
+       		x: x + 1
+       	]
+    y: y + 1
+    ]
+    
+    if param1 = true [
+    	s: 0 
+    	while [s < n] [
+    		idxy: bxy + s
+       		p: as red-pair! idxy
+       		;make a cross for better seed visualization
+       		if all [p/x > 1 p/y > 1 p/x < (w - 1) p/y < (h - 1)][
+       			idxim: pix1 + (p/y * w) + p/x
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y * w) + p/x - 1
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y * w) + p/x + 1
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y - 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       			idxim: pix1 + (p/y + 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (0 << 16 ) OR (0 << 8) OR 0
+       		]
+       		s: s + 1
+    	]
+    ]
+	image/release-buffer img handle1 yes
 ]
 
 ;Based on Boleslav Březovský's sample
-rcvDistanceDiagram: function [
+rcvDistanceDiagram: routine [
 "Creates Distance diagram"
-	peaks 	[block!] 
-	peaksC 	[block!] 
-	img [	image!] 
-	param1 	[logic!]
-	param2 	[integer!] 
-	param3 	[float!]
+	peaks	[block!]		; block of seed coordinates
+	peaksC	[block!]		; colors as tuples
+	img		[image!]		; image for rendering
+	param1	[logic!]		; show seeds or not	
+	param2	[integer!]		; kind of distance
+	param3	[float!]		; p value for Minkowski distance
+	/local
+	pix1 	[int-ptr!]
+	idxim	[int-ptr!]
+	n 		[integer!]
+	x 		[integer!]
+	y 		[integer!]
+	s		[integer!] 
+	w		[integer!] 
+	h		[integer!] 
+	sMin	[integer!]
+	handle1 [integer!]
+	d 		[float!]
+	dMin 	[float!]
+	dMax	[float!]
+	p		[red-pair!] 		
+	bxy		[red-value!]
+	idxy	[red-value!]
+	bcl 	[red-value!]
+	idxc	[red-value!]	
+	r 		[integer!]
+	g 		[integer!]
+	b		[integer!]
+	dr 		[integer!]
+	dg 		[integer!]
+	db		[integer!]
+	t		[red-tuple!]
 ][
-	_rcvDistanceDiagram peaks peaksC img param1 param2 param3
+	handle1: 0
+	n: block/rs-length? peaks
+	bxy: block/rs-head peaks
+	bcl: block/rs-head peaksC
+	pix1: image/acquire-buffer img :handle1
+	w: IMAGE_WIDTH(img/size)
+    h: IMAGE_HEIGHT(img/size)
+	y: 0
+	 while [y < h] [
+    	x: 0
+       	while [x < w ][
+       		;calculate distance 
+       		dMax: 0.1 * _rcvDotsDistance as float! w as float! h param2 param3 
+       		dMin: 0.1 * _rcvDotsDistance as float! w as float!  h param2 param3
+       		s: 0
+       		while [s < n] [
+       			idxy: bxy + s
+       			p: as red-pair! idxy
+       			d: _rcvDotsDistance as float! p/x - x  as float! p/y - y param2 param3
+       			d: d / dMax
+       			if d < dMin [
+					sMin: s
+					dMin: d
+				]
+				s: s + 1
+       		]
+       		d: 1.0 - dMin * 0.75
+       		if d < 0.0 [d: 0.0]
+       		idxc: bcl + sMin		
+			t: as red-tuple! idxc		; get seed color (a tuple)
+			r: t/array1 and 00FF0000h >> 16
+			g: t/array1 and FF00h >> 8 
+			b: t/array1 and FFh 
+			dr: as integer! (d * r)
+			dg: as integer! (d * g)
+			db: as integer! (d * b)
+			idxim: pix1 + (y * w) + x
+			idxim/value: (255 << 24) OR (dr << 16 ) OR (dg << 8) OR db
+       		x: x + 1
+       	]
+    y: y + 1
+    ]
+    ; show seeds if required
+    if param1 [
+    	s: 0 
+    	while [s < n] [
+    		idxy: bxy + s
+       		p: as red-pair! idxy
+       		;make a cross for better seed visualization
+       		if all [p/x > 1 p/y > 1 p/x < (w - 1) p/y < (h - 1)][
+       			idxim: pix1 + (p/y * w) + p/x
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y * w) + p/x - 1
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y * w) + p/x + 1
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y - 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       			idxim: pix1 + (p/y + 1 * w) + p/x
+       			idxim/value: (255 << 24) OR (255 << 16 ) OR (255 << 8) OR 255
+       		]
+       		s: s + 1
+    	]
+    ]
+    
+	image/release-buffer img handle1 yes
 ]
 
-;*************** kMeans Algorithm ********************
-; All functions require redCV array data type
-rcvKMInitData: function [
-"Creates data or centroid array"
-	count [integer!]
-][
-	blk: copy []
-	i: 0
-	while [i < count] [
-		append blk make vector! [float! 64 [0.0 0.0 0.0]]
-		i: i + 1
-	]
-	blk
-]
 
-rcvKMGenCentroid: function [
-"Generates centroids initial values"
-	array [block!]
-][
-	_genCentroid array
-]
-rcvKMInit: function [
-"k Means first initialization"
-	points 		[block!] 
-	centroid 	[block!] 
-	tmpblk 		[block!]
-][
-	_kpp points centroid tmpblk
-]
 
-rcvKMCompute: function [
-"Lloyd K-means clustering with convergence"
-	points 		[block!] 
-	centroid 	[block!]
-][
-	_lloyd points centroid
-]
 
 	
-; ************** Chamfer distance **********
-
-{ Thanks to Pierre Schwartz & Xavier Philippeau
- Kernels by Verwer, Borgefors and Thiel 
- http://www.developpez.com for the java implementation
- ; in french Distance de chanfrein}
-
-
-; predefined array of distances 
-cheessboard: copy [1 0 1 1 1 1]
-chamfer3:	 copy [1 0 3 1 1 4]
-chamfer5:	 copy [1 0 5 1 1 7 2 1 11]
-chamfer7:	 copy [1 0 14 1 1 20 2 1 31 3 1 44]
-chamfer13:	 copy [1 0 68 1 1 96 2 1 152 3 1 215 3 2 245 4 1 280 4 3 340 5 1 346 6 1 413]
-normalizer:  0
-chamfer:	 copy []
-
-
-;src and dst are integer matrices
-rcvMakeGradient: function [
-"Makes a gradient matrix for contour detection (similar to Sobel) and returns max value"
-	src 	[vector!] 
-	dst 	[vector!] 
-	mSize 	[pair!] 
-][
-	w: mSize/x
-	h: mSize/y
-	_makeGradient src dst w h
-]
-
-rcvMakeBinaryGradient: function [
-"Makes a binary [0 1] matrix for contour detection"
-	src 		[vector!] 
-	mat 		[vector!] 
-	maxG 		[integer!] 
-	threshold 	[integer!]
-][
-	_makeBinaryGradient src mat maxG threshold 
-]
-
-; input float mat output integer mat
-rcvFlowMat: function [
-"Calculates the distance map to binarized gradient"
-	input [vector!] 
-	output[vector!] 
-	scale [float!]
-][
-	_rcvFlowMat input output scale
-]
-
-rcvnormalizeFlow: function [
-"Normalizes distance into 0..255 range"
-	input 	[vector!]  
-	factor 	[float!]
-][
-	_rcvnormalizeFlow input factor
-]
-
-
-rcvGradient&Flow: function [
-"Creates an image including flow and gradient calculation"
-	input1 	[vector!] 
-	input2	[vector!] 
-	dst 	[image!]
-][
-	_rcvGradient&Flow input1 input2 dst
-]
-
-
-rcvChamferDistance: function [
-"Selects a pre-defined chamfer kernel"
-	chamferMask [block!] 
-][
-	chamfer: copy chamferMask
-	normalizer: chamfer/3  ;[0][2]
-	reduce [chamfer normalizer]
-]
-
-; output must be a vector of float!
-
-rcvChamferCreateOutput: function [
-"Creates a distance map (float!)" 
-	mSize [pair!] 
-][
-	n: mSize/x * mSize/y
-	make vector! reduce ['float! 64 n]
-]
-
-
-rcvChamferInitMap: function [
-"Initializes distance map inside the object distance=0  outside the object distance to be computed"
-	input 	[vector!] 
-	output 	[vector!]
-][
-	_initDistance input output
-]
-
-
-rcvChamferCompute: function [
-"Calculates the distance map to binarized gradient"
-	output 	[vector!] 
-	chamfer [block!] 
-	mSize 	[pair!]
-][
-	w: mSize/x
-	h: mSize/y
-	_rcvChamferCompute output chamfer w h
-]
-
-rcvChamferNormalize: function [
-"Normalization"
-	output [vector!] 
-	value [integer!]
-][
-	_Normalize output value
-]
 
 

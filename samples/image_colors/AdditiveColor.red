@@ -5,7 +5,9 @@ Red [
 	Needs:	 'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+
 margins: 5x5
 
 img1: rcvCreateImage 256x256

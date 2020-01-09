@@ -5,8 +5,9 @@ Red [
 	Needs:	 'View
 ]
 
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+
 margins: 10x10
 rnd: 255.255.255; white 
 flag: 1

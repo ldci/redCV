@@ -4,6 +4,7 @@ Red [
 	File: 	 %cam4.red
 	Needs:	 'View
 ]
+;'RedCV not required
 
 iSize: 320x240
 margins: 10x10
@@ -13,13 +14,21 @@ cam3: none ; for camera3
 cam4: none ; for camera4
 
 render: func [acam alist][
-	either acam/selected [acam/selected: none][acam/selected: alist/selected]
+	either acam/selected [acam/selected: none]
+		  [acam/selected: alist/selected]
 ]
 
 view win: layout [
-	title "Red Cam"
+	title "Red 4 Cameras"
 	origin margins space margins
-	btnQuit: button "Quit" [quit]
+	button 100 "All Cameras" [
+		render cam1 camList1
+		render cam2 camList2
+		render cam3 camList3
+		render cam4 camList4
+	]
+	
+	pad 480x0 btnQuit: button "Quit" [quit]
 	return
 	cam1: camera iSize
 	cam2: camera iSize

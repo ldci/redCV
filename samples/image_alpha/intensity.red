@@ -6,7 +6,8 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+#include %../../libs/core/rcvCore.red
+
 margins: 10x10
 defSize: 512x512
 img1: rcvCreateImage defSize
@@ -21,7 +22,7 @@ loadImage: does [
 	sl/data: 0.5 
 	tmp: request-file
 	if not none? tmp [
-		fileName: to string! to-local-file tmp
+		fileName: to string! to-file tmp
 		win/text: fileName
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1

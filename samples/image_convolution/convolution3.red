@@ -9,10 +9,11 @@ Red [
 fileName: ""
 isFile: false
 
-; all we need for computer vision with red
-#include %../../libs/redcv.red ; for red functions
-
-;knl: [-1.0 -2.0 -1.0 0.0 0.0 0.0 1.0 2.0 1.0]
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
 
 knl: [0.0 0.0 0.0
 	  0.0 1.0 0.0 

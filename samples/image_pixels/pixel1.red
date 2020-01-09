@@ -6,7 +6,10 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/tiff/rcvTiff.red	
+
 margins: 10x10
 defSize: 512x512
 img1: rcvCreateImage defSize
@@ -17,7 +20,9 @@ rLimit: 0x0
 lLimit: 512x512
 tp: 0.0.0
 canvas: none
-drawRect: compose [line-width 2 pen red box 0x0 24x24 line 0X0 24x24 24x0 0x24]
+;drawRect: compose [line-width 2 pen red box 0x0 24x24 line 0X0 0x24 24x0]
+drawRect: [line-width 2 pen blue fill-pen green triangle 0X0 24x0 0x24]
+
 
 
 loadImage: does [

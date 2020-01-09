@@ -4,8 +4,9 @@ Red [
 	File: 	 %SplitChannels.red
 	Needs:	 'View
 ]
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+
 margins: 10x10
 img1: make image! reduce [margins black]
 dst: make image! reduce [margins black]
@@ -30,7 +31,7 @@ view win: layout [
 		title "RGB Channels Test"
 		origin margins space margins
 		button 60 "load"	[loadImage]
-		button 65 "Source"	[_rcvChannel img1 dst 0]	; routine
+		button 65 "Source"	[rcvChannel img1 dst 0]	; routine
 		button 60 "Red"  	[rcvSplit/red img1 dst canvas/image: dst]
 		button 60 "Green"	[rcvSplit/green img1 dst  canvas/image: dst]
 		button 60 "Blue"  	[rcvSplit/blue img1 dst canvas/image: dst]

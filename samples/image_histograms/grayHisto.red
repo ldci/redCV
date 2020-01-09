@@ -6,7 +6,11 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
 msize: 256x256
@@ -16,6 +20,7 @@ histo11: make vector! 256
 histo2: make vector! 256
 smooth: false 
 isFile: false
+recycle/off ; for keeping matrices alive
 
 
 loadImage: does [
@@ -29,8 +34,9 @@ loadImage: does [
 		mat: rcvCreateMat 'integer! 8 img1/size
 		canvas1/image: img1
 		rcvImage2Mat img1 mat ; -> Grayscale image
-		smooth: false 
 		isFile: true
+		processMat
+		showPlot
 	]
 ]
 
@@ -38,11 +44,9 @@ loadImage: does [
 processMat: does [
 	if isFile [
 		rcvMat2Image mat img1
-		histo1: rcvHistogram mat
+		histo1: rcvHistoMat mat
 		if smooth [histo11: rcvSmoothHistogram histo1]
-		tmp: copy histo1
-		sort tmp
-		maxi: last tmp
+		maxi: rcvMaxMat histo1
 		either smooth [rcvConvertMatScale/std histo11 histo2  maxi 200 ] 
 		[rcvConvertMatScale/std histo1 histo2  maxi 200] ; change scale
 		canvas1/image: img1
@@ -65,11 +69,11 @@ showPlot: does [
 
 ; ***************** Test Program ****************************
 view win: layout [
-		title "Histogram Tests"
+		title "Grayscale Image Histogram"
 		origin margins space margins
-		button 120 "Load image" 		[loadImage]
-		button 120 "Process Image"		[processMat showPlot]
+		button 100 "Load image" 		[loadImage]
 		check 150 "Smooth Histogram" 	[smooth: face/data processMat showPlot]
+		pad 17	0x0
 		button 80 "Quit" 				[rcvReleaseImage img1 Quit]
 		return
 		canvas1: base msize img1

@@ -6,7 +6,14 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvFreeman.red
+#include %../../libs/math/rcvDistance.red
+#include %../../libs/math/rcvStats.red
+
 
 iSize: 512x512
 mat:  rcvCreateMat 'integer! 32 iSize

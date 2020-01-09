@@ -6,7 +6,12 @@ Red [
 ]
 
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvImgProc.red
+
 margins: 5x5
 img1: rcvCreateImage 512x512
 dst:  rcvCreateImage img1/size
@@ -36,7 +41,7 @@ view win: layout [
 									Quit
 								]
 		return
-		
+		;from core
 		button 80 "Gray 1" 		[rcv2Gray/average img1 dst]
 		button 80 "Gray 2" 		[rcv2Gray/luminosity img1 dst]
 		button 80 "Gray 3" 		[rcv2Gray/lightness img1 dst]
@@ -44,23 +49,22 @@ view win: layout [
 		button 80 "RGB" 		[rcv2RGBA img1 dst ]
 		button 80 "BW" 			[rcv2BW img1 dst]
 		button 80 "BW Filter" 	[rcv2BWFilter img1 dst 32]
-		
+		return 
+		;from imgProc
+		button 80 "RGBXYZ"		[rcvRGB2XYZ img1 dst]
+		button 80 "BGRXYZ"		[rcvBGR2XYZ img1 dst]
+		button 80 "RGBHSV" 		[rcvRGB2HSV img1 dst]
+		button 80 "BGRHSV" 		[rcvBGR2HSV img1 dst]
+		button 80 "RGBHLS"		[rcvRGB2HLS img1 dst]
+		button 80 "BGRHLS"		[rcvBGR2HLS img1 dst]
+		button 80 "RGBYCC"		[rcvRGB2YCrCb img1 dst]
+		button 80 "BGRYCC"		[rcvBGR2YCrCb img1 dst]	
 		
 		return 
-		button 80 "RGBXYZ"			[rcvRGB2XYZ img1 dst]
-		button 80 "BGRXYZ"			[rcvBGR2XYZ img1 dst]
-		button 80 "RGBHSV" 			[rcvRGB2HSV img1 dst]
-		button 80 "BGRHSV" 			[rcvBGR2HSV img1 dst]
-		button 80 "RGBHLS"			[rcvRGB2HLS img1 dst]
-		button 80 "BGRHLS"			[rcvBGR2HLS img1 dst]
-		button 80 "RGBYCC"			[rcvRGB2YCrCb img1 dst]
-		button 80 "BGRYCC"			[rcvBGR2YCrCb img1 dst]	
-		
-		return 
-		button 80 "RGBLab"			[rcvRGB2Lab img1 dst]
-		button 80 "BGRLab"			[rcvBGR2Lab img1 dst]
-		button 80 "RGBLuv"			[rcvRGB2Luv img1 dst]
-		button 80 "BGRLuv"			[rcvBGR2Luv img1 dst]
+		button 80 "RGBLab"		[rcvRGB2Lab img1 dst]
+		button 80 "BGRLab"		[rcvBGR2Lab img1 dst]
+		button 80 "RGBLuv"		[rcvRGB2Luv img1 dst]
+		button 80 "BGRLuv"		[rcvBGR2Luv img1 dst]
 		
 		return 
 		pad 100x0

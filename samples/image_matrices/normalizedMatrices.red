@@ -5,10 +5,15 @@ Red [
     Needs:   'View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
 ; laplacian convolution filter for sample
 mask: [-1.0 0.0 -1.0 0.0 4.0 0.0 -1.0 0.0 -1.0]
-isize: 512x512
+isize: 256x256
 bitSize: 32
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
@@ -48,7 +53,7 @@ loadImage: does [
 
 ; ***************** Test Program ****************************
 view win: layout [
-        title "Laplacian convolution on matrix"
+        title "Matrix normalisation"
         button "Load" [loadImage]
         button 60 "Quit" [  rcvReleaseImage img1 
                             rcvReleaseImage img2
@@ -56,7 +61,7 @@ view win: layout [
         return
         text 100 "Source" pad 156x0 
         text 120 "Standard convolution"
-        pad 392x0 
+        pad 136x0 
         text "Normalized convolution"
         return
         canvas1: base 256x256 img1

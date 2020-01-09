@@ -5,12 +5,14 @@ Red [
 	Needs:	 'View
 ]
 
-; required last Red Master
-
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
-msize: 512x512
+msize: 256x256
 img1: rcvCreateImage msize
 img2: rcvCreateImage img1/size
 p: 0%
@@ -26,7 +28,7 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
-		mat: rcvCreateMat 'integer! 8 img1/size
+		mat: rcvCreateMat 'integer! 32 img1/size
 		rcvImage2Mat img1 mat ; -> Grayscale image
 		rcvMat2Image mat img1
 		canvas1/image: img1
@@ -52,7 +54,9 @@ view win: layout [
 		title "Contrast Affine Tests"
 		origin margins space margins
 		button "Load Image" [loadImage]
-		sl: slider 260 		[p: to percent! face/data  v/data: form face/data processMat]
+		sl: slider 270 		[p: to percent! face/data  
+							v/text: form face/data processMat
+		]
 		v: field 50 "0"
 		button 80 "Quit" 	[rcvReleaseImage img1 Quit]
 		return

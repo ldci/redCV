@@ -9,7 +9,12 @@ Red [
 
 margins: 5x5
 
-#include %../../libs/redcv.red ; for red functions
+; required libs
+
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/imgproc/rcvIntegral.red
+
+
 mat: make vector! [integer! 16 [4 1 2 2 0 4 1 3 3 1 0 4 2 1 3 2]]
 expected: make vector! [4 5 7 9 4 9 12 17 7 13 16 25 9 16 22 33] 
 sum: rcvCreateMat 'integer! 16 4x4
@@ -21,7 +26,7 @@ processMat: does [
 	b: copy []
 	while [y < 4] [
 		while [x < 4] [
-		v: rcvGetInt2D sum 4x4 as-pair x y
+		v: rcvGetInt2D sum 4 x y
 		append b v
 		x: x + 1
 		]

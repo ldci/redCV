@@ -5,8 +5,9 @@ Red [
 	Needs:	 'View
 ]
 
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+
 margins: 5x5
 img1: rcvCreateImage 512x512
 img2: rcvRandomImage/uniform img1/size 255.255.255 ;
@@ -32,7 +33,7 @@ view win: layout [
 		bb: base 80x30 img2 
 		button "Load" [LoadImage]
 		button "Generate image 2" [img2: rcvRandomImage/uniform img1/size 255.255.255 bb/image: img2]
-		button 80 "Source"  [_rcvMath img1 img2 dst 0] ; routine
+		button 80 "Source"  [rcvMath img1 img2 dst 0]
 		button 80 "Quit" [	rcvReleaseImage img1 
 							rcvReleaseImage img2 
 							rcvReleaseImage dst 
@@ -54,12 +55,12 @@ view win: layout [
 		
 		return 
 		text 80 "Tuple"
-		button 35 "+" [rcvAddT img1 dst 128.128.128]
-		button 35 "-" [rcvSubT img1 dst 128.128.128]
-		button 35 "*" [rcvMulT img1 dst 2.2.2]
-		button 35 "/" [rcvDivT img1 dst 2.2.2]
-		button 35 "//" [rcvModT img1 dst 1.1.1]
-		button 35 "%" [rcvRemT img1 dst  2.2.2]
+		button 35 "+" [rcvAddT img1 dst 128.128.128 false]
+		button 35 "-" [rcvSubT img1 dst 128.128.128 false]
+		button 35 "*" [rcvMulT img1 dst 2.2.2 false]
+		button 35 "/" [rcvDivT img1 dst 2.2.2 false]
+		button 35 "//"[rcvModT img1 dst 1.1.1 false]
+		button 35 "%" [rcvRemT img1 dst  2.2.2 false]
 		return
 		text 80 "Scalar"
 		button 35 "+" [rcvAddS img1 dst 128]

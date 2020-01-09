@@ -49,15 +49,17 @@ processMat: does [
 	foreach v histog [sumG: sumG + v histogSC/:i: sumG i: i + 1]
 	i: 1
 	foreach v histob [sumB: sumB + v histobSC/:i: sumB i: i + 1]
+
 	
 	; for visualization
+	
 	rcvConvertMatScale/std historSC historc  sumR 220 ; change scale
 	if smooth [tmp: rcvSmoothHistogram historc  historc: copy tmp]
 	
 	rcvConvertMatScale/std histogSC histogc  sumG 220 ; change scale
 	if smooth [tmp: rcvSmoothHistogram histogc histogc: copy tmp]
 	
-	rcvConvertMatScale/std histobSC histobc  sumB 220 ; change scale
+	rcvConvertMatScale/std histobSC histobc sumB 220 ; change scale
 	if smooth [tmp: rcvSmoothHistogram histobc histobc: copy tmp]
 	
 ]

@@ -1,15 +1,20 @@
 Red [
 	Title:   "Faces Processing"
 	Author:  "Francois Jouen"
-	File: 	 %sgFilter.red
+	File: 	 %sgDerivative.red
 	Needs:	 'View
 ]
 ; lib for data filtering
 ; signal is a vector of numerical values eg [0.05 0.07 0.1.....]
 ; filter is a vector that contains the result of numerical processing
 
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/timeseries/rcvTS.red	
+#include %../../libs/timeseries/rcvSGF.red	
 
-#include %../../libs/redcv.red ; for redCV functions
+
 imgSize: 512x128
 sSize: imgSize/x
 sgFilter1: 1
@@ -57,7 +62,7 @@ view win: layout [
 		SGfilterSignal signal sgFilter2 canvas3 yellow
 		SGfilterSignal signal sgFilter3 canvas4 blue
 		t2: now/time/precise
-		f/text: form t2 - t1
+		f/text: rejoin ["Rendered in "  rcvElapsed t1 t2 " ms"] 
 	]
 	pad 280x0
 	button "Quit" [Quit]
@@ -86,6 +91,6 @@ view win: layout [
 	canvas4: base imgSize black img
 	return
 	
-	text 155 "Rendered in " f: field 250
+	f: field 512
 	do [dp1/selected: dp2/selected: 1 dp3/selected: 1]	
 ]

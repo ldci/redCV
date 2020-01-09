@@ -5,8 +5,11 @@ Red [
 	Needs:	 'View
 ]
 
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/timeseries/rcvDTW.red
 
-#include %../../libs/redcv.red ; for redCV functions
 
 x: [9 3 1 5 1 2 0 1 0 2 2 8 1 7 0 6 4 4 5]
 y: [1 0 5 5 0 1 0 1 0 3 3 2 8 1 0 6 4 4 5]
@@ -28,7 +31,7 @@ calculate: does [
 	img: rcvCreateImage as-pair (length? x) (length? y)
 	mat:  make vector! [integer! 32 0]
 	mx:  rcvMaxMat dMatrix
-	foreach v dMatrix [ append mat to-integer v] 
+	foreach v dMatrix [append mat to-integer v] 
 	mx:  rcvMaxMat mat
 	mat * (255 / mx)
 	rcvMat2Image mat img

@@ -7,12 +7,15 @@ Red [
 
 
 
-; all we need for computer vision with red
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvMorphology.red
 
 iSize: 320x240
 rimg: rcvCreateImage iSize
-src: rcvCloneImage rimg
 hsv: rcvCloneImage rimg
 mask: rcvCloneImage rimg
 r1: rcvCloneImage rimg
@@ -38,10 +41,10 @@ as-color: function [r g b][
 
 to-text: function [val][form to integer! 0.5 + 255 * any [val 0]]
 
+
 processImage: does [
-	
-	src: rcvResizeImage to-image cam iSize
-	rcvRGB2HSV src hsv
+	rimg: rcvResizeImage cam/image iSize
+	rcvRGB2HSV rimg hsv
 	rcvInrange hsv mask lower upper 0
 	;morphological opening (remove small objects from the foreground)
 	; erode dilate
@@ -52,6 +55,8 @@ processImage: does [
 	rcvErode mask r1 knlSize knl rcvCopyImage r1 mask
 	cmask/image: hsv
 	canvas/image: r1
+	cam/image: none
+	recycle
 ]
 
 
@@ -102,9 +107,7 @@ view win: layout [
 					cmask/image: black
 				][
 					cam/selected: cam-list/selected
-					src: rcvResizeImage to-image cam iSize
-					rimg: rcvCloneImage src
-					src: rcvCloneImage rimg
+					rimg: rcvResizeImage to-image cam iSize ; resize image
 					hsv: rcvCloneImage rimg
 					mask: rcvCloneImage rimg
 					r1: rcvCloneImage rimg
@@ -116,7 +119,6 @@ view win: layout [
 			rcvReleaseImage rimg
 			rcvReleaseImage hsv
 			rcvReleaseImage mask
-			rcvReleaseImage src
 			rcvReleaseImage r1
 			quit
 		]

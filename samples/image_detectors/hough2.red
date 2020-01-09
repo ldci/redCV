@@ -5,7 +5,13 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvHough.red
+
 img: rcvCreateImage 256x256
 dst: rcvCreateImage 256x256
 imgCopy:  rcvCreateImage 256x256
@@ -61,7 +67,7 @@ filter: does [
 		rcv2BW edges bw									; B&W image [0 255]
 		rcvImage2Mat bw mat 							; B&W image to mat
 		acc: rcvMakeHoughAccumulator imgW imgH			; makes Hough accumulator
-		rcvHoughTransform mat acc imgW imgH 			; performs Hough transform
+		rcvHoughTransform mat acc imgW imgH 127			; performs Hough transform
 		hSpace: rcvCreateImage rcvGetAccumulatorSize acc; creates Hough space image
 		rcvHough2Image acc hSpace contrast				; shows Hough space
 		canvas1/image: img

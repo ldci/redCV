@@ -4,8 +4,11 @@ Red [
 	File: 	 %redCVChannels.red
 	Needs:	 'View
 ]
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+
+;required libs
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/core/rcvCore.red
+
 fileName: ""
 isFile: false
 margins: 10x10
@@ -41,8 +44,8 @@ splitImage: function[][
 		canvasR/image: imgR
 		canvasG/image: imgG
 		canvasB/image: imgB
-		sb1/text: copy "Rendered in "
-		append sb1/text form now/time/precise - t1
+		t2: now/time/precise
+		sb1/text: rejoin [ "Rendered in " form rcvElapsed t1 t2  " ms"]
 	]	
 ]
 

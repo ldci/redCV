@@ -5,9 +5,12 @@ Red [
 	Needs:	 'View
 ]
 
-
-; last Red Master required!
-#include %../../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../../libs/core/rcvCore.red
+#include %../../../libs/matrix/rcvMatrix.red
+#include %../../../libs/tools/rcvTools.red	
+#include %../../../libs/math/rcvDistance.red
+#include %../../../libs/math/rcvChamfer.red
 
 
 margins: 10x10
@@ -26,15 +29,12 @@ lumMat: rcvCreateMat 'integer! bitSize isize
 gradientMat:  rcvCreateMat 'integer! bitSize isize
 distMat: rcvCreateMat 'float! 64 isize
 
-
-
-
 threshold: 1
 distance: 25.0
 gMax: 0
 lw: 1
 isFile: false
-chamfer: copy []
+chamfer*: copy []
 normalizer: 0
 
 
@@ -54,8 +54,6 @@ quitApp: does [
 ]
 
 
-
-
 loadImage: does [
 	canvas0/image: none
 	canvas1/image: none
@@ -73,6 +71,9 @@ loadImage: does [
 		; we need a grayscale image
 		rcv2Gray/luminosity img0 img1
 		canvas1/image: img1
+		flowMat: rcvCreateMat 'integer! bitSize isize
+		distMat: rcvCreateMat 'float! 64 isize
+		
 		; GrayLevelScale (Luminance) mat
 		lumMat: rcvCreateMat 'integer! bitSize imgSize 
 		rcvImage2Mat img1 lumMat
@@ -80,7 +81,7 @@ loadImage: does [
 		; Gradient (Sobel-like) 	mat		
 		gradientMat: rcvCreateMat 'integer! bitSize imgSize 
 		; chamfer default
-		chamfer: first rcvChamferDistance chamfer5
+		chamfer*: first rcvChamferDistance chamfer5
 		normalizer: second rcvChamferDistance chamfer5
 		fSize/text: form imgSize
 		lw: 1
@@ -106,7 +107,7 @@ computeFlow: does [
 	; Chamfer distance map
 	distMat: rcvChamferCreateOutput imgSize;
 	rcvChamferInitMap binaryMat distMat
-	rcvChamferCompute distMat chamfer imgSize 
+	rcvChamferCompute distMat chamfer* imgSize 
 	rcvChamferNormalize distMat normalizer
 	
 	; for flow in image
@@ -150,15 +151,15 @@ view win: layout [
 	select 3 
 	on-change [
 		switch face/selected [
-			1 [	chamfer: first rcvChamferDistance cheessboard
+			1 [	chamfer*: first rcvChamferDistance cheessboard
 				normalizer: second rcvChamferDistance cheessboard]
-			2 [	chamfer: first rcvChamferDistance chamfer3
+			2 [	chamfer*: first rcvChamferDistance chamfer3
 				normalizer: second rcvChamferDistance chamfer3]
-			3 [	chamfer: first rcvChamferDistance chamfer5
+			3 [	chamfer*: first rcvChamferDistance chamfer5
 				normalizer: second rcvChamferDistance chamfer5]
-			4 [ chamfer: first rcvChamferDistance chamfer7
+			4 [ chamfer*: first rcvChamferDistance chamfer7
 				normalizer: second rcvChamferDistance chamfer7]
-			5  [ chamfer: first rcvChamferDistance chamfer13
+			5  [ chamfer*: first rcvChamferDistance chamfer13
 				normalizer: second rcvChamferDistance chamfer13]
 		]
 		if isFile [computeFlow]

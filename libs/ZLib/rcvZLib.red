@@ -1,5 +1,5 @@
 Red [
-	Title:   "Red Computer Vision: ZLib functions"
+	Title:   "Red Computer Vision: ZLib"
 	Author:  "Francois Jouen"
 	File: 	 %rcvZLib.red
 	Tabs:	 4
@@ -17,44 +17,25 @@ Red [
 
 ; ZLib routines for binary values
 
-_compressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
+rcvCompressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
 	/local 
-	byte-count
-	data
-	buffer 
-	] [
+	byte-count	[integer!]
+	data		[byte-ptr!]
+	buffer		[byte-ptr!] 		
+][
 	byte-count: 0
 	data: binary/rs-head as red-binary! rgb
 	buffer: zlib/compress data binary/rs-length? rgb :byte-count level
-	as red-binary! stack/set-last as red-value! binary/load buffer byte-count
+	as red-binary! stack/set-last as red-value! binary/load buffer byte-count	
 ]
 
 
-_decompressRGB: routine [rgb [binary!] bCount [integer!] return: [binary!]
+rcvDecompressRGB: routine [rgb [binary!] bCount [integer!] return: [binary!]
 	/local 
-	data
-	buffer 
-	] [
+	data		[byte-ptr!]
+	buffer		[byte-ptr!] 
+][
 	data: binary/rs-head as red-binary! rgb
 	buffer: zlib/decompress data bCount
 	as red-binary! stack/set-last as red-value! binary/load buffer bCount
-]
-
-
-; exported functions
-
-rcvCompressRGB: function [
-"Compresses rgb image values"
-	rgb 	[binary!] 
-	level 	[integer!]
-][
-	_compressRGB rgb level
-]
-
-rcvDecompressRGB: function [
-"Uncompresses rgb image values"
-	rgb 	[binary!] 
-	bCount 	[integer!] 
-][
-	_decompressRGB rgb bcount
 ]

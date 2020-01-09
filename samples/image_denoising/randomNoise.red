@@ -6,7 +6,14 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
+
 isFile: false
 size: 384x384
 noise: 0.0
@@ -40,7 +47,7 @@ noiseGenerator: does [
 	random/seed now/time/precise
 	if isFile [
 		rcvCopyImage img1 img2 
-		rcvImageNoise img2 noise color
+		rcvGenerateNoise img2 noise color
 		canvas2/image: img2
 	]
 ]

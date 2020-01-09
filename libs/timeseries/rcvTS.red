@@ -1,9 +1,9 @@
 Red [
-	Title:   "Red Computer Vision: Matrix functions"
+	Title:   "Red Computer Vision: Time Series"
 	Author:  "Francois Jouen"
 	File: 	 %rcvTS.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016-2019 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -11,8 +11,219 @@ Red [
 ]
 
 
-#include %rcvTSRoutines.red	; All Red/System Time Series Routines
+;************** Time Series Routines *************************
 
+rcvTSStats: routine [
+	 signal 		[vector!]
+     blk	 	 	[block!]
+     op				[integer!]
+     /local
+     length
+     sum sum2 a b num
+     mean sd
+     mini maxi
+     val
+     headS tailS unit
+     f s 
+][
+	 block/rs-clear blk
+	 sum: 0.0
+	 sum2: 0.0
+	 mean: 0.0
+	 sd: 0.0
+	 maxi: 0.0
+	 mini: 10000.00
+	 length: as float! vector/rs-length? signal
+	 headS: vector/rs-head signal
+	 tailS: vector/rs-tail signal
+	 s: GET_BUFFER(signal)
+	 unit: GET_UNIT(s)
+	 while [headS < tailS][
+	 	switch op [
+	 		0 [val: as float! vector/get-value-int as int-ptr! headS unit]
+	 		1 [val: vector/get-value-float headS unit]
+	 	]
+	 	either val >= maxi [maxi: val] [maxi: maxi]
+	 	either val < mini [mini: val] [mini: mini]
+		sum: sum + val
+		sum2: sum2 + (val * val)
+		headS: headS + unit
+	]
+	mean: sum / length
+	a: Sum * Sum
+	b: a / length
+    num: (sum2 - b);
+    if num < 0.0 [num: 0.0 - num]
+    sd: sqrt  (Num / (length - 1))
+    f: float/box mean
+    block/rs-append blk as red-value! f 
+    f: float/box sd
+    block/rs-append blk as red-value! f
+    f: float/box mini
+    block/rs-append blk as red-value! f
+    f: float/box maxi
+    block/rs-append blk as red-value! f
+]
+
+
+rcvTSSDetrend: routine [
+	signal 	[vector!]
+	filter 	[vector!]
+	mean	[float!]
+	op		[integer!]
+	/local headS headF tailS unit1 unit2 s
+	val val2 pt64 p4
+][ 
+	headS: vector/rs-head signal
+	tailS: vector/rs-tail signal
+	headF: vector/rs-head filter
+	
+	s: GET_BUFFER(signal)
+	unit1: GET_UNIT(s)
+	
+	s: GET_BUFFER(filter)
+	unit2: GET_UNIT(s)
+	
+	while [headS < tailS][
+		switch op [
+	 		0 [val: as float! vector/get-value-int as int-ptr! headS unit1
+	 			 val2: as integer! (val - mean)
+	 			 p4: as int-ptr! headF
+	 			 p4/value: switch unit2 [
+					1 [val2 and FFh or (p4/value and FFFFFF00h)]
+					2 [val2 and FFFFh or (p4/value and FFFF0000h)]
+					4 [val2]
+				]
+	 		]
+	 		1 [val: vector/get-value-float headS unit1
+	 			pt64: as float-ptr! headF
+				pt64/value: val - mean]
+	 	]
+		headS: headS + unit1
+		headF: headF + unit2
+	]
+]
+
+
+rcvTSSNormalize: routine [
+	signal 	[vector!]
+	filter 	[vector!]
+	mean	[float!]
+	sd		[float!]
+	op		[integer!]
+	/local headS headF tailS unit1 unit2 s
+	val val2 pt64 p4
+][ 
+	headS: vector/rs-head signal
+	tailS: vector/rs-tail signal
+	headF: vector/rs-head filter
+	
+	s: GET_BUFFER(signal)
+	unit1: GET_UNIT(s)
+	
+	s: GET_BUFFER(filter)
+	unit2: GET_UNIT(s)
+	
+	while [headS < tailS][
+		switch op [
+	 		0 [val: as float! vector/get-value-int as int-ptr! headS unit1
+	 			 val2: as integer! ((val - mean) / sd)
+	 			 p4: as int-ptr! headF
+	 			 p4/value: switch unit2 [
+					1 [val2 and FFh or (p4/value and FFFFFF00h)]
+					2 [val2 and FFFFh or (p4/value and FFFF0000h)]
+					4 [val2]
+				]
+	 		]
+	 		1 [val: vector/get-value-float headS unit1
+	 			pt64: as float-ptr! headF
+				pt64/value: (val - mean) / sd]
+	 	]
+		headS: headS + unit1
+		headF: headF + unit2
+	]
+]
+
+
+rcvTSMMFiltering: routine [
+	signal 	[vector!]
+	filter 	[vector!]
+	filterSize	[integer!]
+	op		[integer!]
+	/local headS headF tailS tailF unit1 unit2 s
+	n val val2 pt64 p4
+	idx
+	sum
+	mm
+][ 
+	headS: vector/rs-head signal
+	tailS: vector/rs-tail signal
+	headF: vector/rs-head filter
+	tailF: vector/rs-tail filter
+	s: GET_BUFFER(signal)
+	unit1: GET_UNIT(s)
+	s: GET_BUFFER(filter)
+	unit2: GET_UNIT(s)
+	while [headS < (tailS - filterSize)] [
+		n: 0
+		sum: 0.0
+		while [n < filterSize] [
+			idx: headS + (n * unit1)
+			switch op [
+	 			0 [val: as float! vector/get-value-int as int-ptr! idx unit1]
+	 			1 [val: vector/get-value-float idx unit1]
+	 		]
+			sum: sum + val
+			n: n + 1
+		]
+		mm: sum / as float! filterSize
+		switch op [
+	 		0	[p4: as int-ptr! headF
+	 			p4/value: switch unit2[
+					1 [(as integer! mm) and FFh or (p4/value and FFFFFF00h)]
+					2 [(as integer! mm) and FFFFh or (p4/value and FFFF0000h)]
+					4 [as integer! mm]
+				]
+	 			 
+			]
+	 		1	[pt64: as float-ptr! headF
+				pt64/value: mm]
+		]
+		headS: headS + unit1
+		headF: headF + unit2
+	]
+	
+	;calculates mean for the last values (filterSize)
+	sum: 0.0
+	while [headS < tailS] [
+		switch op [
+	 			0 [val: as float! vector/get-value-int as int-ptr! headS unit1]
+	 			1 [val: vector/get-value-float headS unit1]
+	 		]
+	 	sum: sum + val
+	 	headS: headS + unit1
+	]
+	mm: sum / as float! filterSize
+	
+	while [headF < tailF] [
+		switch op [
+	 		0	[p4: as int-ptr! headF
+	 			p4/value: switch unit2[
+					1 [(as integer! mm) and FFh or (p4/value and FFFFFF00h)]
+					2 [(as integer! mm) and FFFFh or (p4/value and FFFF0000h)]
+					4 [as integer! mm]
+				]
+	 			 
+			]
+	 		1	[pt64: as float-ptr! headF
+				pt64/value: mm]
+		]
+		headF: headF + unit2
+	]
+]
+
+
+; *********************** Time Series Functions ********************
 
 rcvTSCopySignal: function [
 	"Makes a copy of original signal"
@@ -30,8 +241,8 @@ rcvTSStatSignal: function [
      return: 	 	[block!]
 ][
 	blk: copy []					
-	if (type? signal/1) = integer! 	[_rcvTSStatSignal signal blk 0] 
-	if (type? signal/1) = float!	[_rcvTSStatSignal signal blk 1]
+	if (type? signal/1) = integer! 	[rcvTSStats signal blk 0] 
+	if (type? signal/1) = float!	[rcvTSStats signal blk 1]
 	blk
 ]
 
@@ -43,8 +254,8 @@ rcvTSSDetrendSignal: function [
 ][ 
 	b: rcvTSStatSignal signal
 	mean: b/1
-	if (type? signal/1) = integer! 	[_rcvTSSDetrendSignal signal filter mean 0]
-	if (type? signal/1) = float! 	[_rcvTSSDetrendSignal signal filter mean 1]
+	if (type? signal/1) = integer! 	[rcvTSSDetrend signal filter mean 0]
+	if (type? signal/1) = float! 	[rcvTSSDetrend signal filter mean 1]
 ]
 
 
@@ -57,8 +268,8 @@ rcvTSSNormalizeSignal: function [
 	b: rcvTSStatSignal signal
   	mean: b/1
   	sd: b/2
-	if (type? signal/1) = integer! 	[_rcvTSSNormalizeSignal signal filter mean sd  0]
-	if (type? signal/1) = float! 	[_rcvTSSNormalizeSignal signal filter mean sd 1]
+	if (type? signal/1) = integer! 	[rcvTSSNormalize signal filter mean sd  0]
+	if (type? signal/1) = float! 	[rcvTSSNormalize signal filter mean sd 1]
 ]
 
 rcvTSMMFilter: function [
@@ -67,303 +278,15 @@ rcvTSMMFilter: function [
 	filter 		[vector!]
 	filterSize 	[integer!]
 ][
-	if (type? signal/1) = integer! [_rcvTSMMFilter signal filter filterSize 0]
-	if (type? signal/1) = float!   [_rcvTSMMFilter signal filter filterSize 1]
-]
-
-;**********************Savitzky-Golay filter*****************************
-;Coefficients tables
-
-; Filtering
-;cubic polynomials
-sgTable1: [
-[-3 12 17 12 -3 35]
-[-2 3 6 7 6 3 -2 21]
-[-21 14 39 54 59 54 39 14 -21 231]
-[-36 9 44 69 84 89 84 69 44 9 -36 429]
-[-11 0 9 16 21 24 25 24 21 16 9 0 -11 143]
-[-78 -13 42 87 122 147 162 167 162 147 122 87 42 -13 -78 1105]
-[-21 -6 7 18 27 34 39 42 43 42 39 34 27 18 7 -6 -21 323]
-[-136 -51 24 89 144 189 224 249 264 269 264 249 224 189 144 89 24 -51 -136 2261]
-[-171 -76 9 84 149 204 249 284 309 324 329 324 309 284 249 204 149 84 9 -76 -171 3059]
-[-42 -21 -2 15 30 43 54 63 70 75 78 79 78 75 70 63 54 43 30 15 -2 -21 -42 805]
-[-253 -138 -33 62 147 222 287 343 387 422 447 462 467 462 447 422 387 343 287 222 147 62 -33 -138 -253 5175]
-]
-
-;quartic  and quintic polynomials
-sgTable2: [
-[5 -30 75 131 75 -30 5 231]
-[15 -55 30 135 179 135 30 -55 15 429]
-[18 -45 -10 60 120 143 120 60 -10 -45 18 429]
-[110 -198 -135 110 390 600 677 600 390 110 -135 -198 110 2431]
-[2145 -2860 -2937 -165 3755 7500 10125 11063 10125 7500 3755 -165 -2937 -2860 2145 46189]
-[195 -195 -260 -117 135 415 660 825 883 825 660 415 135 -117 -260 -195 195 4199]
-[340 -255 -420 -290 18 405 790 1110 1320 1393 1320 1110 790 405 18 -290 -420 -255 340 7429]
-[11628 -6460 -13005 -11220 -3940 6378 17655 28190 36660 42120 44003 42120 36660 28190 17655 6378 -3940 -11220 -13005 -6460 11628 260015]
-[285 -114 -285 -165 30 261 495 705 870 975 1011 975 870 705 495 261 30 -165 -285 -114 285 6555]
-[1265 -345 -1122 -1255 -915 -255 590 1503 2385 3155 3750 4125 4253 4125 3750 3155 2385 1503 590 -255 -915 -1255 -1122 -345 1265 30015]
-]
-
-;Derivating
-;Derivative 1 quadratic
-sgTable3: [
-[-2 -1 0 1 2 10]
-[-3 -2 -1 0 1 2 3 28] 
-[-4 -3 -2 -1 0 1 2 3 4 60] 
-[-5 -4 -3 -2 -1 0 1 2 3 4 5 110] 
-[-6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 182] 
-[-7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 280] 
-[-8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 408]
-[-9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 570]
-[-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 770]
-[-11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 1012]
-[-12 -11 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0 1 2 3 4 5 6 7 8 9 10 11 12 1300]
-]
-
-;Derivative 1 quartic
-sgTable4: [
-[1 -8 0 8 -1 12]
-[22 -67 -58 0 58 67 -22 252]
-[86 -142 -193 -126 0 126 193 142 -86 1188]
-[300 -294 -532 -503 -296 0 296 503 532 294 -300 5148]
-[1133 -600 -1578 -1796 -1489 -832 0 832 1489 1796 1578 600 -1133 24024]
-[12922 -4121 -14150 -18334 -17842 -13843 -7506 0 7506 13843 17842 18334 14150 4121 -12922 334152]
-[748 -90 -643 -930 -1002 -902 -673 -358 0 358 673 902 1002 930 643 98 -748 23256]
-[6936 68 -4648 -7481 -8700 -8574 -7372 -5363 -2816 0 2816 5363 7372 8574 8700 7481 4648 -68 -6936 255816]
-[84075 10032 -43284 -78176 -96947 -101900 -95338 -79564 -56881 -29592 0 29592 56881 79564 95338 101900 96947 78176 43284 10032 -84075 3634092]
-[3938 815 -1518 -3140 -4130 -4567 -4530 -4098 -3350 -2365 -1222 0 1222 2365 3350 4098 4530 4567 4130 3140 1518 -815 -3938 197340]
-[30866 8602 -8525 -20982 -29236 -33754 -35003 -33450 -29562 -23806 -16649 -8558 0 8558 16649 23806 29562 33450 35003 33754 29236 20982 8525 -8602 -30866 1776060]
+	if (type? signal/1) = integer! [rcvTSMMFiltering signal filter filterSize 0]
+	if (type? signal/1) = float!   [rcvTSMMFiltering signal filter filterSize 1]
 ]
 
 
-; Derivative 1 quintic sextic
-sgTable5: [
-[-1 9 -45 0 45 -9 1 60]
-[-254 1381 -2269 -2879 0 2879 2269 -1381 254 8580]
-[-573 2166 -1249 -3774 -3084 0 3084 3774 1249 -2166 573 17160]
-[-9647 27093 -12 -33511 -45741 -31380 0 31380 45741 33511 12 -27093 9647 291720]
-[-78351 169819 65229 -130506 -266401 -279975 -175125 0 175125 279975 266401 130506 -65229 -169819 78351 2519400]
-[-14404 24661 16679 -8761 -32306 -43973 -40483 -23945 0 23945 40483 43973 32306 8671 -16679 -24661 14404 503890]
-[-255102 349928 322378 9473 -348823 -604484 -686099 -583549 -332684 0 332684 583549 686099 604484 348823 -9473 -322378 -349928 255102 9806280]
-[-15033066 16649358 19052988 6402438 -10949942 -26040033 -34807914 -35613829 -28754154 -15977364 0 15977364 28754154 35613829 34807914 26040033 10949942 -6402438 -19052988 -16649358 15033066 637408200]
-[-400653 359157 489687 265164 -106911 -478349 -752859 -878634 -840937 -654687 -357045 0 357045 654687 840937 878634 752859 478349 106911 -265164 -489687 -359157 400653 18747300]
-[-8322182 6024183 9604353 6671883 544668 -6301491 -12139321 -15896511 -17062146 -15593141 -11820675 -6356625 0 6356635 11820675 15593141 17062146 15896511 12139321 6301491 -544668 -6671893 -9604353 -6024183 8322182 429214500]
-]
-
-rcvSGFilter: function [
-"Calculates second order polynomial Savitzky-Golay filter"
-	signal 		[vector!]
-	filter 		[vector!]
-	opSG		[integer!]
-][
-	;pre defined sg coefficients for fast calculation (cubic polynomials)./
-	case [
-		opSG = 1  [kernel: sgTable1/1] 	;5
-    	opSG = 2  [kernel: sgTable1/2]	;7 
-    	opSG = 3  [kernel: sgTable1/3]  ;9 
-    	opSG = 4  [kernel: sgTable1/4] 	;11
-    	opSG = 5  [kernel: sgTable1/5] 	;13
-    	opSG = 6  [kernel: sgTable1/6]	;15
-    	opSG = 7  [kernel: sgTable1/7]	;17
-    	opSG = 8  [kernel: sgTable1/8]	;19
-    	opSG = 9  [kernel: sgTable1/9]	;21
-    	opSG = 10 [kernel: sgTable1/10]	;23
-    	opSG = 11 [kernel: sgTable1/11] ;25
-    ]
-    
-    ;quartic  and quintic polynomials
-    case [
-    	opSG = 12  [kernel: sgTable2/1]	;7
-    	opSG = 13  [kernel: sgTable2/2]	;9 
-    	opSG = 14  [kernel: sgTable2/3] ;11
-    	opSG = 15  [kernel: sgTable2/4] ;13
-    	opSG = 16  [kernel: sgTable2/5]	;15
-    	opSG = 17  [kernel: sgTable2/6]	;17
-    	opSG = 18  [kernel: sgTable2/7]	;19
-    	opSG = 19  [kernel: sgTable2/8]	;21
-    	opSG = 20  [kernel: sgTable2/9] ;23
-    	opSG = 21  [kernel: sgTable2/10];25
-    ]
-    
-    
-    ; we need float matrices
-    t: type? first signal
-    if t = integer! [signal * 1.0]
-    t: type? first filter
-    if t = integer! [filter * 1.0]
-    _rcvSGFilter signal filter kernel
-]
-
-rcvSGCubicFilter: function [
-"Calculates second order polynomial Savitzky-Golay filter"
-	signal 		[vector!]
-	filter 		[vector!]
-	opSG		[integer!]
-][
-	
-    kernel: sgTable1/:opSG
-    ; we need float matrices
-    t: type? first signal
-    if t = integer! [signal * 1.0]
-    t: type? first filter
-    if t = integer! [filter * 1.0]
-    if not none? kernel [_rcvSGFilter signal filter kernel]
-]
-
-rcvSGQuarticFilter: function [
-"Calculates second order polynomial Savitzky-Golay filter"
-	signal 		[vector!]
-	filter 		[vector!]
-	opSG		[integer!]
-][
-	
-    kernel: sgTable2/:opSG
-    ; we need float matrices
-    t: type? first signal
-    if t = integer! [signal * 1.0]
-    t: type? first filter
-    if t = integer! [filter * 1.0]
-    if not none? kernel [_rcvSGFilter signal filter kernel]
-]
-
-rcvSGDerivative1: function [
-"Calculates first derivative polynomial Savitzky-Golay filter"
-	signal 		[vector!]
-	filter 		[vector!]
-	opSG		[integer!]
-][
-	;pre defined sg coefficients for fast calculation (Derivative 1 quadratic)
-	case [
-		opSG = 1  [kernel: sgTable3/1] 	;5
-		opSG = 2  [kernel: sgTable3/2]	;7 
-		opSG = 3  [kernel: sgTable3/3]	;9 
-		opSG = 4  [kernel: sgTable3/4]	;11 
-		opSG = 5  [kernel: sgTable3/5]	;13 
-		opSG = 6  [kernel: sgTable3/6]	;15 
-		opSG = 7  [kernel: sgTable3/7]  ;17
-		opSG = 8  [kernel: sgTable3/8]  ;19
-		opSG = 9  [kernel: sgTable3/9]  ;21
-		opSG = 10 [kernel: sgTable3/10] ;23
-		opSG = 11 [kernel: sgTable3/11] ;25
-	]
-	;Derivative 1 quartic)
-	case [
-		opSG = 12  [kernel: sgTable4/1] ;5
-		opSG = 13  [kernel: sgTable4/2] ;7
-		opSG = 14  [kernel: sgTable4/3]	;9
-		opSG = 15  [kernel: sgTable4/4]	;11
-		opSG = 16  [kernel: sgTable4/5]	;13
-		opSG = 17  [kernel: sgTable4/6]	;15
-		opSG = 18  [kernel: sgTable4/7]	;17	
-		opSG = 19  [kernel: sgTable4/8]	;19
-		opSG = 20  [kernel: sgTable4/9];21
-		opSG = 21  [kernel: sgTable4/10];23
-		opSG = 22  [kernel: sgTable4/11];25
-	]
-	
-	;Derivative 1 quintic sextic
-	case [
-		opSG = 23 [kernel: sgTable5/1] 	;5
-		opSG = 24 [kernel: sgTable5/2] 	;7
-		opSG = 25 [kernel: sgTable5/3]	;11
-		opSG = 26 [kernel: sgTable5/4]	;13
-		opSG = 27 [kernel: sgTable5/5]	;15
-		opSG = 28 [kernel: sgTable5/6]	;17
-		opSG = 29 [kernel: sgTable5/7]	;19
-		opSG = 30 [kernel: sgTable5/8]	;21
-		opSG = 31 [kernel: sgTable5/9]	;23
-		opSG = 32 [kernel: sgTable5/10]	;25
-	]
-	; we need float matrices
-    t: type? first signal
-    if t = integer! [signal * 1.0]
-    t: type? first filter
-    if t = integer! [filter * 1.0]
-    _rcvSGFilter signal filter kernel
-]
-
-;********************* DTW Dynamic Time Warping ****************************
-; a very basic DTW algorithm
-; thanks to Nipun Batra (https://nipunbatra.github.io/blog/2014/dtw.html)
 
 
-rcvDTWGetPath1: function [x [block!] y [block!] cMat [block!] return: [block!]
-"Find the path minimizing the distance "
-][
-	xPath: copy []
-	i: length? y
-	j: length? x
-	while [(i >= 1) and (j >= 1)] [
-		either any [i = 1 j = 1][
-			case/all [
-				i = 1 [j: j - 1 ] 
-				j = 1 [i: i - 1 ]	
-			]
-		]
-		[minD: rcvDTWMin cMat/(i - 1)/(j - 1) cMat/(i - 1)/(j) cMat/(i)/(j - 1)
-		t0: false
-			case/all [
-				cMat/(i - 1)/(j) = minD [i: i - 1 t0: true]
-				cMat/(i)/(j - 1) = minD [j: j - 1 t0: true]
-			]
-			unless t0 [i: i - 1 j: j - 1]
-		]
-		b: copy []
-		append b j ; x
-		append b i ; y
-		append/only xPath b
-	]
-	append/only xPath [0 0]
-	reverse xPath
-]
 
 
-rcvDTWMin: function [x [number!] y [number!] z [number!] return: [number!]
-"Minimal value between 3 values"
-][
-	_rcvDTWMin x y z
-]
-
-rcvDTWDistances: function [x [block!] y [block!] dmat [vector!]
-"Making a 2d matrix to compute distances between all pairs of x and y series"
-][
-	t: type? first x
-	if t = integer! [_rcvDTWDistances x y dmat 0]
-	if t = float! 	[_rcvDTWDistances x y dmat 1]
-]
-
-rcvDTWCosts: function [x [block!] y [block!] dMat [vector!] cMat [vector!]
-"Making a 2d matrix to compute minimal distance cost "
-] [
-	_rcvDTWRun length? x length? y dMat cMat
-]
-
-rcvDTWGetPath: function [x [block!] y [block!] cMat [vector!] xPath [block!]
-"Gets optimal warping path"
-] [
-	clear xPath
-	_rcvDTWGetPath x y cMat xPath
-	reverse xPath
-]
-
-
-rcvDTWGetDTW: function [cMat [vector!] return: [number!]
-"Returns DTW value"
-][
-	last cMat
-]
-
-rcvDTWCompute: function [x [block!] y [block!] return: [number!]
-"Short-cut to get DTW value if you don't need distance and cost matrices"
-][
-	dMat: make vector! reduce ['float! 64 (length? x) * (length? y)]
-	cMat: make vector! reduce ['float! 64 (length? x) * (length? y)]
-	t: type? first x
-	if t = integer! [_rcvDTWDistances x y dmat 0]
-	if t = float! 	[_rcvDTWDistances x y dmat 1]
-	_rcvDTWRun (length? x) (length? y) dMat cMat
-	last cMat
-]
 
 
 

@@ -7,7 +7,10 @@ Red [
 
 ;this version uses rcvSetIntensity and not rcvBlend
 
-#include %../../libs/redcv.red ; for redCV functions
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+
+
 margins: 10x10
 isize: 512x512
 bitSize: 32

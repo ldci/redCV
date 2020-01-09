@@ -6,7 +6,10 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../libs/redcv.red ; for red functions
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/tiff/rcvTiff.red
+
 ; **************test program variables and functions*********
 dSize: 512
 gsize: as-pair dSize dSize
