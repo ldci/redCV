@@ -1,1 +1,76 @@
-Red [	Title:   "Point Filter "	Author:  "Francois Jouen"	File: 	 %pointDetector.red	Needs:	 'View];required libs#include %../../libs/core/rcvCore.red#include %../../libs/matrix/rcvMatrix.red#include %../../libs/tools/rcvTools.red#include %../../libs/imgproc/rcvImgProc.redmargins: 10x10defSize: 512x512img1: rcvCreateImage defSizedst:  rcvCreateImage defSizelumMat: rcvCreateMat 'integer! 32 defSizebinMat: rcvCreateMat 'integer! 32 defSizeisFile: falsemulti: 1.0bias: 0.0loadImage: does [    isFile: false	canvas/image/rgb: black	tmp: request-file	if not none? tmp [		fileName: to string! to-file tmp		win/text: fileName		either cb/data [img1: rcvLoadImage/grayscale tmp]					   [img1: rcvLoadImage tmp]		dst:  rcvLoadImage/grayscale tmp		lumMat: rcvCreateMat 'integer! 32 img1/size		binMat: rcvCreateMat 'integer! 32 img1/size		either (img1/size/x = img1/size/y) [bb/size: 120x120] [bb/size: 160x120]		bb/image: img1		rcvPointDetector img1 dst multi bias		canvas/image: dst		isFile: true		compute	]]compute: does [	cPoints: copy []	chull: copy []	rcvPointDetector img1 dst 1.0 0.0	rcvImage2Mat dst lumMat 	rcvMakeBinaryMat lumMat binMat	rcvGetPairs binMat img1/size cPoints	chull: rcvQuickHull/cw cPoints	; we need 3 points or more for polygon drawing 	n: length? chull	if n > 2 [		plot: copy reduce ['line-width 2 'pen red 'polygon]		foreach p chull [append plot p]	]	canvas/image: draw dst plot]; ***************** Test Program ****************************view win: layout [		title "Points"		origin margins space margins		cb: check "Grayscale" 		button 60 "Load" 		[loadImage]					button 60 "Quit" 		[rcvReleaseImage img1 								rcvReleaseImage dst Quit]		return		bb: base 160x120 img1		return 		canvas: base 512x512 dst	]
+Red [
+	Title:   "Point Filter "
+	Author:  "Francois Jouen"
+	File: 	 %pointDetector.red
+	Needs:	 'View
+]
+
+
+;required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
+margins: 10x10
+defSize: 512x512
+img1: rcvCreateImage defSize
+dst:  rcvCreateImage defSize
+lumMat: rcvCreateMat 'integer! 32 defSize
+binMat: rcvCreateMat 'integer! 32 defSize
+isFile: false
+
+multi: 1.0
+bias: 0.0
+
+loadImage: does [
+    isFile: false
+	canvas/image/rgb: black
+	tmp: request-file
+	if not none? tmp [
+		fileName: to string! to-file tmp
+		win/text: fileName
+		either cb/data [img1: rcvLoadImage/grayscale tmp]
+					   [img1: rcvLoadImage tmp]
+		dst:  rcvLoadImage/grayscale tmp
+		lumMat: rcvCreateMat 'integer! 32 img1/size
+		binMat: rcvCreateMat 'integer! 32 img1/size
+		either (img1/size/x = img1/size/y) [bb/size: 120x120] [bb/size: 160x120]
+		bb/image: img1
+		rcvPointDetector img1 dst multi bias
+		canvas/image: dst
+		isFile: true
+		compute
+	]
+]
+
+compute: does [
+	cPoints: copy []
+	chull: copy []
+	rcvPointDetector img1 dst 1.0 0.0
+	rcvImage2Mat dst lumMat 
+	rcvMakeBinaryMat lumMat binMat
+	rcvGetPairs binMat img1/size cPoints
+	chull: rcvQuickHull/cw cPoints
+	; we need 3 points or more for polygon drawing 
+	n: length? chull
+	if n > 2 [
+		plot: copy reduce ['line-width 2 'pen red 'polygon]
+		foreach p chull [append plot p]
+	]
+	canvas/image: draw dst plot
+]
+
+; ***************** Test Program ****************************
+view win: layout [
+		title "Points"
+		origin margins space margins
+		cb: check "Grayscale" 
+		button 60 "Load" 		[loadImage]			
+		button 60 "Quit" 		[rcvReleaseImage img1 
+								rcvReleaseImage dst Quit]
+		return
+		bb: base 160x120 img1
+		return 
+		canvas: base 512x512 dst	
+]
