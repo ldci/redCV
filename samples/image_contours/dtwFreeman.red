@@ -54,6 +54,7 @@ loadImage1: does [
 		mat1:  	rcvCreateMat 'integer! bitSize matSize1
 		bmat1:  rcvCreateMat 'integer! bitSize matSize1
 		;visited1: rcvCreateMat 'integer! bitSize matSize1
+		;rcvThreshold/binary img1 img11 127 255
 		rcv2WB img1 img11 
 		rcvImage2Mat img11 mat1 		; process image to a bytes matrix [0..255] 
 		rcvMakeBinaryMat mat1 bmat1	; processImages to a binary matrix [0..1]
@@ -83,7 +84,8 @@ loadImage2: does [
 		bmat2:  rcvCreateMat 'integer! bitSize matSize2 
 		;visited2: rcvCreateMat 'integer! bitSize matSize2
 		rcv2WB img2 img21
-		rcvImage2Mat img21 mat2 		; process image to a bytes matrix [0..255] 
+		;rcvThreshold/binary img2 img21 127 255
+		rcvImage2Mat img21 mat2 	; process image to a bytes matrix [0..255] 
 		rcvMakeBinaryMat mat2 bmat2	; processImages to a binary matrix [0..1]
 		canvas2/image: img21
 		f2/text: form img2/size

@@ -19,13 +19,14 @@ Red [
 ;re and im are the real (x) and imaginary (y) arrays of 2^m points.
 ;dir: 1 gives forward transform
 ;dir: -1 gives reverse or backward transform 
-;based on http://paulbourke.net/miscellaneous/
+;this code is based on http://paulbourke.net/miscellaneous/
 
 rcvFFT: routine [
 "In-place complex-to-complex FFT"
-	 re 	[vector!] 
-	 im 	[vector!] 
-	 dir	[integer!]
+	 re 			[vector!] 
+	 im 			[vector!] 
+	 dir			[integer!]
+	 scaling		[integer!]
 	/local
 	*re		[float-ptr!] 
 	*im 	[float-ptr!]
@@ -46,13 +47,14 @@ rcvFFT: routine [
 	c1 		[float!] 
 	c2 		[float!] 
 	z		[float!]
+	f		[float!]
 ][
 	*re: as float-ptr! vector/rs-head re
 	*im: as float-ptr! vector/rs-head im
 	;Calculate the number of points
 	m: as integer! rcvLog-2 as float! (vector/rs-length? re)
 	n: 1 << m
-	; Do the bit reversal 
+	; Do the bit reversal (Danielson-Lanzcos algorithm)
 	i2: n >> 1 
 	j: 1
 	i: 1 
@@ -101,17 +103,20 @@ rcvFFT: routine [
 			u1:  z
 			j: j + 1
 		]
-		c2:  sqrt ((1.0 - c1) / 2.0 )
+		c2:  sqrt ((1.0 - c1) / 2.0)
 		if dir = 1 [c2: 0.0 - c2] 
 		c1: sqrt ((1.0 + c1) / 2.0)
 		l: l + 1
 	]  
 	;  Scaling for forward transform
+	if scaling = 0 [f: 1.0]	; no scaling
+	if scaling = 1 [f: 1.0 / as float! n]
+	if scaling = 2 [f: 1.0 / sqrt as float! n]
 	if dir = 1 [
 		i: 1 
 		while [i <= n ][	
-			*re/i: *re/i / n
-			*im/i: *im/i / n
+			*re/i: *re/i * f
+			*im/i: *im/i * f
 			i: i + 1
 		]
 	]
@@ -334,6 +339,7 @@ rcvFFT2D: routine [
 	re 			[block!] 		; array of vectors
 	im 			[block!] 		; array of vectors
 	dir			[integer!]		; direction
+	scaling		[integer!]		; scaling mode
 	/local
 	headX		[red-value!]
 	headY		[red-value!]
@@ -367,7 +373,7 @@ rcvFFT2D: routine [
 	while [headX < tailX] [
 		vectBlkX: as red-vector! headX
 		vectBlkY: as red-vector! headY
-		rcvFFT vectBlkX vectBlkY dir
+		rcvFFT vectBlkX vectBlkY dir scaling
 		headX: headX + 1
 		headY: headY + 1
 	]
@@ -417,7 +423,7 @@ rcvFFT2D: routine [
 			vy: vy + unit
 			y: y + 1
 		]
-		rcvFFT vectBlkX vectBlkY dir
+		rcvFFT vectBlkX vectBlkY dir scaling
 		headX: headX + 1
 		headY: headY + 1
 		x: x + 1
@@ -542,28 +548,29 @@ rcvFFTImage: func [
 	/forward /backward
 ][
 	dst:  	 rcvCreateImage src/size			; for returned image
-	matLog:  rcvCreateMat 'float! 	64 isize	; for log scale matrix
+	matLog:  rcvCreateMat 'float! 64 src/size	; for log scale matrix
 	matIntF: rcvCreateMat 'integer! 32 src/size	; integer matrix
 	matIntB: rcvCreateMat 'integer! 32 src/size	; integer matrix
 	matRe: 	 rcvCreateMat 'float! 64 src/size	; real
 	matIm: 	 rcvCreateMat 'float! 64 src/size	; imaginary
 	rcvImage2Mat src matIntF					; grayscale image to matrix
 	rcvMatInt2Float matIntF matRe 255.0			; integer mat to float mat
-	arrayR: rcvMat2Array matRe isize			; array of real
-	arrayI: rcvMat2Array matIm isize			; array of imaginary
-	rcvFFT2D arrayR arrayI 1					; forward FFT with scaling
+	arrayR: rcvMat2Array matRe src/size			; array of real
+	arrayI: rcvMat2Array matIm src/size			; array of imaginary
+	rcvFFT2D arrayR arrayI 1 1					; forward FFT with scaling
 	matR: 	rcvArray2Mat arrayR					; real vector
 	matI: 	rcvArray2Mat arrayI					; imaginary vector
 	mat:  	rcvFFTAmplitude matR matI			; FFT amplitude
-	arrayS: rcvMat2Array mat isize				; we need an array	for shift
-	mat: 	rcvFFT2DShift arrayS isize			; centered mat
-	matAm: 	rcvTransposeArray mat				; rotated mat
-	rcvLogMatFloat matAm matLog					; scale amplitude  by log is better
+	arrayS: rcvMat2Array mat src/size			; we need an array	for shift
+	mat: 	rcvFFT2DShift arrayS src/size		; centered mat
+	arrayC: rcvTransposeArray mat				; rotated mat
+	rcvLogMatFloat arrayC matLog				; scale amplitude  by log is better
 	rcvMatFloat2Int matLog matIntF 255.0		; to integer matrix	
-	rcvFFT2D arrayR arrayI -1					; backward FFT without scaling (inverse)
+	rcvFFT2D arrayR arrayI -1 0					; backward FFT without scaling
 	matR: rcvArray2Mat arrayR					; real vector
 	matI: rcvArray2Mat arrayI					; imaginary vector
-	rcvMatFloat2Int (matR + matI) matIntB 255.0 ; to integer matrix	(real + imaginary)	
+	rcvLogMatFloat (matR + matI) matLog			; scale amplitude  by log is better
+	rcvMatFloat2Int matLog matIntB 255.0 		; to integer matrix (real + imaginary)	
 	case [
 		forward 	[rcvMat2Image matIntF dst]	; to red image
 		backward	[rcvMat2Image matIntB dst]	; to red image

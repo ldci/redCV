@@ -16,6 +16,7 @@ Red [
 isize: 	128x128 ; 2^7
 isize2: 256x256 ; 2^8
 radius: 256.0
+fscale: 1
 
 img0: rcvCreateImage isize
 img1: rcvCreateImage isize
@@ -46,7 +47,6 @@ loadImage: does [
 		canvas0/image: img0
 		canvas1/image: img1
 		sb/text: ""
-		do-events/no-wait
 		fft
 		isFile: true
 	]
@@ -58,22 +58,22 @@ fft: does [
 	rcvMatInt2Float matInt matRe 255.0		; integer mat to float mat
 	arrayR: rcvMat2Array matRe isize		; real array for faster FFT
 	arrayI: rcvMat2Array matIm isize		; imaginary for faster FFT
-	rcvFFT2D arrayR arrayI -1				; FFT
+	rcvFFT2D arrayR arrayI -1 fscale		; FFT
 	matR: rcvArray2Mat arrayR				; real vector
 	matI: rcvArray2Mat arrayI				; imaginary vector
 	fR: rcvFFTFilter matR radius 1			; High-Pass Filter
 	fI: rcvFFTFilter matI radius 1			; High-Pass Filter
 	arrayR: rcvMat2Array fR isize			; for the reverse FFT
 	arrayI: rcvMat2Array fI isize			; for the reverse FFT
-	mat: rcvFFTDAmplitude fR fI				; FFT amplitude
-	matTmp: rcvMat2Array mat isize			; we need an array	for shift	
-	mat: rcvFFT2DShift matTmp isize			; centered mat
+	mat: rcvFFTAmplitude fR fI				; FFT amplitude
+	arrayS: rcvMat2Array mat isize			; we need an array	for shift	
+	mat: rcvFFT2DShift arrayS isize			; centered mat
 	matAm: rcvTransposeArray mat			; rotated mat
 	rcvLogMatFloat matAm matLog				; scale amplitude  by log is better
 	rcvMatFloat2Int matLog matInt 255.0  	; to integer	
 	rcvMat2Image matInt img2				; red image
 	canvas2/image: img2						; show result
-	rcvFFT2D arrayR arrayI 1				; inverse FFT2D
+	rcvFFT2D arrayR arrayI 1 fscale			; inverse FFT2D
 	matR: rcvArray2Mat arrayR				; array to vector matrice
 	matI: rcvArray2Mat arrayI				; array to vector matrice
 	mat:  rcvAddMat matR matI				; Real + Imaginary parts
@@ -91,9 +91,8 @@ view win: layout [
 		title "FFT-2D on Image: High-Pass Filtering"
 		button "Load" [loadImage]
 		text 100 " Radius" 
-		sl: slider 200 [ v: to-integer 1.0 + (face/data * 255.0)
-						radius: to-float v
-						f/text: form radius if isFile [fft]]
+		sl: slider 200 [radius: 1.0 + (face/data * 255.0)
+						f/text: form to-integer radius if isFile [fft]]
 		f: field 50
 		pad 540x0
 		button 60 "Quit" [	rcvReleaseImage img0

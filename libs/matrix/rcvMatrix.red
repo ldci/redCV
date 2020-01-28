@@ -547,9 +547,9 @@ rcvMat2Image: routine [
     pixD: image/acquire-buffer dst :handle
     w: IMAGE_WIDTH(dst/size) 
     h: IMAGE_HEIGHT(dst/size) 
-    y: 0
     value: vector/rs-head mat ; get pointer address of the matrice
     unit: rcvGetMatBitSize mat ; bit size
+    y: 0
     while [y < h] [
     	x: 0
        	while [x < w][
@@ -1022,7 +1022,7 @@ rcvMakeIndenticalMat: func [
 
 
 
-rcvSortMat: func [
+rcvSortMat: function [
 "Ascending sort of matrix"
 	v [vector!] 
 ][
@@ -1177,12 +1177,14 @@ rcvMatFloat2Int: function [
 ]
 
 rcvLogMatFloat: function [
-"Applies log transform"	
+"Applies log-10 transform"	
 	src 		[vector!] 
 	dst 		[vector!] 
 ][
 	n: length? src
-	forall src [src/1: log-10 (1.0 + src/1)]
+	forall src [
+		src/1: log-10 (10.0 + src/1)
+	]
 	maxi: rcvMaxMat src
 	mini: rcvMinMat src
 	repeat i n [dst/(i): (src/(i) - mini) / (maxi - mini)]

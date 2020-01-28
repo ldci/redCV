@@ -14,7 +14,7 @@ Red [
 
 
 margins: 10x10
-isize: 512x512
+isize: 256x256
 imgSize: 0x0
 bitSize: 32 ; or 16 bits
 
@@ -58,7 +58,6 @@ loadImage: does [
 	canvas0/image: none
 	canvas1/image: none
 	canvas2/image: none
-	imgSize: isize
 	isFile: false
 	tmp: request-file
 	if not none? tmp [
@@ -71,14 +70,13 @@ loadImage: does [
 		; we need a grayscale image
 		rcv2Gray/luminosity img0 img1
 		canvas1/image: img1
-		flowMat: rcvCreateMat 'integer! bitSize isize
-		distMat: rcvCreateMat 'float! 64 isize
-		
+		flowMat: rcvCreateMat 'integer! bitSize imgSize
+		distMat: rcvCreateMat 'float! 64 imgSize
 		; GrayLevelScale (Luminance) mat
 		lumMat: rcvCreateMat 'integer! bitSize imgSize 
 		rcvImage2Mat img1 lumMat
 		canvas1/image: img1
-		; Gradient (Sobel-like) 	mat		
+		; Gradient (Sobel-like) mat		
 		gradientMat: rcvCreateMat 'integer! bitSize imgSize 
 		; chamfer default
 		chamfer*: first rcvChamferDistance chamfer5
@@ -93,6 +91,7 @@ loadImage: does [
 		threshold: 1
 		gMax: 0
 		isFile: true
+		if to-string system/platform = "macOS" [canvas3/draw: reduce [grad]]
 	]
 ]
 
@@ -124,20 +123,19 @@ computeFlow: does [
 	canvas2/image: img2
 ]
 
-; for distance scale 
+; for distance scale (should be improved)
 grad: compose [
-				anti-alias on
 				pen red
 				fill-pen linear 0x0
-			    0 1024 90
+			    0 512 90
 				1.0 1.0 
 				red
 				black 
 				black
 				scale 1.0 1.0
 				translate 0x0
-				rotate 0 10x256 
-				box 0x0 20x512
+				;rotate 0 10x128
+				box 0x0 20x256
 ]
 
 view win: layout [
@@ -169,18 +167,17 @@ view win: layout [
 	return
 	canvas0: base 128x128 
 	return
-	text 100 "Flow"
-	
-	pad 412x0
-	text 100 "Flow + Gradient"
-	pad 413x0 text bold 15 "0"
+	text 256 "Flow"
+	text 256 "Flow + Gradient"
+	pad 4x0 
+	text bold 15 "0"
 	return
 	canvas1: base isize 
 	canvas2: base isize 
-	canvas3: base 20x512 
+	canvas3: base 20x256 
 	return
-	text "Distance"
-	sl0: slider 230 [
+	text 110 "Distance"
+	sl0: slider 85 [
 		if isFile [
 			distance: 0.05 + to-float (face/data * 49.95)
 			fnz/text: form distance
@@ -189,10 +186,8 @@ view win: layout [
 	]
 	fnz: field 40 "10.0"
 	
-	cb: check "Flow Scale [0..255]" [computeFlow]
-	
-	text "Gradient Threshold"
-	sl1: slider 330 [
+	text 110 "Gradient Threshold"
+	sl1: slider 85 [
 		if isFile [
 			threshold: 1 + (to-integer face/data * 99)
 			fgt/text: form threshold
@@ -200,8 +195,10 @@ view win: layout [
 		]
 	]
 	fgt: field 40 "0" 
-	pad 8x0
+	pad 4x0
 	text 15 bold "N"
-	do [canvas3/draw: reduce [grad] cb/data: false]
 	
+	return
+	cb: check "Flow Scale [0..255]" [computeFlow]
+	do [cb/data: false]
 ]

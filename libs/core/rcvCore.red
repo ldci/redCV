@@ -446,13 +446,13 @@ rcvConvert: routine [
        	r: pix1/value and 00FF0000h >> 16 
         g: pix1/value and FF00h >> 8 
         b: pix1/value and FFh 
+        s: (r + g + b) / 3 
         rf: as float! r
         gf: as float! g
         bf: as float! b
         switch op [
         	0 [pixD/value: pix1/value]
-        	1 [s: (r + g + b) / 3 
-            	pixD/value: (a << 24) OR (s << 16 ) OR (s << 8) OR s] ;RGB2Gray average
+        	1 [pixD/value: (a << 24) OR (s << 16 ) OR (s << 8) OR s] ;RGB2Gray average
           111 [ r: (r * 21) / 100
               		g: (g * 72) / 100 
               		b: (b * 7) / 100
@@ -478,9 +478,9 @@ rcvConvert: routine [
           	] ; Normalized RGB by square sum
         	2 [pixD/value: (a << 24) OR (b << 16 ) OR (g << 8) OR r] ;2BGRA
             3 [pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2RGBA
-            4 [either r > 127 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
+            4 [either s > 127 [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0] 
             	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2BW
-            5 [either r > 127 [r: 0 g: 0 b: 0] [r: 255 g: 255 b: 255] 
+            5 [ either s > 127 [r: 0 g: 0 b: 0] [r: 255 g: 255 b: 255] 
             	   pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2WB
         ]
         pix1: pix1 + 1
@@ -1596,7 +1596,7 @@ rcvBlend: routine [
 	handle2: 0
     handleD: 0
     pix1: image/acquire-buffer src1 :handle1
-    pix2: image/acquire-buffer src2 :handle1
+    pix2: image/acquire-buffer src2 :handle2
     pixD: image/acquire-buffer dst  :handleD
 	w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)

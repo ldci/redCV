@@ -52,7 +52,7 @@ generateSignal: does [
 
 processSignal: does [
 	im: make vector! reduce ['float! 64 n];'
-	rcvFFT re im 1
+	rcvFFT re im 1 1
 	fam: rcvFFTAmplitude re im		;magnitude
 	freq: rcvFFTFrequency n dt		;frequency
 	f1/text: form first freq

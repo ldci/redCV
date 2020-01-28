@@ -35,7 +35,10 @@ anim: true
 canny: [-1.0 -1.0 -1.0
 		-1.0 8.0 -1.0 
 		-1.0 -1.0 -1.0]
-		
+
+color: 	random white
+plot: 	compose [pen white fill-pen white box 0x0 iSize]
+	
 generatePolygon: does [
 	random/seed now/time/precise
 	canvas/image: none
@@ -47,14 +50,17 @@ generatePolygon: does [
 	clear r/text
 	p1: 128x128 + random rSize p2: 128x128 + random rSize  p3: 128x128 + random rSize 
 	p4: 128x128 + random rSize  128x128 +  p5: 128x128 + random rSize
-	plot: compose [pen white fill-pen white polygon (p1) (p2) (p3) (p4) (p5)]
-	canvas/draw: reduce [plot]
+	color: 	random white
+	plot: compose [pen color fill-pen color polygon (p1) (p2) (p3) (p4) (p5)]
 	pgb/data: 0%
 	processImage
 ]
 
 processImage: does [
-	img: to-image canvas
+	canvas/draw: reduce [plot]
+	;img: to-image canvas						; pbs with GTK
+	rcvZeroImage img
+    canvas/image: draw img reduce [plot]
 	rcvConvolve img edges canny factor delta	; edges detection with Canny
 	rcvDilate edges edges2 knlSize knl			; dilates shape to suppress 0 values if exist
 	rcvImage2Mat edges2 mat 					; make first matrix 0..255 
@@ -84,7 +90,7 @@ processImage: does [
 		pix: rcvGetInt2D visited iSize/x p/x p/y	; get integer value 
 		d: rcvMatGetChainCode visited iSize p 1		; get chain code
 		rcvSetInt2D visited iSize p 0				; pixel processed 
-		append append append plot 'circle (p) 1 
+		append append append plot 'circle (p) 1		 
 		if d > -1 [append s form d]
 		;get the next pixel to process
 		pgb/data: to-percent (i / to-float perim)
@@ -111,7 +117,7 @@ view win: layout [
 					rcvReleaseMat visited
 					Quit]
 	return
-	canvas: base iSize black draw plot
+	canvas: base iSize black
 	r: area 200x512
 	return
 	pad 120x0

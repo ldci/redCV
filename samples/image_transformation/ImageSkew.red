@@ -12,10 +12,13 @@ Red [
 #include %../../libs/imgproc/rcvImgProc.red
 
 margins: 10x10
-isize: 512x512
+iSize: 	512x512
+img1: 	rcvCreateImage iSize
+dst: 	rcvCreateImage iSize
+centerXY: iSize / 2
 x: 0
 y: 0
-
+rot: 0.0
 drawBlk: []
 canvas: none
 loadImage: does [
@@ -25,11 +28,7 @@ loadImage: does [
 	if not none? tmp [
 		canvas/draw: none
 		img1: rcvLoadImage tmp
-		canvas/image: img1
-		img1: to-image canvas	; force image size to 512x512
-		iSize: img1/size
-		centerXY: iSize / 2
-		canvas/image: none
+		dst: rcvResizeImage img1 iSize ; force image in 512x512
 		rot: 0.0
 		drawBlk: rcvSkewImage 0.5 0x0 x y img1
 		canvas/draw: drawBlk

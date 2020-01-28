@@ -11,6 +11,7 @@ Red [
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/math/rcvQuickHull.red
 
 margins: 10x10
 defSize: 512x512
@@ -37,8 +38,6 @@ loadImage: does [
 		binMat: rcvCreateMat 'integer! 32 img1/size
 		either (img1/size/x = img1/size/y) [bb/size: 120x120] [bb/size: 160x120]
 		bb/image: img1
-		rcvPointDetector img1 dst multi bias
-		canvas/image: dst
 		isFile: true
 		compute
 	]
@@ -46,8 +45,7 @@ loadImage: does [
 
 compute: does [
 	cPoints: copy []
-	chull: copy []
-	rcvPointDetector img1 dst 1.0 0.0
+	rcvPointDetector img1 dst multi bias
 	rcvImage2Mat dst lumMat 
 	rcvMakeBinaryMat lumMat binMat
 	rcvGetPairs binMat img1/size cPoints

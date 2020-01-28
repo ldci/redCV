@@ -56,7 +56,7 @@ showSignal: does [
 processSignal: does [
 	factor: 120.0
 	;FFT
-	rcvFFT re im 1
+	rcvFFT re im 1 1
 	img2/rgb: 0.0.0
 	plot2: reduce ['line-width 1 'pen red 'line] ;'
 	len: length? re

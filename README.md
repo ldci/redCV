@@ -3,14 +3,14 @@
 ### This library needs View 
 
 
-For Windows and macOS. 
-Due to the excellent work of Regis available for Linux now with GTK backend.
+For Windows and macOS and now Linux-GTK. Thanhs to 
+@bitbegin, @loziniak and @rcqls. 
 
 ### You need the lastest Red master version.
 
-Developped under macOS 32-bit
+Developped under macOS 32-bit.
 
-Tested with macOS, Windows XP and Windows 10.
+**Tested with macOS, Linux Mint 32-bit, Windows XP and Windows 10.**
 
 You must compile samples since red routines are required.
 
@@ -19,6 +19,25 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+### UPDATE JANUARY 28 2020
+redCV is now 100% compatible with Linux-GTK.
+
+**modified library module**s
+
+1. /libs/core/rcCore.red
+1. /libs/matrix/rcvMatrix.red
+1. /libs/timeseries/rcvFFT.red 
+1. /libs/tiff/rcvTiff.red
+
+**modified samples**
+
+1. /samples/image_contours/ (all samples)
+1. /samples/image_detector/pointDetector.red
+1. /samples/image_distance/chamfer/flow.red
+1. /samples/image_fft/ (all fourier samples) 
+1. /samples/image_pixel/ (pixel1 pixel2)
+1. /samples/image_transformation (imageRotate imageSkew imageTranslate imageClip)
+1. /sample/signal_processsing/ (all fourier samples)
 
 ### UPDATE JANUARY 9 2020
 Happy New Year!

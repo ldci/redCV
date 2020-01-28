@@ -8,7 +8,7 @@ Red [
 
 ; required libs
 #include %../../libs/core/rcvCore.red
-#include %../../libs/tiff/rcvTiff.red	
+
 
 margins: 10x10
 defSize: 512x512
@@ -28,14 +28,9 @@ loadImage: does [
 	canvas/image/rgb: black
 	tmp: request-file
 	if not none? tmp [
-		; reads also tiff images :)
-		if error? try [img1: rcvLoadImage tmp]
-					  [ret: rcvLoadTiffImage tmp
-					  if ret [img1: rcvTiff2RedImage]		   
-		] 
-		dst:  rcvCloneImage img1
+		img1: rcvLoadImage tmp
+		dst: rcvResizeImage img1 512x512 ; force image in 512x512
 		canvas/image: dst
-		dst: to-image canvas ; force image size to 512x512 
 		p1/draw: drawRect
 		isFile: true
 	]

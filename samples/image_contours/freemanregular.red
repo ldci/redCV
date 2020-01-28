@@ -17,15 +17,19 @@ Red [
 iSize: 512x512
 mat:  	rcvCreateMat 'integer! 32 iSize
 bMat: 	rcvCreateMat 'integer! 32 iSize
+visited: rcvCreateMat 'integer! 32 iSize
 img: 	rcvCreateImage iSize
 edges: 	rcvCreateImage iSize
-plot: 	compose [pen white fill-pen white box 128x128 384x384]
+color: 	random white
+plot: 	compose [pen color fill-pen color box 128x128 384x384]
 fgVal: 1
 anim: false
 canvas: none
 
 processImage: does [
-	img: to-image canvas
+	;img: to-image canvas ; pbs with GTK
+	rcvZeroImage img
+    canvas/image: draw img reduce [plot]
 	rcvImage2Mat img mat 	 
 	rcvMakeBinaryMat mat bmat
 	visited: rcvCreateMat 'integer! 32 iSize
@@ -73,11 +77,13 @@ view win: layout [
 		clear f3/text
 		clear f4/text
 		pgb/data: 0%
+		color: 	random white
+		canvas/image: none
 		switch face/selected [
-			1 [plot: compose [pen white fill-pen white box 128x128 384x384]]
-			2 [plot: compose [pen white fill-pen white circle (256x256) 128]]
-			3 [plot: compose [pen white fill-pen white triangle 256x128 128x300 384x300]]
-			4 [plot: compose [pen white fill-pen white polygon 256x100 384x300 128x400 128x300 256x10]]
+			1 [plot: compose [pen color fill-pen color box 128x128 384x384]]
+			2 [plot: compose [pen color fill-pen color circle (256x256) 128]]
+			3 [plot: compose [pen color fill-pen color triangle 256x128 128x300 384x300]]
+			4 [plot: compose [pen color fill-pen color polygon 256x100 384x300 128x400 128x300 256x10]]
 		]
 		canvas/draw: reduce [plot]
 	]

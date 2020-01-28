@@ -13,8 +13,9 @@ Red [
 
 margins: 10x10
 winBorder: 10x50
-img1: rcvCreateImage 512x512
-dst:  rcvCreateImage img1/size
+iSize: 	512x512
+img1: 	rcvCreateImage iSize
+dst: 	rcvCreateImage iSize
 rLimit: 0x0
 lLimit: 512x512
 start: 0x0
@@ -30,8 +31,8 @@ loadImage: does [
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1
 		canvas/image: dst
-		img1: to-image canvas ; force image in 512x512 size
-		drawBlk: rcvClipImage poffset start end img1
+		dst: rcvResizeImage img1 iSize ; force image in 512x512
+		drawBlk: rcvClipImage poffset start end dst
 		drawRect: compose [line-width 2 pen green box 0x0 200x200]
 		p1/draw: [] ROI/draw: []
 	]

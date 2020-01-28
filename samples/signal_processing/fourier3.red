@@ -57,7 +57,7 @@ processSignal: does [
 	im: make vector! reduce ['float! 64 n];'
 	
 	;FFT
-	rcvFFT re im 1
+	rcvFFT re im 1 1
 	
 	;freq: rcvFFTFrequency n dt	; frequency
 	;probe freq

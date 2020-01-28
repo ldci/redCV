@@ -25,7 +25,7 @@ generateImage: does [
 	canvas/image: none
 	p1: random 400x400
 	p2: random 400x400
-	color: 255.255.255
+	color: random 255.255.255
 	plot: compose [fill-pen (color) box (p1) (p2)]
 	processImage
 ]
@@ -33,7 +33,9 @@ generateImage: does [
 
 processImage: does [
 	canvas/draw: reduce [plot]
-	img: to-image canvas
+	;img: to-image canvas		; to-image: problems with GTK
+   	 rcvZeroImage img
+    	canvas/image: draw img reduce [plot]
 	rcvImage2Mat img mat 	 
 	rcvMakeBinaryMat mat bmat
 	lPix: rcvMatleftPixel bmat iSize fgVal

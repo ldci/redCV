@@ -10,30 +10,29 @@ Red [
 	}
 ]
 
-
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
 #include %rcvTiffObject.red ; for Tiff definitions
 
-; for intel or motorola file
-
-bigEndian: false ; by default intel 
-endian: func [str [binary!]] [either not bigEndian [to-integer reverse str] [to-integer str]]
-
-bStripOffsets: []		; list of strips offset
-bStripByteCounts: []	; length of stripe 
-tiffValues: []			; block of tags values
-imageData: copy #{} 	; image Data
-tagList: []				; list of tags for visualization
-IFDOffsetList: []		;list of Image File Directory offsets and number of entries
-; default 8-bit image with 3 channels
-sampleFormat: 1     ; 1 
-samplesPerPixel: 3
-bitsPerSample: 8
+;global variables
+tiffValues: 		[]			; block of tags values
+tagList: 			[]			; list of tags for visualization
+IFDOffsetList: 		[]			; list of Image File Directory offsets and number of entries
+bigEndian: 			false 		; by default intel 
+;tiff:				copy #{}	; tiff file as binary
+cc: 				1			; for data offset computation
+numberOfPages:		1			; 1 image
+imageType: 			"grayscale"	; default grayscale or bi-level 
 
 
+endian: func [str [binary!]
+][
+	if not bigEndian [reverse str]
+	to-integer str
+]
 
-;from 1 to 3 Samples Per Pixel
-;from 1 channel to 4 channels red image
 
+;for 8-bit and 1-channel image (bi-level or grayscale)
 rcvTiff2Image: routine [
 "Convert Tiff image to Red image"
 	bin		[binary!]
@@ -41,7 +40,6 @@ rcvTiff2Image: routine [
 	/local
 	pixD 	[int-ptr!]
 	handle	[integer!]
-	value	;[red-binary!] 
 	pos		[integer!]
 	i		[integer!]
 	w		[integer!]
@@ -56,14 +54,13 @@ rcvTiff2Image: routine [
     y: 0
     pos: 0
     i: 0
-    value: binary/rs-head bin ; get pointer address of bin string
     while [y < h][
     	x: 0
     	while [x < w] [
-    		pos: pos + 1
        		i: binary/rs-abs-at bin pos
        		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
         	pixD: pixD + 1
+        	pos: pos + 1
         	x: x + 1
         ]
     	y: y + 1
@@ -71,15 +68,50 @@ rcvTiff2Image: routine [
     image/release-buffer dst handle yes
 ]
 
-; 
+; for 32-bit image
+rcvBinary2mat: routine [
+"Read 32-bit Tiff images"
+	binStr 	[binary!]
+	step	[integer!]
+	return:	[vector!]
+	/local
+	mat		[red-vector!]
+	pMat	[int-ptr!]
+	s    	[series!]
+	h		[byte-ptr!]
+	t		[byte-ptr!]
+	l		[integer!]
+	int		[integer!]
+][
+	l: (binary/rs-length? binStr) / step
+	h: binary/rs-head binStr
+	t: binary/rs-tail binStr
+	;make vector -- slot, size, type, unit
+	mat: vector/make-at stack/push* l TYPE_INTEGER 4; 32-bit integer 
+	pMat: as int-ptr! vector/rs-head mat			; vector pointer
+	while [h < t] [
+		int: (integer/from-binary binStr)			; get value
+		if int 	>= 65536 [int: int / 65536]			; for 8-bit conversion
+		if int	>= 256 	[int: int / 256]			; for 8-bit conversion
+		pMat/1: int									; add to mat
+		binary/rs-skip binStr step					; next value according to step
+		pmat: pMat + 1								; update vector pointer						
+		h: h + step
+	]
+	s: GET_BUFFER(mat)							 	; get mat values as series
+    s/tail: as cell! (as float-ptr! s/offset) + l  	; set the tail properly
+    as red-vector! stack/set-last as cell! mat     	; return the new vector
+]
+
+
 rcvAssertTiffFile: func [
 "Tiff file or not?"
 	return: [logic!]
 ][
+	isTiffFile: false
 	tiff: head tiff
-	if error? try [tmp: copy/part skip tiff 0 2] [tmp: #{4E4F}]
-	either (tmp = TIFF_BIGENDIAN) or (tmp = TIFF_LITTLEENDIAN) [isTiffFile: true] 
-	[isTiffFile: false]
+	tmp: copy/part skip tiff 0 2
+	if any [tmp = TIFF_BIGENDIAN tmp = TIFF_LITTLEENDIAN] [isTiffFile: true] 
 	isTiffFile
 ]
 
@@ -115,7 +147,7 @@ rcvmakeTiffIFDList: func [
     ;move to the next IDF offset and get the value
     nextOffset: startOffset + 2 + (numberOfEntries * 12)	; Offset of next IFD
     stream: skip tiff nextOffset 
-    tmp: copy/part stream 4  
+    tmp: copy/part stream 4 
     offsetValue:  endian  tmp 
     ;now move to the other IFD if exist and get the number of entries
     ; this is case for multi pages files
@@ -137,7 +169,7 @@ rcvmakeTiffIFDList: func [
     		offsetValue = 0   
     	]
     ]
-    NumberOfPages: length? IFDOffsetList  
+    numberOfPages: length? IFDOffsetList  
 ]
 
 ; what kind of images are included in the file ?
@@ -167,31 +199,32 @@ rcvGetTiffImageType: func  [
     	; get PhotometricInterpretation
     	if (TImgFDEntry/tiffTag = 262) [photometric: TImgFDEntry/tiffOffset]
 		i: i + 1
-	]
+	] 
 	
-	if photometric > 65535 [photometric: photometric / 65536]; correction for short value
+	; correction for long value
+	if photometric > 65535 [photometric: photometric / 65536]
 	
 	; image type according to PhotometricInterpretation
-   	ImageType: "bilevel" ; default 0
-   	if (photometric = 0) [ImageType: "bilevel" ] 
-    if (photometric = 1) [ImageType: "grayscale" ]
-   	if (photometric = 2) [ImageType: "rgb" ]
-   	if (photometric = 3) [ImageType: "palette" ]
-   	
+   	imageType: "bilevel" ; default 0
+   	case [
+   		photometric = 0 [imageType: "bilevel"] 
+    	photometric = 1 [imageType: "grayscale"]
+   		photometric = 2 [imageType: "rgb"]
+   		photometric = 3 [imageType: "palette"]
+   	]
    	
    	;makes the image structure     
-    switch ImageType [
-    	"bilevel" 	[Timage: make object! TBiLevel ]
-    	"grayscale" [Timage: make object! TGrayScale ]
-    	"palette" 	[Timage: make object! TColorPalette ]
+    switch imageType [
+    	"bilevel" 	[Timage: make object! TBiLevel]
+    	"grayscale" [Timage: make object! TGrayScale]
+    	"palette" 	[Timage: make object! TColorPalette]
     	"rgb" 		[Timage: make object! TRGBImage]
-    ]
+    ] 
 ]
 
 rcvGetTiffTagValue: func [
 "Reads tag value"
 ][
-
 	; use a block rather a string for specific tags such as StripOffsets 
 	tiffValues: copy []  
 	tiff: head tiff
@@ -254,9 +287,9 @@ rcvGetTiffTagValue: func [
 				   	TImgFDEntry/redValue: tmpstr
 				]
 				5 [ ; 64-bit unsigned fraction  -> get 2 values
-					n1:  endian  copy/part str 4
+					n1:  to-float endian  copy/part str 4
 					str: skip str 4
-					n2:  endian  copy/part str 4
+					n2:  to-float endian  copy/part str 4
 					TImgFDEntry/redValue: form n1 / n2
 				]
 				6 [TImgFDEntry/redValue: str]  
@@ -268,17 +301,14 @@ rcvGetTiffTagValue: func [
 					TImgFDEntry/redValue: form n1
 				]
 				10 [; 64-bit unsigned fraction  -> get 2 values
-					n1:  endian  copy/part str 4
+					n1:  to-float endian  copy/part str 4
 					str: skip str 4
-					n2:  endian  copy/part str 4
+					n2:  to-float endian  copy/part str 4
 					TImgFDEntry/redValue: form n1 / n2
 				]
-				11 [; 64-bit -> get 2 values
-					n1:  endian  copy/part str 4
-					str: skip str 4
-					n2:  endian  copy/part str 4 
-					TImgFDEntry/redValue: form n1 / n2
-				]
+				11 [n1:  endian  copy/part str 8
+					TImgFDEntry/redValue: form n1   
+	 			]
 				12 [n1:  endian  copy/part str 8
 					TImgFDEntry/redValue: form n1   
 	 			]
@@ -311,25 +341,24 @@ rcvProcessTiffTag: func [
 		append/only tagList str
 		
 		; update TImage fields
-		; some fields can be omitted as default field
-		TImage/SubfileType: 0
-		
 		switch TImgFDEntry/tiffTag [
-			254 [TImage/SubfileType: to-integer TImgFDEntry/redValue]
-			255 [TImage/SubfileType: to-integer TImgFDEntry/redValue]
-			256 [TImage/ImageWidth:  to-integer TImgFDEntry/redValue]
-			257 [TImage/ImageLength: to-integer TImgFDEntry/redValue]
-			258 [BitsPerSample: TImage/BitsPerSample: to-integer TImgFDEntry/redValue]
-			259 [TImage/Compression:  to-integer TImgFDEntry/redValue]
+			254 [TImage/SubfileType: 	to-integer TImgFDEntry/redValue]
+			255 [TImage/NewSubfileType: to-integer TImgFDEntry/redValue]
+			256 [TImage/ImageWidth:  	to-integer TImgFDEntry/redValue]
+			257 [TImage/ImageLength: 	to-integer TImgFDEntry/redValue]
+			258 [TImage/BitsPerSample: 	to-integer TImgFDEntry/redValue]
+			259 [TImage/Compression:  	to-integer TImgFDEntry/redValue]
 			262 [TImage/PhotometricInterpretation: to-integer TImgFDEntry/redValue]
-			273 [bStripOffsets: copy tiffValues TImage/StripOffsets: TImgFDEntry/tiffOffset]
-			278 [TImage/RowsPerStrip:  to-integer TImgFDEntry/redValue]
-			277 [SamplesPerPixel: to-integer TImgFDEntry/redValue
-				if samplesPerPixel > 1 [tImage/SamplesPerPixel: samplesPerPixel]
-				] 
-			279 [bStripByteCounts: copy tiffValues TImage/StripByteCounts: bStripByteCounts]
-			282 [TImage/XResolution: to-integer TImgFDEntry/redValue ]
-			283 [TImage/YResolution: to-integer TImgFDEntry/redValue]
+			273 [TImage/StripOffsets: copy tiffValues]
+			277 [samplesPerPixel: 1 ; default grayscale, bi-level image or color palette
+				if imageType = "rgb" [
+					TImage/SamplesPerPixel: to-integer TImgFDEntry/redValue
+					samplesPerPixel: tImage/SamplesPerPixel]
+			] 
+			278 [TImage/RowsPerStrip: to-integer TImgFDEntry/redValue]
+			279 [TImage/StripByteCounts: copy tiffValues]
+			282 [TImage/XResolution: to-float TImgFDEntry/redValue ]
+			283 [TImage/YResolution: to-float TImgFDEntry/redValue]
 			296 [TImage/ResolutionUnit: to-integer TImgFDEntry/redValue]
 			320 [if imageType = "palette" [
 				TImage/Colormap: TImgFDEntry/tiffOffset
@@ -339,6 +368,7 @@ rcvProcessTiffTag: func [
 		] 
 	]
 ]
+
 
 ; get the image description for each subfile included in the file
 ; Image File Directory is 12 bytes
@@ -375,27 +405,127 @@ rcvReadTiffFileDirectory: func [
 	]
 ]
 
+; procedure to read  multiple images from the tiff file
+;parameter: the number of the page in case of multipage file
 
-;********************* Exported Functions  ***************
-; Basic Tiff image reading with red 
+rcvReadTiffImageData: func [page [integer!]] [
+	imageData: copy #{}					; a copy for each page
+	rcvGetTiffImageType page			; image type in TImage
+	rcvReadTiffFileDirectory page		; read file dir and process all tags
+	; for image stripes 
+	; if flag 278 is not documented ->1 rowsPerStripe
+	if TImage/RowsPerStrip = 1 [rowsPerStrip: 1]
+	; flag 258 documented 
+	if TImage/RowsPerStrip > 1 [
+		rowsPerStrip: TImage/ImageLength + TImage/RowsPerStrip - 1 / TImage/RowsPerStrip
+	]
+	
+	TImage/StripOffsets: head TImage/StripOffsets
+	TImage/StripByteCounts: head TImage/StripByteCounts
+	
+	;Since each strip is a stream of bytes no endianess correction is needed.
+	if rowsPerStrip = 1 [
+		; all data are here in an unique strip
+		startoff: TImage/StripOffsets/1
+		dataLength: to-integer TImage/StripByteCounts/1
+		tiff:  head tiff 
+		data:  skip tiff  to-integer startoff
+		append imageData  copy/part data dataLength
+	]
+	if rowsPerStrip > 1 [
+		; image data are associated to stripes offset
+		i: 1
+		sumD: 0
+		while [i < RowsPerStrip] [
+			startoff: TImage/StripOffsets/:i
+			dataLength: to-integer TImage/StripByteCounts/:i
+			tiff:  head tiff 
+			tdata:  skip tiff to-integer startoff
+			append imageData copy/part tdata dataLength
+			sumD: sumD + dataLength
+			i: i + 1
+		]
+		; find remainding values 
+		calc: TImage/ImageLength * TImage/ImageWidth * TImage/BitsPerSample
+		remain: calc - sumD
+		if remain > 0 [
+			tdata: skip tdata dataLength
+			append imageData copy/part tdata remain
+		]
+	]
+]
+
+
+; Tiff images to Red Image datatype
+
+tiff82Red: does [
+	iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
+ 	src: rcvCreateImage iSize 
+	;SamplesPerPixel is usually 1 for bilevel, grayscale, and palette-color images. 
+	;SamplesPerPixel is usually 3 for RGB images.
+	;SamplesPerPixel is usually 4 for ARGB images.
+	if samplesPerPixel = 1 [rcvTiff2Image imagedata src] 
+	if samplesPerPixel = 3 [src/rgb: copy imageData]
+	if SamplesPerPixel = 4 [src/argb: copy imageData]
+]
+
+; for 16-bit image (TB Improved)
+tiff162Red: func [
+	step	[integer!]
+	scale	[integer!]
+][
+	n: length? imageData
+	imageData:  head imageData 
+ 	mat: make vector! []
+ 	i: 0
+ 	while [i < n] [
+ 		int: (to-integer copy/part skip imageData i step) / scale
+		if [int	>= 256] [int: int / 16]
+ 		append mat int
+ 		i: i + step 
+ 	]
+ 	iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
+ 	src: make image! iSize
+ 	rcvMat2Image mat src
+]
+
+; Show Tiff image
+rcvTiff2RedImage: func [return: [image!]] [
+	if TImage/BitsPerSample =   8 [tiff82Red] 			; RGB  8-bit Image (default)
+ 	if TImage/BitsPerSample =  16 [tiff162Red 2 1]		; RGB 16-bit Image
+    ;if TImage/BitsPerSample =  32 [tiff162Red 4 256]	; RGB 32-bit Image
+ 	;faster for 32-bit 
+ 	if TImage/BitsPerSample = 32 [
+ 		iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
+ 		mat: rcvBinary2mat imageData 4
+ 		src: make image! iSize
+ 		rcvMat2Image mat src 
+ 	]
+ 	
+ 	img: rcvCreateImage src/size 
+ 	; test motorola or intel byte order for Tiff image 
+ 	either bigEndian [ 
+ 			either rowsPerStrip = 1 [rcv2RGBA src img] [rcv2BGRA src img]
+ 	] [rcvCopyImage src img] 
+ 	img 
+]
+
+
+;***************** Basic Tiff image reading and writing with Red ***************
 
 rcvLoadTiffImage: func [
 	f 		[file!]
 	return: [logic!]
 ][
-	bigEndian: false 			; by default intel 
-	bStripOffsets: copy []		; list of strips offset
-	bStripByteCounts: copy []	; list of strips length
-	tiffValues: copy []			; block of tags value
-	imageData: copy #{} 		; image Data binary string
-	tagList: copy []			; tag list for visualization
-	IFDOffsetList: copy []		; list of Image File Directory
 	cc: 1
-	NumberOfPages: 0
+	numberOfPages: 1
 	; default 8-bit image with 3 channels
-	sampleFormat: 		1     
-	samplesPerPixel:	3
-	bitsPerSample: 		8
+	sampleFormat: 				1     
+	samplesPerPixel:			3
+	rowsPerStrip: 				1
+	clear tiffValues
+	clear tagList
+	clear IFDOffsetList
 	ret: true
 	tiff: read/binary f 
 	either rcvAssertTiffFile [
@@ -407,77 +537,6 @@ rcvLoadTiffImage: func [
 	ret
 ]
 
-; procedure to read  multiple images from the tiff file
-;parameter: the number of the page in case of multipage file
-
-rcvReadTiffImageData: func [page [integer!]] [
-	imageData: copy #{}
-	rcvGetTiffImageType page					; image type
-	rcvReadTiffFileDirectory page		; read file dir and process all tags
-
-	bStripOffsets: head  bStripOffsets
-	bStripByteCounts: head bStripByteCounts
-	
-	StripsPerImage: TImage/ImageLength + TImage/RowsPerStrip - 1 / TImage/RowsPerStrip
-	;Since each strip is a stream of bytes no endianess correction is needed.
-	
-	; all data are here in an unique strip
-	if StripsPerImage = 1 [
-		startoff: bStripOffsets/1
-		dataLength: to-integer bStripByteCounts/1
-		tiff:  head tiff 
-		data:  skip tiff  to-integer startoff
-		append imageData  copy/part data dataLength
-	]
-	
-	
-	; image data are associated to stripes offset
-	if StripsPerImage > 1 [
-		i: 1
-		sumD: 0
-		while [i < StripsPerImage] [
-			startoff: bStripOffsets/:i
-			dataLength: to-integer bStripByteCounts/:i
-			tiff:  head tiff 
-			data:  skip tiff to-integer startoff
-			append imageData copy/part data dataLength
-			sumD: sumD + dataLength
-			i: i + 1
-		]
-		; find remainding values 
-		calc: TImage/ImageLength * TImage/ImageWidth * BitsPerSample
-		remain: calc - sumD
-		if remain > 0 [
-			data: skip data dataLength
-			append imageData copy/part data remain
-		]
-	]	
-]
-
-
-; Tiff images to Red Image datatype
-
-rcvTiff2RedImage: func [return: [image!]] [
- 	src: make image! reduce [ to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)] imageData]
- 	img: rcvCreateImage src/size
- 
- 	; Tiff bit per Sample
- 	; TIFF grayscale images are 4 and 8
- 	; 4 or 8 for  Palette Color Images
- 	; 8,8,8 for RGB Full Color Images
- 	; 16, 32: ???
- 	
- 	;SamplesPerPixel is usually 1 for bilevel, grayscale, and palette-color images. 
- 	;SamplesPerPixel is usually 3 for RGB images.
- 	;SamplesPerPixel is usually 4 for ARGB images.
- 	
- 	if samplesPerPixel = 1 [rcvTiff2Image imagedata src] 
- 	if SamplesPerPixel = 4 [src/argb: imageData]
- 	
- 	; test motorola or intel byte order for Tiff image 
- 	either bigEndian [rcv2BGRA src img] [rcvCopyImage src img] 
- 	img 
-]
 
 ; 24 bit color RGB TIFF creation (Paul Bourke, 1998)
 ; basic tiff writing 24-bit color RGB red image

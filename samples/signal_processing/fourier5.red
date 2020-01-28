@@ -36,7 +36,7 @@ generateSignal: does [
 
 processSignal: does [
 	;FFT and Magnitude
-	rcvFFT re im 1
+	rcvFFT re im 1 1
 	am: rcvFFTAmplitude re im
 	amc: rcvFFTShift am
 	img2/rgb: 0.0.0
@@ -48,7 +48,7 @@ processSignal: does [
 	canvas2/image: draw img2 plot2
 	
 	;inverse FFT
-	rcvFFT re im -1
+	rcvFFT re im -1 1
 	img3/rgb: 0.0.0
 	plot3: reduce ['line-width 1 'pen green 'spline] ;'
 	len: length? re

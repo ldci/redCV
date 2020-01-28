@@ -6,6 +6,7 @@ Red [
 ]
 
 ; required libs
+#include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/timeseries/rcvFFT.red
@@ -31,7 +32,7 @@ print lf
 print "Fast Fourier Transform: inverse"
 ; we should get original values 
 
-rcvFFT re im -1
+rcvFFT re im -1 1
 
 repeat i len [
 	print [i ": " round re/:i "," rejoin [round im/:i "i"]]

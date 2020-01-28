@@ -5,6 +5,7 @@ Red [
 	Needs:	 'View
 ]
 ; required libs
+#include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/timeseries/rcvFFT.red
@@ -24,7 +25,7 @@ aim: rcvMat2Array im  3x3 			; vector to array
 prin ["Source: " ] probe re
 prin ["Array:  " ] probe are
 
-rcvFFT2D are aim 1					; array
+rcvFFT2D are aim 1	1				; array
 prin ["Forward:"] probe are
 matRe: rcvArray2Mat are				; array to mat
 matIm: rcvArray2Mat aim				; array to mat
@@ -34,7 +35,7 @@ matFreq: rcvFFTFrequency n dt		; FFT frequency dt: inverse of sampling rate
 prin ["Amplitude:"] probe matAm
 prin ["Phase:    "] probe matPh
 prin ["Frequency:"] probe matFreq
-rcvFFT2D are aim -1					; array 
+rcvFFT2D are aim -1	1				; array 
 prin ["Inverse:" ] probe are
 matRe: rcvArray2Mat are				; array to mat
 matIm: rcvArray2Mat aim				; array to mat
