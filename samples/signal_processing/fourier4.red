@@ -85,9 +85,9 @@ view win: layout [
 	button "Close" [Quit]
 	return
 	text 100 "Signal" canvas1: base imgSize black img1
-	at 100x44 text "1"
-	at 100x104 text "0"
-	at 100x164 text "-1"
+	at 100x44 text  20 "1"
+	at 100x104 text 20 "0"
+	at 100x164 text 20 "-1"
 	return
 	text 100 "Real" canvas2: base imgSize black img2
 	return

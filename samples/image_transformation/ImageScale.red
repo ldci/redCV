@@ -26,9 +26,8 @@ loadImage: does [
 	tmp: request-file
 	if not none? tmp [
 		canvas/draw: none
-		img1: rcvLoadImage tmp
+		img1: rcvResizeImage rcvLoadImage tmp 512x512
 		canvas/image: img1
-		img1: to-image canvas	; force image size to 512x512
 		iSize: img1/size
 		centerXY: iSize / 2
 		canvas/image: none

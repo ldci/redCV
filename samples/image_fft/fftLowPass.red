@@ -15,7 +15,7 @@ Red [
 ; we need 2^N values 
 isize: 	128x128 ; 2^7
 isize2: 256x256 ; 28
-radius: 1
+radius: 1.0
 fscale: 1
 
 img0: rcvCreateImage isize
@@ -121,5 +121,5 @@ view win: layout [
 		text 512 "© Red Foundation 2019" center
 		pad 10x0
 		sb: field 522
-		do [sl/data: 0 f/text: form radius]
+		do [sl/data: 0.0 f/text: form radius]
 ]

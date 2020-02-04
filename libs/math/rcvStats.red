@@ -58,6 +58,7 @@ rcvStdImg: routine [
 	return: [integer!]
 	/local 
 		pix1	[int-ptr!]
+		pix2	[int-ptr!]
 		handle1	[integer!]
 		w 		[integer!]
 		h 		[integer!]
@@ -83,6 +84,7 @@ rcvStdImg: routine [
 ][
     handle1: 0
     pix1: image/acquire-buffer src1 :handle1
+    pix2: pix1
     w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
     x: 0 y: 0
@@ -111,20 +113,20 @@ rcvStdImg: routine [
     mg: sg / (w * h)
     mb: sb / (w * h)
     x: 0 y: 0 e: 0
-    pix1: image/acquire-buffer src1 :handle1
+    ;pix1: image/acquire-buffer src1 :handle1 ; pbs with windows
     ; x - m 
     while [y < h][
     	x: 0
         while [x < w][
-           	a: pix1/value >>> 24
-       		r: pix1/value and 00FF0000h >> 16 
-        	g: pix1/value and FF00h >> 8 
-       		b: pix1/value and FFh 
+           	a: pix2/value >>> 24
+       		r: pix2/value and 00FF0000h >> 16 
+        	g: pix2/value and FF00h >> 8 
+       		b: pix2/value and FFh 
             e: a - ma sa: sa + (e * e)
             e: r - mr sr: sr + (e * e)
             e: g - mg sg: sg + (e * e)
             e: b - mb sb: sb + (e * e)
-            pix1: pix1 + 1
+            pix2: pix2 + 1
             x: x + 1
         ]
         y: y + 1
@@ -278,9 +280,65 @@ rcvMaxLocImg: routine [
 ]
 
 ; sorting images
+_sortPixels: routine [
+	arr 	[vector!]
+	/local
+	ptr		[int-ptr!]
+	tmp		[integer!]
+	n		[integer!]
+	i 		[integer!]
+	j		[integer!]
+	j2		[integer!]
+	
+][
+	n: vector/rs-length? arr
+	ptr: as int-ptr! vector/rs-head arr
+	i: 1
+	while [i <= n] [
+		j: 1
+		while [j < i] [
+			if ptr/i < ptr/j [
+				j2: j + 1
+				tmp: ptr/i
+				ptr/i: ptr/j2
+				ptr/j2: ptr/j
+				ptr/j: tmp
+			]
+			j: j + 1
+		]
+		i: i + 1
+	]
+]
 
-_sortPixels: func [bl][sort bl]
-_sortReversePixels: func [bl][sort/reverse bl]
+_sortReversePixels: routine [
+	arr 	[vector!]
+	/local
+	ptr		[int-ptr!]	
+	n		[integer!]
+	i 		[integer!]
+	j		[integer!]
+	j2		[integer!]
+	tmp		[integer!]
+][
+	n: vector/rs-length? arr
+	ptr: as int-ptr! vector/rs-head arr
+	i: 0
+	while [i <= n] [
+		j: 1
+		while [j < i] [
+			if ptr/i > ptr/j [
+				j2: j + 1
+				tmp: ptr/i
+				ptr/i: ptr/j2
+				ptr/j2: ptr/j
+				ptr/j: tmp
+			]
+			j: j + 1
+		]
+		i: i + 1
+	]
+]
+
 
 rcvSortImagebyX: routine [
 "Sorts image columns"
@@ -318,8 +376,8 @@ rcvSortImagebyX: routine [
     		vector/rs-append-int b idx/value
     		x: x + 1
     	]
-    	either flag [#call [_sortReversePixels b]] 
-    				[#call [_sortPixels b]]
+    	either flag [_sortReversePixels b] 
+    				[_sortPixels b]
     	ptr: as int-ptr! vBase
     	x: 0
 		while [x < w] [
@@ -371,8 +429,8 @@ rcvSortImagebyY: routine [
     		vector/rs-append-int b idx/value
     		y: y + 1
     	]
-    	either flag [#call [_sortReversePixels b]] 
-    				[#call [_sortPixels b]]
+    	either flag [_sortReversePixels b] 
+    				[_sortPixels b]
     	ptr: as int-ptr! vBase
     	y: 0
 		while [y < h] [

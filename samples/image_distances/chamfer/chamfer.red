@@ -1,6 +1,5 @@
-#! /usr/local/bin/red
 Red [
-	Needs:	 View
+	Needs: View
 ]
 
 ;Simple distance transform function using Borgefors fractional chamfer metric
@@ -122,6 +121,7 @@ view win: layout [
 	on-change [
 		color: to-word face/text
 		calculateChamfer showChamfer
+		canvas/image: img
 	]
 	select 1
 	pad 130x0

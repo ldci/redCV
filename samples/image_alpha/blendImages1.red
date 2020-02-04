@@ -9,19 +9,20 @@ Red [
 ; required libs
 #include %../../libs/core/rcvCore.red
 
+iSize: 512x512
 margins: 10x10
-img1: rcvCreateImage 512x512
-img2: rcvCreateImage 512x512
-dst:  rcvCreateImage 512x512
+img1: rcvCreateImage iSize
+img2: rcvCreateImage iSize
+dst:  rcvCreateImage iSize
 alpha: 0.5
 
 loadImage: function [ 
-	n 		[integer!] 
 	return: [image!]]
 [
 	tmp: request-file
 	if not none? tmp [
-		img: rcvLoadImage tmp
+		img0: rcvLoadImage tmp
+		img: rcvResizeImage img0 iSize
 	]
 	img
 ]
@@ -30,14 +31,12 @@ loadImage: function [
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Blend Operator Test"
-		bt1: button "Load Image 1" [img1: loadImage 1 b1/image: img1 
-									dst: rcvCreateImage img1/size
+		bt1: button "Load Image 1" [img1: loadImage b1/image: img1 
 									rcvBlend img1 img2 dst alpha
 									canvas/image: dst
 									]
 		b1: base 64x64 img1
-		bt2: button "Load Image 2" [img2: loadImage 2 b2/image: img2
-									dst: rcvCreateImage img2/size
+		bt2: button "Load Image 2" [img2: loadImage b2/image: img2
 									rcvBlend img1 img2 dst alpha
 									canvas/image: dst
 									]
@@ -60,8 +59,8 @@ view win: layout [
 		f2: field 64  "0.5"
 		
 		return
-		canvas: base 512x512 dst
+		canvas: base iSize dst
 		return
-		text 512 green center "© Red Foundation 2019. Images must have identical size! Default 512x512 pixels."
+		text 512 center "© Red Foundation 2019"
 		do [sl/data: alpha ]
 ]

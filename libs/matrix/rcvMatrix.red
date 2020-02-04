@@ -466,7 +466,6 @@ rcvConvertMatIntScale: routine [
 		]
 		v: as float! int
 		v: (v / srcScale) * dstScale 
-		print [v lf]
 		int: as integer! v
 		vector/rs-append-int dst int
 		svalue: svalue + unit
@@ -1020,8 +1019,6 @@ rcvMakeIndenticalMat: func [
 ]
 
 
-
-
 rcvSortMat: function [
 "Ascending sort of matrix"
 	v [vector!] 
@@ -1029,6 +1026,44 @@ rcvSortMat: function [
 	vv: copy v ; to avoid source modification
 	sort vv
 ]
+
+
+;news
+rcvSortMatrix: routine [
+"Sort integer matrix"
+	arr 	[vector!]
+	dir		[integer!]
+	/local
+	ptr		[int-ptr!]					
+	n		[integer!]
+	i 		[integer!]
+	j		[integer!]
+	j2		[integer!]
+	tmp 	[integer!]
+	t
+][
+	n: vector/rs-length? arr
+	ptr: as int-ptr! vector/rs-head arr
+	i: 1
+	either dir = 1 [t: ptr/i < ptr/j] ;  1: sort 
+				   [t: ptr/i > ptr/j] ; -1: reverse sort
+	while [i <= n] [
+		j: 1
+		while [j < i] [
+			if t [
+				j2: j + 1
+				tmp: ptr/i
+				ptr/i: ptr/j2
+				ptr/j2: ptr/j
+				ptr/j: tmp
+			]
+			j: j + 1
+		]
+		i: i + 1
+	]
+]
+
+
 
 rcvFlipMat: function [
 "Reverses matrix"
@@ -1329,6 +1364,7 @@ rcvXORSMat: function [
 ][
 	src XOR value
 ]
+
 
 
 

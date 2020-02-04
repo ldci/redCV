@@ -28,7 +28,8 @@ loadImage: does [
 		fileName: to string! to-file tmp
 		win/text: fileName
 		src: rcvLoadImage tmp
-		dst: rcvCloneImage src
+		;dst: rcvCloneImage src
+		dst: copy src
 		iSize: src/size
 		canvas/image: dst
 		canvas/size: 256x256
@@ -42,7 +43,7 @@ showResult: func [mode [integer!]] [
 	case [
 		mode = 0 [canvas/size: 256x256 canvas/offset: 138x168]
 		mode = 1 [canvas/size: 128x128 canvas/offset: 202x232]
-		mode = 2 [canvas/size: 512x512 canvas/offset: 10x40]
+		mode = 2 [canvas/size: 512x512 canvas/offset: 10x50]
 	]
 	canvas/image: dst
 	f/text: form dst/size

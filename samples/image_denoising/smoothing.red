@@ -21,8 +21,8 @@ loadImage: does [
 	tmp: request-file
 	if not none? tmp [
 		canvas2/image: none
-		src: load tmp	
-		dst: make image! src/size
+		src: rcvloadImage tmp	
+		dst: rcvCreateImage src/size
 		canvas1/image: src
 		isFile: true
 	]
@@ -34,7 +34,11 @@ view win: layout [
 	origin 10x10 space 10x10
 	button "Load" 				[loadImage]
 	text "Filter Size"
-	field "3x3" 				[if error? try [kSize: to-pair face/text] [kSize: 3x3]]
+	dp: drop-down 60 
+		data ["3x3" "5x5" "7x7" "9x9"]
+		select 1
+		on-change [kSize: to-pair face/text]
+		
 	button "Median" 			[if isFile [rcvMedianFilter src dst kSize canvas2/image: dst]]
 	button "Min"				[if isFile [rcvMinFilter src dst kSize canvas2/image: dst]]
 	button "Max"				[if isFile [rcvMaxFilter src dst kSize canvas2/image: dst]]

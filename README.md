@@ -19,10 +19,45 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *red -u -c FileName -> creates a specific LibRT*
 
 *then just red -c FileName -> Faster compilation*
+
+###UPDATE FEBRUARY 4 2020
+###100% macOS, Windows, and Linux GTK compatible
+
+**Modified libraries**
+
+1. rcvCore.red
+1. rcvImgProc.red
+1. rcvMatrix.red
+1. rcvStats.red
+
+**Modified samples**
+
+1. /image_alpha/blendImage2.red
+1. /image_alpha/blendMatrices.red
+1. /image_contours/signaturePolar.red
+1. /image_denoising/smoothing.red
+1. /image_distances/chamfer/chamfer.red
+1. /image_distances/chamfer/chamfer2.red
+1. /image_fft/fftLowPass.red
+1. /image_pixels/pixel1.red
+1. /image_pixels/pixel2.red
+1. /image_pixels/wpixel.red
+1. /image_random/randomMat.red
+1. /image_resizing/pyramidal.red
+1. /image_resizing/resize1.red
+1. /image_resizing/resize2.red
+1. /image_sort/sortimage2.red
+1. /image_statistics/imageStats.red
+1. /image_transformation/imageScale.red
+1. /signal_processing/fourier1.red
+1. /signal_processing/fourier2.red
+1. /signal_processing/fourier3.red
+1. /signal_processing/fourier4.red
+
 ### UPDATE JANUARY 28 2020
 redCV is now 100% compatible with Linux-GTK.
 
-**modified library module**s
+**modified library modules**
 
 1. /libs/core/rcCore.red
 1. /libs/matrix/rcvMatrix.red

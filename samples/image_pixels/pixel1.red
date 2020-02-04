@@ -15,11 +15,10 @@ img1: rcvCreateImage defSize
 dst:  rcvCreateImage defSize
 isFile: false
 winBorder: 10x50
-rLimit: 0x0
-lLimit: 512x512
+rLimit: 512x512 - 24
+lLimit: 0x0	
 tp: 0.0.0
 canvas: none
-;drawRect: compose [line-width 2 pen red box 0x0 24x24 line 0X0 0x24 24x0]
 drawRect: [line-width 2 pen blue fill-pen green triangle 0X0 24x0 0x24]
 
 
@@ -33,9 +32,12 @@ loadImage: does [
 		dst: rcvResizeImage img1 512x512 ; force image in 512x512
 		canvas/image: dst
 		p1/draw: drawRect
+		tp: rcvGetPixel dst pos
+		b/color: tp
 		isFile: true
 	]
 ]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
@@ -48,15 +50,18 @@ view win: layout [
 		return
 		canvas: base 512x512 dst react [
 					pos: p1/offset - winBorder
-					if (pos > rLimit) and (pos < lLimit)
-					[	s: form pos
-						append append s " : " form rcvGetPixel dst pos
-						f/text: s
-					]
+					if all [pos/x >= lLimit/x pos/y >= lLimit/y
+						pos/x < rLimit/x pos/y < rLimit/y
+					] [tp: rcvGetPixel dst pos]
+					b/color: tp
+					s: form pos
+					append append s " : " form tp 
+					f/text: s
 		]
 		
 		return
-		f: field 512
+		f: field 400 
+		b: base 102x20 black
 		at winBorder p1: rect
 		do [p1/draw: drawRect]
 ]

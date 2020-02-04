@@ -84,18 +84,18 @@ view win: layout [
 	button "Quit" [Quit]
 	return
 	text 100 "Signal" canvas1: base imgSize black img1
-	at 100x44 text "1"
-	at 100x104 text "0"
-	at 100x164 text "-1"
+	at 100x44 text 20 "1"
+	at 100x104 text 20 "0"
+	at 100x164 text 20 "-1"
 	return
 	text 100 "Real" canvas2: base imgSize black img2
-	at 100x184 text "1"
-	at 100x244 text "0"
-	at 100x304 text "-1"
+	at 100x184 text 20 "1"
+	at 100x244 text 20 "0"
+	at 100x304 text 20 "-1"
 	return
 	text 100 "Imaginary" canvas3: base imgSize black img3
-	at 100x324 text "1"
-	at 100x384 text "0"
-	at 100x444 text "-1"
+	at 100x324 text 20 "1"
+	at 100x384 text 20 "0"
+	at 100x444 text 20 "-1"
 	do [generateSignal showSignal processSignal sl/data: 0.0]
 ]

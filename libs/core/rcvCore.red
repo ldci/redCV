@@ -256,6 +256,28 @@ rcvEncodeImage
 
 
 ;************** Pixel Access Routines **********
+rcvGetPixel_old: routine [
+"Returns pixel value at xy coordinates as tuple"
+	src1 		[image!] 
+	coordinate 	[pair!] 
+	return: 	[tuple!]
+	/local 
+		pix1 	[int-ptr!]
+		handle1	[integer!] 
+		w		[integer!] 
+		pos		[integer!] 
+		t		[red-tuple!]
+][
+    handle1: 0
+    pix1: image/acquire-buffer src1 :handle1
+    w: IMAGE_WIDTH(src1/size)
+    pos: (coordinate/y * w) + coordinate/x
+   	pix1: pix1 + pos		; for img/node offset
+    t: image/rs-pick src1 pos
+    image/release-buffer src1 handle1 no
+    as red-tuple! stack/set-last as cell! t
+]
+
 rcvGetPixel: routine [
 "Returns pixel value at xy coordinates as tuple"
 	src1 		[image!] 
@@ -264,22 +286,21 @@ rcvGetPixel: routine [
 	/local 
 		pix1 	[int-ptr!]
 		handle1	[integer!] 
-		x 		[integer!]
-		y 		[integer!]
 		w		[integer!] 
-		h		[integer!] 
 		pos		[integer!] 
 		t		[red-tuple!]
 ][
     handle1: 0
     pix1: image/acquire-buffer src1 :handle1
     w: IMAGE_WIDTH(src1/size)
-    h: IMAGE_HEIGHT(src1/size)
-    x: coordinate/x
-    y: coordinate/y
-    pos: (y * w) + x
-    pix1: pix1 + pos
-    t: image/rs-pick src1 pos
+    pos: (coordinate/y * w) + coordinate/x
+   	pix1: pix1 + pos		; for img/node offset
+    t: tuple/rs-make [
+			pix1/value and FF0000h >> 16
+			pix1/value and FF00h >> 8
+			pix1/value and FFh
+			255 - (pix1/value >>> 24)
+	]
     image/release-buffer src1 handle1 no
     as red-tuple! stack/set-last as cell! t
 ]
@@ -293,9 +314,6 @@ rcvGetPixelAsInteger: routine [
 		pix1 	[int-ptr!]
 		handle1	[integer!] 
 		w		[integer!]
-		x		[integer!]		
-		y		[integer!] 
-		h		[integer!]
 		pos		[integer!]
 		a		[integer!]
 		r 		[integer!]
@@ -305,16 +323,13 @@ rcvGetPixelAsInteger: routine [
     handle1: 0
     pix1: image/acquire-buffer src1 :handle1
     w: IMAGE_WIDTH(src1/size)
-    h: IMAGE_HEIGHT(src1/size)
-    x: coordinate/x
-    y: coordinate/y
-    pos: (y * w) + x
+    pos: (coordinate/y * w) + coordinate/x
     pix1: pix1 + pos
     a: 255 - (pix1/value >>> 24)
-    r: pix1/value and 00FF0000h >> 16
+    r: pix1/value and FF0000h >> 16
     g: pix1/value and FF00h >> 8
     b: pix1/value and FFh
-    image/release-buffer src1 handle1 no
+   	image/release-buffer src1 handle1 no
     (a << 24) OR (r << 16 ) OR (g << 8) OR b
 ]
 
@@ -328,9 +343,6 @@ rcvSetPixel: routine [
 		pix1 	[int-ptr!]
 		handle1	[integer!] 
 		w		[integer!]
-		x		[integer!]
-		y		[integer!]
-		h		[integer!] 
 		pos		[integer!]
 		tp		[red-tuple!]
 		r 		[integer!]
@@ -347,12 +359,9 @@ rcvSetPixel: routine [
     handle1: 0
     pix1: image/acquire-buffer src1 :handle1
     w: IMAGE_WIDTH(src1/size)
-    h: IMAGE_HEIGHT(src1/size)
-    x: coordinate/x
-    y: coordinate/y
-    pos: (y * w) + x
+    pos: (coordinate/y * w) + coordinate/x
     pix1: pix1 + pos
-    pix1/Value: a << 24 or (r << 16) or (g << 8) or b
+    pix1/value: (a << 24) or (r << 16) or (g << 8) or b
     image/release-buffer src1 handle1 yes
 ]
 
@@ -1660,6 +1669,8 @@ rcvResizeImage: routine [
 ][
 	as red-image! stack/set-last as cell! image/resize src iSize/x iSize/y
 ]
+
+
 
 
 

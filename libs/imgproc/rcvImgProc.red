@@ -1549,7 +1549,36 @@ rcvDoGFilter: function [
 
 ; median and mean filter for image smoothing
 ; new for image smoothing
-_sortKernel: function [knl][sort knl]
+
+_insertionSort: routine [
+	arr 	[vector!]
+	/local
+	ptr		[int-ptr!]	
+	n		[integer!]
+	i 		[integer!]
+	j		[integer!]
+	j2		[integer!]
+	tmp 	[integer!]
+][
+	n: vector/rs-length? arr
+	ptr: as int-ptr! vector/rs-head arr
+	i: 1
+	while [i <= n] [
+		j: 1
+		while [j < i] [
+			if ptr/i < ptr/j [
+				j2: j + 1
+				tmp: ptr/i
+				ptr/i: ptr/j2
+				ptr/j2: ptr/j
+				ptr/j: tmp
+			]
+			j: j + 1
+		]
+		i: i + 1
+	]
+]
+
 rcvMedianFiltering: routine [
 "Median Filter for images"
     src  	[image!]
@@ -1567,22 +1596,21 @@ rcvMedianFiltering: routine [
         handle1 handleD h w x y n pos
         imx imy 
         kBase ptr
-        edgex edgey mcenter ct
+        edgex edgey
         fx fy 
 ][
     handle1: 0
     handleD: 0
     pix1: image/acquire-buffer src :handle1
-    pix2: pix1; image/acquire-buffer src :handle1
+    pix2: pix1	; for the current pixel 
+    idx:  pix1	; for neighbor 
     pixD: image/acquire-buffer dst :handleD
-    idx: image/acquire-buffer src :handle1
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     kWidth: kSize/x
     kHeight: kSize/y
     edgex: kWidth / 2
     edgey: kHeight / 2
-    mcenter: (kWidth * kHeight) / 2
     kBase: vector/rs-head kernel
     ptr: as int-ptr! kBase
     n: vector/rs-length? kernel
@@ -1590,10 +1618,10 @@ rcvMedianFiltering: routine [
     y: 0
     while [y < h] [
     	x: 0
-       	while [x < w ][
+       	while [x < w][
+       		;put neighbor values in kernel
            	vector/rs-clear kernel
     		fy: 0
-    		ct: 0
     		while [fy < kHeight][
     			fx: 0
     			while [fx < kWidth][
@@ -1601,14 +1629,12 @@ rcvMedianFiltering: routine [
     				imx: (x + fx - edgex + w) % w
     				imy: (y + fy - edgey + h) % h 
     				idx: pix1 + (imy * w) + imx 
-    				;if ct <> mcenter [vector/rs-append-int kernel idx/value]
     				vector/rs-append-int kernel idx/value
     				fx: fx + 1	
-    				ct: ct + 1
     			]
     			fy: fy + 1
     		]
-    		#call [_sortKernel kernel]
+    		_insertionSort kernel			; sort kernel
     		switch op [
     			0 [pixD/value: ptr/pos] 	; median filter
     			1 [pixD/value: ptr/1] 		; minimum filter
@@ -1698,7 +1724,7 @@ rcvMidPointFilter: routine [
     handleD: 0
     pix1: image/acquire-buffer src :handle1
     pixD: image/acquire-buffer dst :handleD
-    idx: image/acquire-buffer src :handle1
+    idx: pix1; 
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     kWidth: kSize/x
@@ -1733,7 +1759,6 @@ rcvMidPointFilter: routine [
        				if r < minr [minr: r]
        				if g < ming [ming: g]
        				if b < minb [minb: b]
-       				
     				kx: kx + 1	
     			]
     			ky: ky + 1
@@ -1779,7 +1804,7 @@ rcvMeanFilter: routine [
     handleD: 0
     pix1: image/acquire-buffer src :handle1
     pixD: image/acquire-buffer dst :handleD
-    idx: image/acquire-buffer src :handle1
+    idx:  pix1
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     kWidth: kSize/x

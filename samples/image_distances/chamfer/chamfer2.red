@@ -1,5 +1,5 @@
 Red [
-	Needs:	 View
+	Needs: View
 ]
 
 ; Simple distance transform function using Chamfer metrics
@@ -8,17 +8,17 @@ Red [
 
 ;define arrays and dimensions
 
-b: make vector! reduce  ['float! 64 100]
+b: make vector! reduce  ['float! 64 100] ;'
 b + 999.0	; initialize vector
 
 ;DT Distance Transform Array
 DT: copy []
 i: 1 
 repeat i 100 [append DT b]
-;'Local Distance Metric (LDM) and mask arrays
+;Local Distance Metric (LDM) and mask arrays
 LDM: make vector! reduce  ['float! 64 9]
 DX: make vector!  reduce  ['float! 64 9]
-DY: make vector!  reduce  ['float! 64 9]
+DY: make vector!  reduce  ['float! 64 9] ;'
 
 ;define chamfer values
 a1: 2.2062
@@ -154,8 +154,8 @@ showChamfer: routine [
        		r: t/array1 and FFh and rt
 			g: t/array1 and FF00h >> 8 and gt
 			b: t/array1 and FF0000h >> 16 and bt
-			if (y % 2 = 0) and (x % 2 = 0) [
-           	pixD/value: (255 << 24) OR (r << 16 ) OR (g << 8) OR b
+			if all [y % 2 = 0 x % 2 = 0][
+           		pixD/value: (255 << 24) OR (r << 16 ) OR (g << 8) OR b
            	]
            	pixD: pixD + 1
            	x: x + 1
@@ -175,6 +175,7 @@ process: does [
 	out: distance2Color DT 5.0
 	showChamfer out img color op
 	;showChamfer DT img color op
+	canvas/image: img
 	t2: now/time/precise
 	elapsed: round (third t2 - t1 * 1000) 0.001
 	f/text: rejoin ["Rendered in: " elapsed " ms"]

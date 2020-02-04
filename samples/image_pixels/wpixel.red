@@ -15,8 +15,8 @@ img1: rcvCreateImage defSize
 dst:  rcvCreateImage defSize
 isFile: false
 winBorder: 10x50
-rLimit: 0x0
-lLimit: 512x512
+rLimit: 512x512 - 4
+lLimit: 0x0
 tp: 0.0.0
 canvas: none
 drawRect: compose [line-width 3 pen red circle 8x8 8]
@@ -32,14 +32,13 @@ view win: layout [
 		return
 		canvas: base 512x512 dst react [
 					pos: p1/offset - winBorder
-					if (pos > rLimit) and (pos < lLimit)
-					[	
-						rcvSetPixel dst pos green
-						rcvPokePixel dst pos + 10 yellow
-						canvas/image: dst
+					if all [pos/x >= lLimit/x pos/y >= lLimit/y
+						pos/x < rLimit/x pos/y < rLimit/y
+					]
+					[rcvSetPixel dst pos green rcvPokePixel dst pos + 5 red
+					canvas/image: dst
 					]
 		]
-		
 		at winBorder p1: rect
 		do [p1/draw: drawRect]
 ]
