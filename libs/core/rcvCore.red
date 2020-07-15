@@ -11,15 +11,15 @@ Red [
 ]
 
 
-{To know: loaded images by red are in ARGB format (a tuple )
+{To know: loaded images by red are in RGBA format (a tuple )
 Images are 8-bit [0..255] by channel and internally use bytes as a binary string
 Actually Red can't create 1 2 or 3 channels images : only 4 channels
 Actually Red can't create 16-bit (0..65536) 32-bit or 64-bit (0.0..1.0) images
 
-pixel >>> 24				: Alpha
 pixel and FF0000h >> 16 	: Red
 pixel and FF00h >> 8		: Green
 pixel and FFh				: Blue
+pixel >>> 24				: Alpha
 }
 
 
@@ -68,7 +68,6 @@ rcvLoadImageAsBinary: function [
 "Load image from file and return image as binary"
 	fileName [file!] 
 	/alpha			 
-
 ][
 	tmp: load fileName
 	either alpha [str: tmp/argb] [str: tmp/rgb]
@@ -199,7 +198,8 @@ rcvZeroImage: function [src [image!]
 rcvColorImage: function [src [image!] acolor [tuple!]
 "All pixels to color"
 ][
-	src/argb: acolor 
+	src/rgb: 	acolor	;--rgb value 
+	src/alpha: 	0		;--opaque image
 ]
 
 
@@ -246,13 +246,6 @@ rcvSetAlpha: routine [
     image/release-buffer src handleS no
     image/release-buffer dst handleD yes
 ]
-
-
-{
-rcvDecodeImage
-rcvDecodeImageM
-rcvEncodeImage
-}
 
 
 ;************** Pixel Access Routines **********
@@ -1120,10 +1113,22 @@ rcvMathF: routine [
 			    	fr: as integer! (sqrt as float! r >> as integer! v)
 					fg: as integer! (sqrt as float! g >> as integer! v)
 					fb: as integer! (sqrt as float! b >> as integer! v)]
-				3  [fa: as integer! (v * a)
-					fr: as integer! (v * r)
-					fg: as integer! (v * g)
-					fb: as integer! (v * b)] ; for image intensity
+				3  [ fa: as integer! (v * a)
+					 fr: as integer! (v * r)
+					 fg: as integer! (v * g)
+					 fb: as integer! (v * b)] ; * for image intensity
+				4 [ fa: as integer! ((as float! a) / v)
+					fr: as integer! ((as float! r) / v)
+					fg: as integer! ((as float! g) / v)
+					fb: as integer! ((as float! b) / v)] ; /
+				5 [ fa: as integer! (v + a)
+					fr: as integer! (v + r)
+					fg: as integer! (v + g)
+					fb: as integer! (v + b)] ; +
+				6 [ fa: as integer! (v - a)
+					fr: as integer! (v - r)
+					fg: as integer! (v - g)
+					fb: as integer! (v - b)] ; -
 			]
 			pixD/value: FF000000h or ((fa << 24) OR (fr << 16 ) OR (fg << 8) OR fb)
 			pix1: pix1 + 1
@@ -1199,41 +1204,73 @@ rcvMathT: routine [
 
 
 
-; ********** Math operators functions with scalar (tuple or integer) *********
+; ********** Math operators functions with scalar ****************
+;mettre à jour dans la doc
 rcvAddS: function [
-"dst: src + integer! value"
+"dst: src + integer or float value"
 	src [image!] 
 	dst [image!] 
-	val [integer!] 
+	val [number!] 
 ][
-	rcvMathS src dst val 1
+	t: type? val
+	if t = integer! [rcvMathS src dst val 1]
+	if t = float!	[rcvMathF src dst val 5]
 ]
 
 rcvSubS: function [
-"dst: src - integer! value"
+"dst: src - integer or float value"
 	src [image!] 
 	dst [image!] 
-	val [integer!]
+	val [number!]
 ][
-	rcvMathS src dst val 2
+	t: type? val
+	if t = integer! [rcvMathS src dst val 2]
+	if t = float!	[rcvMathF src dst val 6]
 ]
 
 rcvMulS: function [
-"dst: src * integer! value"
+"dst: src * integer or float value"
 	src [image!] 
 	dst [image!] 
-	val [integer!] 
+	val [number!] 
 ][
-	rcvMathS src dst val 3
+	t: type? val
+	if t = integer! [rcvMathS src dst val 3]
+	if t = float!	[rcvMathF src dst val 3]
 ]
 
 rcvDivS: function [
-"dst: src / integer! value"
+"dst: src / integer or float value"
 	src [image!] 
 	dst [image!] 
-	val [integer!] 
+	val [number!] 
 ][
-	rcvMathS src dst val 4
+	t: type? val
+	if t = integer! [rcvMathS src dst val 4]
+	if t = float!	[rcvMathF src dst val 4]
+]
+
+rcvPow: function [
+"dst: src ^integer! or float! value"
+	src [image!]  
+	dst [image!] 
+	val [number!] 
+][
+	t: type? val
+	if t = float!   [rcvMathF src dst val 1] 
+	if t = integer! [rcvMathS src dst val 9] 
+]
+
+
+rcvSQR: function [
+"Image square root"
+	src [image!] 
+	dst [image!] 
+	val [number!]  
+][
+	t: type? val
+	if t = integer! [rcvMathS src dst val 10] 
+	if t = float!   [rcvMathF src dst val 2]
 ]
 
 rcvModS: function [
@@ -1271,29 +1308,6 @@ rcvRSH: function [
 	val [integer!] 
 ][
 	rcvMathS src dst val 8
-]
-
-rcvPow: function [
-"dst: src ^integer! or float! value"
-	src [image!]  
-	dst [image!] 
-	val [number!] 
-][
-	t: type? val
-	if t = float!   [rcvMathF src dst val 1] 
-	if t = integer! [rcvMathS src dst val 9] 
-]
-
-
-rcvSQR: function [
-"Image square root"
-	src [image!] 
-	dst [image!] 
-	val [number!]  
-][
-	t: type? val
-	if t = integer! [rcvMathS src dst val 10] 
-	if t = float!   [rcvMathF src dst val 2]
 ]
 
 
@@ -1404,7 +1418,7 @@ rcvMeanImages: function [
 
 ;******************** SUB-ARRAYS ************************
 
-rcvChannel: routine [
+rcvSChannel: routine [
     src  [image!]
     dst  [image!]
     op	 [integer!]
@@ -1453,15 +1467,31 @@ rcvSplit: function [
 	/red /green /blue /alpha
 ][
 	case [
-		red 	[rcvChannel src dst 1]
-		green 	[rcvChannel src dst 2]
-		blue 	[rcvChannel src dst 3]
-		alpha	[rcvChannel src dst 4]
+		red 	[rcvSChannel src dst 1]
+		green 	[rcvSChannel src dst 2]
+		blue 	[rcvSChannel src dst 3]
+		alpha	[rcvSChannel src dst 4]
 	]
 ]
 
+rcvSplit2: function [
+"Split source image in RGB and alpha separate channels"
+	src 	[image!] 
+	return: [block!]
+][
+	size: src/size
+	r: make image! reduce [size black]
+	g: make image! reduce [size black]
+	b: make image! reduce [size black]
+	a: make image! reduce [size black]
+	rcvSChannel src r 1
+	rcvSChannel src g 2
+	rcvSChannel src b 3
+	rcvSChannel src a 4
+	reduce [r g b a]
+]
+
 rcvMerge: routine [
-"Merge 3 images to destination image"
     src1  [image!]
     src2  [image!]
     src3  [image!]
@@ -1510,6 +1540,61 @@ rcvMerge: routine [
 ]
 
 
+rcvMerge2: routine [
+"Merge 4 images to destination image"
+    src1  [image!]	;--r
+    src2  [image!]	;--g
+    src3  [image!]	;--b
+    src4  [image!]	;--a
+    dst   [image!]	;-result
+    /local
+        pix1 [int-ptr!]
+        pix2 [int-ptr!]
+        pix3 [int-ptr!]
+        pix4 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handle2 handle3 handle4 handleD 
+        h w x y
+        r g b a
+][
+    handle1: 0
+    handle2: 0
+    handle3: 0
+    handle4: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pix2: image/acquire-buffer src2 :handle2
+    pix3: image/acquire-buffer src3 :handle3
+    pix4: image/acquire-buffer src4 :handle4
+    pixD: image/acquire-buffer dst :handleD
+    w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		a: pix4/value >>> 24
+       		r: pix1/value and FF0000h >> 16 
+       	 	g: pix2/value and FF00h >> 8 
+        	b: pix3/value and FFh 
+        	pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b
+        	pix1: pix1 + 1
+        	pix2: pix2 + 1
+        	pix3: pix3 + 1
+        	pix4: pix4 + 1
+        	pixD: pixD + 1
+        	x: x + 1
+       ]
+       y: y + 1
+    ]
+    image/release-buffer src1 handle1 no
+    image/release-buffer src2 handle2 no
+    image/release-buffer src3 handle3 no
+    image/release-buffer src4 handle4 no
+    image/release-buffer dst handleD yes
+]
+
+
 _rcvInRange: routine [
 	src1  	[image!]
     dst   	[image!]
@@ -1544,7 +1629,6 @@ _rcvInRange: routine [
         	[if op = 0 [r: FFh g: FFh b: FFh]
         	 if op = 1 [r: r g: g b: b]]
         	[r: 0 g: 0 b: 0] 
-        	
        		pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b
            	pix1: pix1 + 1
            	pixD: pixD + 1
@@ -1609,14 +1693,14 @@ rcvBlend: routine [
     pixD: image/acquire-buffer dst  :handleD
 	w: IMAGE_WIDTH(src1/size)
     h: IMAGE_HEIGHT(src1/size)
-    x: 0
-    y: 0
     a3: 0
     r3: 0
     g3: 0
     b3: 0
     calpha: 1.0 - alpha
+    y: 0
     while [y < h] [
+    	x: 0
 		while [x < w][
 				a1: pix1/value >>> 24
        			r1: pix1/value and 00FF0000h >> 16 
@@ -1636,7 +1720,99 @@ rcvBlend: routine [
 				pixD: pixD + 1
 				x: x + 1
 		]
-		x: 0
+		y: y + 1
+	]
+	image/release-buffer src1 handle1 no
+	image/release-buffer src2 handle2 no
+	image/release-buffer dst handleD yes
+]
+
+rcvAlphaBlend: routine [
+"Alpha blending with 2 images"
+    src1  	[image!]
+    src2  	[image!]
+    dst  	[image!]
+    /local
+        pix1 	[int-ptr!]
+        pix2 	[int-ptr!]
+        pixD 	[int-ptr!]
+        handle1 handle2 handleD 
+        h w x y
+        a1 r1 g1 b1
+        a2 r2 g2 b2
+        a3 r3 g3 b3
+        calpha
+        alphaR
+        aInt
+        rInt
+        gInt
+        bInt
+][
+	handle1: 0
+	handle2: 0
+    handleD: 0
+    pix1: image/acquire-buffer src1 :handle1
+    pix2: image/acquire-buffer src2 :handle2
+    pixD: image/acquire-buffer dst  :handleD
+	w: IMAGE_WIDTH(src1/size)
+    h: IMAGE_HEIGHT(src1/size)
+    a3: 0.0
+    r3: 0.0
+    g3: 0.0
+    b3: 0.0
+    y: 0
+    while [y < h] [
+    	x: 0
+		while [x < w][
+				a1: as float! (pix1/value >>> 24) / 255.0
+       			r1: as float! (pix1/value and FF0000h >> 16) 
+        		g1: as float! (pix1/value and FF00h >> 8) 
+        		b1: as float! (pix1/value and FFh) 
+        		a2: as float! (pix2/value >>> 24)
+       			r2: as float! (pix2/value and FF0000h >> 16) 
+        		g2: as float! (pix2/value and FF00h >> 8) 
+        		b2: as float! (pix2/value and FFh) 
+        		a1: a1 / 255 
+        		r1: r1 / 255
+        		g1: g1 / 255
+        		b1: b1 / 255
+        		a2: a2 / 255
+        		r2: r2 / 255
+        		g2: g2 / 255
+        		b2: b2 / 255
+        		
+        		calpha: 1.0 - a1
+        		alphaR: a1 + (a2 * calpha)
+        		a3: alphaR * 255
+        		
+        		r1: r1 * a1
+        		r2: r2 * calpha
+        		r2: r2 * a2
+        		r3: (r1 + r2) / alphaR
+        		r3: r3 * 255
+        		
+        		g1: g1 * a1
+        		g2: g2 * calpha
+        		g2: g2 * a2
+        		g3: (g1 + g2) / alphaR
+        		g3: g3 * 255
+        		
+        		b1: b1 * a1
+        		b2: b2 * calpha
+        		b2: b2 * a2
+        		b3: (b1 + b2) / alphaR
+        		b3: b3 * 255.0
+        	
+        		aInt: as integer! a3
+        		rInt: as integer! r3
+        		gInt: as integer! g3
+        		bInt: as integer! b3
+        		pixD/value: (aInt << 24) OR (rInt << 16 ) OR (gInt << 8) OR bInt
+				pix1: pix1 + 1
+				pix2: pix2 + 1
+				pixD: pixD + 1
+				x: x + 1
+		]
 		y: y + 1
 	]
 	image/release-buffer src1 handle1 no

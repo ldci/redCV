@@ -1,4 +1,4 @@
-# redCV: ROUTINES and FUNCTIONS (455)
+# redCV: ROUTINES and FUNCTIONS (489)
 For fast image processing, redCV uses now a lot of routines. All routines and functions are documented in redCV Manual. RedCV library is also modular: this means, that you can use only required libraries for your code and not all redCV library. This modular organization reduces the size of the executable applications and helps in maintaining redCV. 
 
 ## defined in /libs/tools/rcvtools.red
@@ -18,7 +18,7 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvNSquareRoot		(function)
 
 ## defined in /libs/core/rcvCore.red
-### routines: 	24	
+### routines: 	25
 ### functions: 	63
 * rcvReleaseImage			(routine)
 * rcvBlend						(routine)
@@ -40,10 +40,12 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvNot						(routine)
 * rcvChannel					(routine)
 * rcvMerge						(routine)
+* rcvMerge	2					(routine)
 * _rcvInRange				(routine)
 * rcvInRange					(routine)
 *  rcvResizeImage			(routine)
 * rcvSplit						(function)
+* rcvSplit2					(function)
 * rcvSetIntensity			(function)
 * rcvBlendWin				(function)
 * rcvCreateImage			(function)
@@ -178,7 +180,7 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvXORSMat					(function)
 
 ## defined in /libs/imgproc/rcvImageProc.red 
-### routines:		35
+### routines:		37
 ### functions:	58
 * _xSMGradient			(routine)
 * _ySMGradient			(routine)
@@ -189,6 +191,7 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvHLS					(routine)
 * rcvLab					(routine)
 * rcvLuv					(routine)
+* rcvIR2RGB				(routine)
 * rcvFlipHV				(routine)
 * rcvEffect				(routine)
 * rcvWave					(routine)
@@ -215,6 +218,7 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvConvolveNormalizedMat(routine)
 * rcvSobelMat			(routine)
 * rcvMatrixMedianFilter	(routine)
+* rcvCropImage			(routine)
 * rcvRGB2XYZ				(function)
 * rcvBGR2XYZ				(function)
 * rcvXYZ2RGB				(function)
@@ -321,6 +325,37 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvMatGetChainCode		(routine)
 * rcvGetContours			(routine)
 
+## defined in /libs/objdetect/rcvHaarCascade.red
+###routines:	17
+###functions:	2	
+* rcvCreateArrayPointers	(routine)
+* rcvCreateHaarCascade	(routine)
+* rcvNearestNeighbor				
+* rcvHaarIntegralImage1	 (routine)
+* rcvHaarIntegralImage2	 (routine)
+* rcvCannyFilter (routine)
+* rcvSetImageForCascadeClassifier (routine)
+* rcvEvalWeakClassifier (routine)
+* rcvRunCascadeClassifier (routine)
+* rcvScaleImageInvoker(routine)	
+* rcvDetectObjects(func)		
+* rcvReadTextClassifier	(func)	
+* _getWindow0X (routine)
+* _getWindow0Y(routine)	
+* _setSumImage(routine)
+* _setSqSumImage (routine)
+* _setTiltedSumImage (routine)
+* __round (routine)
+* _mat2Array (routine)
+
+##defined in /libs/objdetect/rcvHaarRectangles
+###routines:	0
+###functions:	4
+* rcvRoundInt (func)		
+* rcvPredicate (func)	
+* rcvPartition (func)		
+* rcvGroupRectangles (func)	
+	
 ## defined in /libs/math/rcvStats.red
 ### routines: 		13
 ### functions: 		13
@@ -360,9 +395,10 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvGetMatHuMoments					(function)
 
 ## defined in /libs/math/rcvHistogram.red
-### routines: 			7	
+### routines: 			8	
 ### functions: 			5
 * rcvHistoImg				(routine)
+* rcvHOG						(routine)
 * rcvRGBHistogram			(routine)
 * rcvMeanShift				(routine)
 * rcvHistoMat				(routine)
@@ -523,7 +559,7 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 
 ## defined in /libs/timeseries/rcvFFT.red 
 ### routines: 	9
-### functions: 	1
+### functions: 	2
 * rcvFFT					(routine)
 * rcvFFTDAmplitude		(routine)
 * rcvFFTPhase			(routine)
@@ -534,7 +570,16 @@ For fast image processing, redCV uses now a lot of routines. All routines and fu
 * rcvFFT2DShift			(routine)
 * rcvTransposeArray	(routine)
 * rcvFFTImage			(function)
+* rcvFFTInverseImage	(function)
 
+##defined in /libs/pbm/rcvPbm.red
+###routines: 	0
+###functions:	5
+* rcvGetMagicNumberPBM	(function)
+* rcvReadPBMAsciiFile	(func)
+* rcvWritePBMAsciiFile	(func)	
+* rcvWritePBMByteFile	(func)
+* rcvReadPBMByteFile		(func)		
 
 ## defined in /libs/ZLib/rcvZLib.red
 ### routines: 		2

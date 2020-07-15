@@ -73,21 +73,22 @@ rcvGetMatCentralMoment: routine [
     q			[float!]	;q - the repetition of the moment
     return:		[float!]
     /local 
-    centroid	
-    moment
-    x y
-    xf yf
-	mvalue 
-    unit
-    v
-    width           [integer!]
-    height          [integer!]
+    centroid	[red-pair!]	
+    moment		[float!]
+    x			[integer!] 
+    y			[integer!]
+    xf 			[float!]
+    yf			[float!]
+	mvalue 		[byte-ptr!]
+    unit		[integer!]
+    v			[float!]
+    width       [integer!]
+    height		[integer!]
 ][
 	width: 	mSize/x
 	height: mSize/y
 	mvalue: vector/rs-head mat
     unit: rcvGetMatBitSize mat
-    x: 0
     y: 0
     xf: 0.0
     xf: 0.0

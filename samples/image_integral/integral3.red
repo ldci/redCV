@@ -1,11 +1,9 @@
 Red [
 	Title:   "Integral3"
 	Author:  "Francois Jouen"
-	File: 	 %integral2.red
+	File: 	 %integral3.red
 	Needs:	 'View
 ]
-
-; required last Red Master
 
 ; required libs
 #include %../../libs/core/rcvCore.red
@@ -24,9 +22,7 @@ isFile: false
 
 img1: 	rcvCreateImage msize				; src
 gray: 	rcvCreateImage img1/size			; gray scale
-bimage: rcvCreateImage img1/size			; to visualize	
-sum: 	rcvCreateImage img1/size			; dst 1
-sqsum: 	rcvCreateImage img1/size			; dst 2
+bimage: rcvCreateImage img1/size			; to visualize result
 plot: 	copy []
 
 loadImage: does [
@@ -44,9 +40,7 @@ loadImage: does [
 		rcv2Gray/average img1 gray
 		sum: rcvCreateMat 'integer! intSize img1/size
 		sqsum: rcvCreateMat 'integer! intSize img1/size
-		mat1: rcvCreateMat 'integer! intSize img1/size
-		rcvImage2Mat img1 mat1 				; Converts  image to 1 Channel matrix [0..255]
-		rcvIntegral mat1 sum sqsum img1/size
+		rcvIntegralImg img1 sum sqsum ;img1/size
 		canvas1/image: img1
 		canvas2/image: gray
 		isFile: true

@@ -73,7 +73,7 @@ view win: layout [
 		origin margins space margins
 		button 100 "Load image" 		[loadImage]
 		check 150 "Smooth Histogram" 	[smooth: face/data processMat showPlot]
-		pad 17	0x0
+		pad 170x0
 		button 80 "Quit" 				[rcvReleaseImage img1 Quit]
 		return
 		canvas1: base msize img1

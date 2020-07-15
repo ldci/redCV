@@ -1,18 +1,14 @@
-# Computer Vision with Red Language 
-## see http://www.red-lang.org 
-### This library needs View 
 
+# Computer Vision with Red Language
+## see [http://www.red-lang.org](http://www.red-lang.org) 
 
-For Windows and macOS and now Linux-GTK. Thanhs to 
-@bitbegin, @loziniak and @rcqls. 
+![](images/red.ico) ![](images/redCV.png)
+### You need a recent Red version. Compiled with Red 0.6.4 for macOS built 10-Jul-2020/4:54:54+02:00 commit #a1d1495
 
-### You need the lastest Red master version.
-
-Developped under macOS 32-bit.
-
-**Tested with macOS, Linux Mint 32-bit, Windows XP and Windows 10.**
+###Tested with macOS, Linux Mint 32-bit, Windows XP and Windows 10
 
 You must compile samples since red routines are required.
+Most of samples require View.
 
 Use first -u compiler option to create a Red RT library and then just -c option which makes the compilation faster:
 
@@ -20,8 +16,91 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 
 *then just red -c FileName -> Faster compilation*
 
+**Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
+
+
+###UPDATE JULY 15 2020
+
+####More than 200 code samples documented!
+
+**New libraries for Haar cascade and machine learning**
+
+1. /libs/objdetect/rcvHaarCascade.red
+1. /libs/objdetect/rcvHaarRectangles.red
+
+**New libraries for Portable bitmap support**
+
+1. /libs/pbm/rcvPbm.red				
+
+**Modified libraries**
+
+1. /libs/core/rcvCore.red 		
+1. /libs/matrix/rcvMatrix.red	
+1. /libsimgproc/rcvImgProc.red	
+1. /libs/math/rcvStats.red		
+1. /libs/math/rcvMoments.red		
+1. /libs/math/rcvHistogram.red	
+1. /libs/math/rcvDistance.red	
+1. /libs/zLib/rcvZLib.red			
+1. /libs/tiff/rcvTiff.red	
+
+**New code samples**
+
+1. /image_alpha/blendImage3.red
+1. /image_alpha/blendImage4.red
+1. /image_alpha/ mask.red
+1. /image_compression/compress2.red
+1. /image_draw/thread.red
+1. /image_Haar/faceDetection.red
+1. /image_Haar/camFace.red
+1. /image_Haar/xmlCascade.red
+1. /image_hog/hog1
+1. /image_hog/hog2
+1. /image_hog/hog3
+1. /image_hog/hog4
+1. /image_hog/hog5
+1. /image_transformation/imageCrop.red	
+
+**Updated code samples**
+
+1. /image_channel/redCVSplitMerge.red
+1. /image_distances/chamfer/chamfer2.red
+1. /image_distances/chamfer/flow.red
+1. /image_fft/imagefft1.red
+1. /image_fft/imagefft2.red
+1. /image_fft/imagefft3.red
+1. /image_filters/neuman/neuman1.red
+1. /image_histograms/colorHisto.red
+1. /image_histograms/grayHisto.red
+1. /image_histograms/meanShift.red
+1. /image_integral/integral3.red
+1. /image_operators/opimage.red
+1. /image_pixels/pixel1.red
+1. /image_pixels/pixel2.red
+1. /image_random/randomView.red
+1. /video/cam1.red
+1. /video/cam2.red
+1. /video/cam4.red
+1. /video/cam41.red
+1. /video/camBin.red
+1. /video/camConv.red
+1. /video/motion.red
+1. /video/tracking1.red
+1. /video/tracking2.red
+
+**Obsolete code samples**
+
+see [https://github.com/ldci/ffmpeg](https://github.com/ldci/ffmpeg) for better video access
+
+1. /video/movie.red
+1. /video/reccam.red
+
+
 ###UPDATE FEBRUARY 4 2020
+
 ###100% macOS, Windows, and Linux GTK compatible
+For Windows and macOS and now Linux-GTK. Thanks to 
+@bitbegin, @loziniak and @rcqls. 
 
 **Modified libraries**
 

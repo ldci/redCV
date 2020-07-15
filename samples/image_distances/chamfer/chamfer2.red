@@ -123,13 +123,13 @@ distance2Color: function [src [block!] factor [float!] return: [block!]][
 
 
 showChamfer: routine [
-    src1 [block!]
-    dst  [image!]
-    c	 [tuple!]
-    op	 [integer!]
+    src1 	[block!]
+    dst  	[image!]
+    c	 	[tuple!]
+    op	 	[integer!]
     /local
-        pix1
-        pixD [int-ptr!]
+        pix1	[red-value!]
+        pixD 	[int-ptr!]
         handleD h w x y pos
         t r g b
         rt gt bt

@@ -98,8 +98,8 @@ rcvXYZ2RGB: routine [
     y: 0
     while [y < h] [
        while [x < w][
-       	a: pix1/value >>> 24				; 
-       	r: pix1/value and FF0000h >> 16	; X  
+       	a: pix1/value >>> 24				; a
+       	r: pix1/value and FF0000h >> 16		; X  
         g: pix1/value and FF00h >> 8 		; Y  
         b: pix1/value and FFh 				; Z 
         xf: as float! r
@@ -566,7 +566,92 @@ rcvIRgBy: routine [
     image/release-buffer dst handleD yes
 ]
 
+
+rcvIR2RGB: routine [
+"Pseudo-color to RGB image"
+    src [image!]
+    dst  [image!]
+    mat	 [vector!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        pMat [float-ptr!]
+        handle1 handleD h w x y
+        r g b a rf gf bf xf yf zf
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    pMat: as float-ptr! vector/rs-head mat
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    x: 0
+    y: 0
+    while [y < h] [
+       while [x < w][
+       	a: pix1/value >>> 24
+       	r: pix1/value and FF0000h >> 16 
+        g: pix1/value and FF00h >> 8 
+        b: pix1/value and FFh         
+        rf: as float! r 
+		gf: as float! g 
+		bf: as float! b   	
+		xf: (rf * pMat/1) + (gf *  pMat/2) + (bf * pMat/3)
+    	yf: (rf * pMat/4) + (gf *  pMat/5) + (bf * pMat/6)
+    	zf: (rf * pMat/7) + (gf *  pMat/8) + (bf * pMat/9)	
+    	r: as integer! xf g: as integer! yf b: as integer! zf ;rgb
+    	pixD/value: ((a << 24) OR (r << 16 ) OR (g << 8) OR b)	
+        pix1: pix1 + 1
+        pixD: pixD + 1
+        x: x + 1
+       ]
+       x: 0
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
+
+
 ;******************* Image Transformations *****************************
+rcvCropImage: routine [
+"Crop source image to destination image"
+    src 	[image!]
+    dst  	[image!]
+    origin	[pair!]
+    /local
+        pix1 [int-ptr!]
+        pixD [int-ptr!]
+        handle1 handleD h w x y l idx
+        pos
+][
+    handle1: 0
+    handleD: 0
+    pix1: image/acquire-buffer src :handle1
+    pixD: image/acquire-buffer dst :handleD
+    l: IMAGE_WIDTH(src/size)
+    w: IMAGE_WIDTH(dst/size)
+    h: IMAGE_HEIGHT(dst/size)
+    y: 0
+    pos: (origin/y * l) + origin/x
+    idx: pix1 + pos
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       	 	pixD/value: idx/value
+           	pixD: pixD + 1
+           	idx: idx + 1
+           	x: x + 1
+       	]
+       	origin/y: origin/y + 1
+       	pos: (origin/y * l) + origin/x
+       	idx: pix1 + pos
+       	y: y + 1
+    ]
+    image/release-buffer src handle1 no
+    image/release-buffer dst handleD yes
+]
 
 
 rcvPyrDown: function [
@@ -2394,8 +2479,7 @@ rcvLineDetection: function [
 ;by forward finite differences and Neumann boundary conditions. 
 ;op = 2 Computes the divergence by backward finite differences. 
 
-; exported as functions in /libs/imgproc/rcvImgProc.red
-rcvNeumann: routine [
+{old_rcvNeumann: routine [
     src  	[image!]
     dst1  	[image!]
     dst2  	[image!]
@@ -2413,7 +2497,6 @@ rcvNeumann: routine [
 ] [
 	
 	stride1: 0
-    ;bmp1: OS-image/lock-bitmap as-integer src/node no
     bmp1: OS-image/lock-bitmap src no
     data1: OS-image/get-data bmp1 :stride1   
 	handleD1: 0
@@ -2455,7 +2538,61 @@ rcvNeumann: routine [
 	OS-image/unlock-bitmap src bmp1; MB
 	image/release-buffer dst1 handleD1 yes
 	image/release-buffer dst2 handleD2 yes
+]}
+
+rcvNeumann: routine [
+    src  	[image!]
+    dst1  	[image!]
+    dst2  	[image!]
+    op      [integer!]
+    /local
+		pos
+		pixS	[int-ptr!]
+        pixD1 	[int-ptr!]
+        pixD2 	[int-ptr!]
+        handleS handleD1 handleD2 
+        h w x y 
+        v1 v2 v3
+] [
+	
+    handleS:  0 
+	handleD1: 0
+    handleD2: 0
+    
+    pixS:  image/acquire-buffer src :handleD1
+    pixD1: image/acquire-buffer dst1 :handleD1
+    pixD2: image/acquire-buffer dst2 :handleD2
+	w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size) 
+    y: 0 
+    ;im_out(i,j) = (im_in1(i,j)-im_in1(i-1,j)) + (im_in2(i,j)-im2(i,j-1))
+    while [y < h] [
+    	x: 0
+		while [x < w][
+				pos: pixS + (y * w + x + 1)
+			    v1: pos/value
+			    switch op [
+			    	1 [ if x < (w - 1) [pos: pixS + (w * y + x + 2) v2: pos/value]
+			   			if y < (h - 1) [pos: pixS + (w * (y + 1) + x + 1) v3: pos/value]
+			    	]
+			    	
+			    	2 [ if x > 0 [pos: pixS + (w * y + x) v2: pos/value]
+			    		if y > 0 [pos: pixS + (w * (y - 1) + x + 1) v3: pos/value]
+			    	]
+			    ]
+			    pixD1/value: v2 - v1
+			    pixD2/value: v3 - v1
+				pixD1: pixD1 + 1
+				pixD2: pixD2 + 1
+				x: x + 1
+		]
+		y: y + 1
+	]
+	image/release-buffer src handleD1 no
+	image/release-buffer dst1 handleD1 yes
+	image/release-buffer dst2 handleD2 yes
 ]
+
 
 
 

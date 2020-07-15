@@ -1,4 +1,3 @@
-#! /usr/local/bin/red
 Red [
 	Title:   "Random Distribution "
 	Author:  "Francois Jouen"
@@ -81,7 +80,7 @@ generate: routine [
 			y: r / r2 - 1.0
 			rsq: (x * x) + (y * y) 
 		]
-		f: sqrt ((-2.0 * log-2 rsq) / rsq)
+		f: sqrt ((-2.0 * log-e rsq) / rsq)
 		p: as float-ptr! head
 		p/value: (mean + x * f * std)
 		head: head + 8
@@ -191,7 +190,7 @@ generateDist: does [
 view win: layout [
 	title "Gaussian Random Distribution "
 	origin margins space margins
-	text 75 "Sample" f1: field 80 "100000" [if error? try [n: to-integer face/text] [n: NMAX]]
+	text 75 "Sample" f1: field 80 "1000000" [if error? try [n: to-integer face/text] [n: NMAX]]
 	text 50 "STD"	 f2: field 40 "1.0" [if error? try [std: to-float face/text] [std: 1.0]]
 	button "Generate"	[generateDist]
 	button "Clear"		[img: make image! reduce [640x480 black] canvas/image: img 

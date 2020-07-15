@@ -50,7 +50,7 @@ _rcvDotsFDistance: routine [
 	op		[integer!]	; distance op
 	return: [float!]
 	/local
-	r
+	r		[float!]
 ] [
 	switch op [
 		1 [r: (dx1 / dx2) + (dy1 / dy2)]; Camberra
@@ -66,9 +66,13 @@ rcvDistance2Color: routine [
 		dist 	[float!] 
 		t 		[tuple!]
 		/local
-		r g b		;integer!
-		rf gf bf	;integer!
-		arr1		;tuple!
+		r 		[integer!]
+		g 		[integer!]
+		b		[integer!]
+		rf 		[integer!]
+		gf 		[integer!]
+		bf		[integer!]
+		arr1	[integer!]
 ][
 	r: t/array1 and FFh 
 	g: t/array1 and FF00h >> 8 
@@ -83,15 +87,24 @@ rcvDistance2Color: routine [
 
 
 ;general distances functions 
+; Horizontal: 0° clockwise 
 
 rcvDegree2xy: function [
 "Returns XY coordinates from angle and distance between 2 points"
-	radius [number!]
-	degree [number!]
+	radius [number!]	; distance
+	angle  [number!]	; angle in degree
 ][
-	as-pair (radius * sine degree) (radius * negate cosine degree)
+	as-pair (radius * cosine angle) (radius * sine angle) 
 ]
 
+;new 
+rcvRadian2xy: function [
+"Returns XY coordinates from angle and distance between 2 points"
+	radius 	[number!]	; distance
+	angle 	[number!]	; angle in radian
+][
+	as-pair (radius * cos angle) (radius * sin angle) 
+]
 
 
 rcvGetEuclidianDistance: function [
@@ -193,7 +206,8 @@ rcvGetAngle: function [
 ]
 
 ;needs a coordinate translation p - shape centroid
-; angle * 180 / pi -> degrees
+; angle * 180 / pi radian -> degrees
+; angle * pi / 180 degree -> radian
 rcvGetAngleRadian: function [
 "Gets angle in radian "
 	p [pair!]

@@ -153,9 +153,12 @@ rcvRGBHistogram: routine [
     /local
         pix1 [int-ptr!]
         pixD 	[int-ptr!]
-        handle1
-        handleD 
-        h w x y
+        handle1	[integer!]
+        handleD [integer!]
+        h 		[integer!]
+        w 		[integer!]
+        x 		[integer!]
+        y		[integer!]
         lines 	[integer!]
 		cols	[integer!]
         bsvalue [red-value!] 
@@ -552,8 +555,8 @@ rcvSmoothHistogram: function [
 	n: length? arr
 	i: 2
 	while [i < n] [
-					histo/(i): (arr/(i - 1) + arr/(i) + arr/(i + 1)) / 3 
-	 				i: i + 1
+		histo/(i): to-integer (arr/(i - 1) + arr/(i) + arr/(i + 1)) / 3 
+	 	i: i + 1
 	]
 	
 	histo/1: histo/2
@@ -598,6 +601,191 @@ rcvContrastAffine: function [
 ] [
 	range: rcvMakeTranscodageTable p
 	rcvEqualizeContrast arr range
+]
+
+
+; based on Ganesh Iyer's c++ code (https://github.com/lastlegion/hog)
+rcvHOG: routine [
+"Histograms of Oriented Gradients"
+    src  			[image!]
+    matGx			[vector!]
+    matGy			[vector!]
+    nBins			[integer!]
+    nDivs			[integer!]
+    return: 		[vector!]
+    /local
+        pixS 		[int-ptr!]
+        idx 		[int-ptr!] 
+        *matgx		[int-ptr!]
+        *matgy 		[int-ptr!]
+        matHog		[red-vector!]
+        *matHog		[float-ptr!]
+        s			[series!]
+        handleS		[integer!] 
+        r g b		;integer!
+        h w x y		;integer!
+        m n			;integer!
+        lx rx		;integer! 
+        uy dy 		;integer!
+        nthBin		[integer!]
+        pixel 		[integer!]
+        nRow 		[integer!]
+        nCol		[integer!]
+        nHog  		[integer!]
+        cellX 		[integer!]
+        cellY		[integer!]
+        imgArea		[integer!]
+        pos 		[integer!]
+        posf		[float!]
+        hogPos		[float!]
+        xRight 		[float!]
+        xLeft		[float!]
+        yUp 		[float!]
+        yDown		[float!]
+        vx 			[float!]
+        vy			[float!]
+        theta		[float!] 
+        rho 		[float!]
+        nRho		[float!]
+        maxi		[float!]
+        binRange	[float!]
+        
+][
+	handleS: 0
+    pixS: image/acquire-buffer src :handleS
+	w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    imgArea: w * h
+    vector/rs-clear matGx
+    vector/rs-clear matGy
+   	;-- first a Sobel like edges detector on grayscale image
+   	;-- Find orientation gradients in x and y directions
+    y: 0
+    while [y < h] [
+    	x: 0
+		while [x < w][
+				pos: (y * w + x) % w 		; current column in matrix image
+				pixel: y * w + pos			; current pixel
+				rx: pixel + 1				; right pixel
+				if rx >= imgArea [rx: 0]	; OK first value
+				idx: pixS + rx
+				r: idx/value and 00FF0000h >> 16 
+        		g: idx/value and FF00h >> 8 
+        		b: idx/value and FFh 
+				xRight:  as float! (r + g + b) / 3.0
+				
+				lx: pixel - 1				; left pixel
+				if lx < 0 [lx: imgArea - 1]	; OK last value	
+				idx: pixS + lx
+				r: idx/value and 00FF0000h >> 16 
+        		g: idx/value and FF00h >> 8 
+        		b: idx/value and FFh 
+				xLeft:  as float! (r + g + b) / 3.0 
+				
+				uy: y - 1 * w + pos				; up pixel
+				if uy < 0 [ uy: imgArea - pos - 1] ; OK last row
+				idx: pixS + uy
+				r: idx/value and 00FF0000h >> 16 
+        		g: idx/value and FF00h >> 8 
+        		b: idx/value and FFh 
+				yUp:  as float! (r + g + b) / 3.0 
+				
+				dy: y + 1 * w + pos			; down pixel
+				if dy >= imgArea [dy: x]	; OK first row 
+				idx: pixS + dy
+				r: idx/value and 00FF0000h >> 16 
+        		g: idx/value and FF00h >> 8 
+        		b: idx/value and FFh 
+				yDown:  as float! (r + g + b) / 3.0 
+				vx: xRight - xLeft
+				vy: yUp - yDown
+				vector/rs-append-int matgx as integer! vx ; x gradients
+				vector/rs-append-int matgy as integer! vy ; y gradients	
+				x: x + 1
+		]
+		y: y + 1
+		
+	]
+	; HOG matrice
+	binRange: (2.0 * pi) / nBins
+    cellX: w / nDivs
+    cellY: h / nDivs 
+	nHog: nDivs * nDivs * nBins								;-- matrix size
+	matHog: vector/make-at stack/push* nHog TYPE_FLOAT 8    ;-- slot, size, type, unit
+	*matHog: as float-ptr! vector/rs-head matHog			;-- float ptr to hog matrix 
+	*matgx: as int-ptr! vector/rs-head matgx
+	*matgy: as int-ptr! vector/rs-head matgy
+	
+	; HOG matrix initialisation with 0.0 value
+	m: 1
+	while [m <= nHog] [
+		*matHog/m: 0.0
+		m: m + 1
+	]
+	; HOG in cells with nDivs * nDivs size
+	; line by column 
+	m: 0 
+	while [m < nDivs] [
+		n: 0
+		while [n < nDivs][
+			; starting pos in HOG matrix
+			hogPos: as float! ((m * nDivs + n) * nBins)
+			y: 0
+			while [y < cellY] [
+				x: 0
+				while [x < cellX] [
+					nRow: (n * cellY + x + 1)
+					nCol: (m * cellX + y + 1)
+					pos: (nRow * w + nCol) - w
+				    vx: as float! *matgx/pos
+				    vy: as float! *matgy/pos 
+				    ;gradient 
+				    rho: sqrt ((vx * vx) + (vy * vy))
+				    nRho: rho / as float! imgArea
+				    ;Orientation
+				    theta:  atan2 vy vx 					; radians
+					if theta < 0.0 [theta: theta + (2.0 * pi)]
+					;find appropriate bin for angle
+					nthBin: as integer! (theta / binRange) 	; OK 0-nBins - 1
+					;print[ theta  * 180.0 / pi lf]			; degrees
+					; position in 1-D hog matrice
+					posf: 1.0 + ceil (hogPos + theta) 
+					pos: as integer! posf  
+					;add magnitude of the edges in the hog matrix
+					*matHog/pos: *matHog/pos + nrho
+					x: x + 1
+				]
+				y: y + 1
+			]
+			n: n + 1
+		]
+		m: m + 1 
+	]
+	; normalisation for each histogram
+	x: 0 
+	while [x < (nDivs * nDivs)][
+		maxi: 0.0 
+		y: 0
+		while [y < nBins][
+			pos: x * nBins + y + 1
+			if *matHog/pos > maxi [maxi: *matHog/pos]
+			y: y + 1
+		]
+		y: 0
+		
+		while [y < nBins][
+			pos: x * nBins + y + 1
+			if maxi > 0.0 [*matHog/pos: *matHog/pos / maxi]	
+			if maxi = 0.0 [*matHog/pos: 0.0]
+			y: y + 1
+		]
+		x: x + 1
+	]
+	
+	image/release-buffer src handleS no
+	s: GET_BUFFER(matHog)								;-- Matrix values
+    s/tail: as cell! (as float-ptr! s/offset) + nHog    ;-- set the tail properly
+    as red-vector! stack/set-last as cell! matHog       ;-- return the new vector
 ]
 
 

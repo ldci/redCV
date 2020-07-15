@@ -25,23 +25,22 @@ loadImage: does [
 	tmp: request-file 
 	if not none? tmp [		
 		fileName: to string! to-local-file tmp	
-		;win/text: fileName
 		rimg: load tmp	
-		canvas/image: rimg
 		imgR: make image! reduce [rimg/size black]
 		imgG: make image! reduce [rimg/size black]
 		imgB: make image! reduce [rimg/size black]
+		imgA: make image! reduce [rimg/size black]
 		imgRGB: make image! reduce [rimg/size black]
+		canvas/image: rimg
 		isFile: true
 	]
 ]
 
-splitImage: function[][
+splitImage: func[][
 	if isFile [
 		t1: now/time/precise
-		rcvSplit/red rimg imgR
-		rcvSplit/green rimg imgG
-		rcvSplit/blue rimg imgB
+		blk: rcvSplit2 rimg
+		imgR: blk/1 imgG: blk/2 imgB: blk/3 imgA: blk/4
 		canvasR/image: imgR
 		canvasG/image: imgG
 		canvasB/image: imgB
@@ -51,10 +50,10 @@ splitImage: function[][
 	]	
 ]
 
-mergeImage: function[][
+mergeImage: func[][
 	if isFile [
 		t1: now/time/precise
-		rcvMerge imgR imgG imgB imgRGB
+		rcvMerge2 imgR imgG imgB imgA imgRGB
 		canvasRGB/image: imgRGB
 		sb1/text: copy "Rendered in "
 		t2: now/time/precise

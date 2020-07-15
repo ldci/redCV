@@ -33,7 +33,9 @@ loadImage: does [
 		append win/text fileName
 		img1: rcvLoadImage tmp
 		gray: rcvLoadImage/grayscale tmp
-		currentImage rcvCreateImage img1/size
+		dst1:  rcvCreateImage img1/size
+		dst2:  rcvCreateImage img1/size
+		currentImage: rcvCreateImage img1/size
 		either cb/data [currentImage: rcvCloneImage gray]
 					   [currentImage: rcvCloneImage img1]
 		dst1:  rcvCloneImage currentImage
@@ -53,8 +55,8 @@ view win: layout [
 		title "Edges detection: Neumann gradient and divergence"
 		origin margins space margins
 		button 60 "Load" 		[loadImage]	
-		cb: check "Grayscale" 	[either cb/data [currentImage: rcvCloneImage gray]
-					   			[currentImage: rcvCloneImage img1]
+		cb: check "Grayscale" 	[either cb/data [rcvCopyImage gray currentImage]
+					   			[rcvCopyImage img1 currentImage]
 					   			rcvCopyImage currentImage dst1 rcvCopyImage currentImage dst2
 					   			r1/data: true
 								r2/data: false

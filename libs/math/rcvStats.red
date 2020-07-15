@@ -784,9 +784,9 @@ t: type? arr
 					 either odd? n  [pxl: make tuple! reduce [mat/(pos)]] 
 					 				[m1: mat/(pos) m2: mat/(pos + 1) pxl: make tuple! reduce [(m1 + m2) / 2]]
 	]
-	if t = image! 	[img: make image! reduce [arr/size black] ;should be img: copy arr
-					 img/rgb: copy sort arr/rgb
-					 n: to integer! ((length? img/rgb) / 3) ; RGB channels only
+	if t = image! 	[img: make image! arr/size
+					 img/rgb: copy sort arr/rgb 
+					 n: length? img
 					 pos: to integer! ((n + 1) / 2)
 					 either odd? n [pxl: img/(pos)] [m1: img/(pos) m2: img/(pos + 1) pxl: (m1 + m2) / 2]
 	]
@@ -802,7 +802,7 @@ t: type? arr
 					 sort mat
 					 pxl: make tuple! reduce [mat/1]
 	]
-	if t = image! 	[img: make image! reduce [arr/size black];should be img: copy arr
+	if t = image! 	[img: make image! arr/size
 					 img/rgb: copy sort arr/rgb 
 					 pxl: img/1
 	]
@@ -819,7 +819,7 @@ rcvMaxValue: function [
 					 sort mat
 					 pxl: make tuple! reduce [last mat]
 	]
-	if t = image! 	[img: make image! reduce [arr/size black];should be img: copy arr
+	if t = image! 	[img: make image! arr/size
 					 img/rgb: copy sort arr/rgb 
 					 pxl: last img
 	]

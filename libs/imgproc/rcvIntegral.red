@@ -10,74 +10,178 @@ Red [
 	}
 ]
 
+
+; #include %../../libs/matrix/rcvMatrix.red ; if necessary
+
+
 ; ****************integral image routines ************************
 rcvIntegralImg: routine [
-"Direct  integral image"
-    src  			[image!]
-    dst  			[image!]
-    dst2 			[image!]
+"Direct integral image"
+   	src  	[image!]
+    dst1  	[vector!]
+    dst2	[vector!]
     /local
-        pix1 		[int-ptr!]
-        pixD 		[int-ptr!]
-        pixD2 		[int-ptr!]
-        idxD		[int-ptr!]
-        idxD2		[int-ptr!]
-        handle1 	[integer!]
-        handleD 	[integer!]	
-        handleD2	[integer!]
-        h 			[integer!]
-        w 			[integer!]
-        x 			[integer!]
-        y 			[integer!]
-        pindex		[integer!] 
-        pindex2 	[integer!]
-        val			[integer!]
-        sum 		[integer!]
-        sqsum   	[integer!]  
-][
-    handle1: 	0
-    handleD: 	0
-    handleD2: 	0
-    pix1: image/acquire-buffer src :handle1
-    pixD: image/acquire-buffer dst :handleD
-    pixD2: image/acquire-buffer dst2 :handleD2
-    idxD: pixD
-    idxD2: pixD2
-    pindex: 0
+    pixel 	[int-ptr!]
+    pIndexS	[int-ptr!]	
+    d1value [byte-ptr!]
+    d2value	[byte-ptr!]
+    idxD1	[byte-ptr!]
+    idxD2	[byte-ptr!]
+    unit	[integer!]
+    x		[integer!] 
+    y 		[integer!]
+    w 		[integer!]
+    h		[integer!]
+    pIndexD [integer!]
+    val		[integer!] 
+    val2	[integer!]
+    ssum 	[integer!]
+    sqsum	[integer!]
+    handle1	[integer!]
+    r 		[integer!]
+    g 		[integer!]
+    b 		[integer!]
+    rgb		[integer!]
+    rgbf	[float!]
+] [
+	handle1: 0
+    pixel: image/acquire-buffer src :handle1 
+	d1value: vector/rs-head dst1	
+	d2value: vector/rs-head dst2
+	unit: rcvGetMatBitSize dst1
+    idxD1: d1value
+    idxD2: d2value
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     x: 0
     while [x < w] [
-    	sum: 0
-    	sqsum: 0
     	y: 0
+    	ssum: 0
+    	sqsum: 0
+    	val: 0
+    	val2: 0
        	while [y < h][
-       		pindex: x + (y * w) 
-       		sum: sum + pix1/value
-       		sqsum: sqsum + (pix1/value * pix1/value)
-       		either x = 0 [pixD/value: sum pixD2/value: sqsum] 
-       					 [
-       					 ;sum
-       					 pixD: idxD + pindex - 1
-       					 val: pixD/value + sum
-       					 pixD: idxD + pindex
-       					 pixD/value: val
-       					 ; square sum
-       					 pixD2: idxD2 + pindex - 1
-       					 val: pixD2/value + sqsum
-       					 pixD2: idxD2 + pindex
-       					 pixD2/value: val
-       					 ]
-        	pix1: pix1 + 1
-        	y: y + 1
-       ]
-       x: x + 1
+       		pIndexS: pixel + (x + (y * w))
+       		r: pIndexS/value and 00FF0000h >> 16 
+        	g: pIndexS/value and FF00h >> 8 
+        	b: pIndexS/value and FFh 
+        	rgbf: (0.2989 * as float! r) + (0.587 * as float! g) + (0.114 * as float! b) 
+       		val: (as integer! rgbf) >> 0
+       		ssum: ssum + val                             
+       		sqsum: sqsum + (val * val)
+       		pIndexD: (x + (y * w)) * unit 
+       		d1value: idxD1 + pIndexD
+       		d2value: idxD2 + pIndexD 
+       		either (x = 0) [
+       			rcvSetIntValue as integer! d1Value ssum unit
+       			rcvSetIntValue as integer! d2Value sqsum unit] 
+       			[
+					;sum
+					d1value: d1value - unit
+       				val: rcvGetIntValue as integer! d1value unit
+       				d1value: d1value + unit
+       				val2: ssum + val
+       				rcvSetIntValue as integer! d1Value val2 unit
+       				; square sum
+       				d2value: d2value - unit
+       				val: rcvGetIntValue as integer! d2value unit
+       				d2value: d2value + unit
+       				val2: sqsum + val
+       				rcvSetIntValue as integer! d2Value val2 unit
+       			]
+       		y: y + 1
+       	]
+    	x: x + 1   	
     ]
-    
     image/release-buffer src handle1 no
-    image/release-buffer dst handleD yes
-    image/release-buffer dst2 handleD2 yes
 ]
+
+
+
+; uses float vector to avoid math overflow with integer
+rcvIntegralFloatImg: routine [
+"Direct  integral on image "
+    src  			[image!]
+    dst1  			[vector!]
+    dst2 			[vector!]
+    /local
+        pix1 		[int-ptr!]
+        pixD1 		[byte-ptr!]
+        pixD2 		[byte-ptr!]
+        idxD1		[byte-ptr!]
+        idxD2		[byte-ptr!]
+        handle1 	[integer!]
+        unit		[integer!]
+        h 			[integer!]
+        w 			[integer!]
+        x 			[integer!]
+        y 			[integer!]
+        pIndexD		[integer!] 
+        pindex2 	[integer!]
+        val			[integer!]
+        ssum 		[float!]
+        sqsum   	[float!]  
+        t			[float!]
+        tq			[float!]
+        r 			[integer!]
+        g 			[integer!]
+        b			[integer!] 
+        rgb			[integer!]
+        rgbf		[float!]
+][
+    handle1: 0
+    pix1:  image/acquire-buffer src :handle1 
+    pixD1: vector/rs-head dst1
+    pixD2: vector/rs-head dst2
+    idxD1: pixD1
+    idxD2: pixD2
+    pIndexD: 0
+    unit: rcvGetMatBitSize dst1
+    w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    y: 0
+    while [y < h] [
+    	ssum: 0.0
+    	sqsum: 0.0
+    	x: 0
+    	;loop over the number of columns
+       	while [x < w][
+       		pIndexD: ((y * w) + x) * unit 
+       		; grayscale luminance
+       		r: pix1/value and 00FF0000h >> 16 
+        	g: pix1/value and FF00h >> 8 
+        	b: pix1/value and FFh      
+			rgbf: (0.2989 * as float! r) + (0.587 * as float! g) + (0.114 * as float! b) 
+        	rgb: (as integer! rgbf) >> 0
+       		;sum of the current row
+       		ssum: ssum + as float! rgb
+       		sqsum: sqsum + as float! (rgb * rgb)
+       		t: ssum
+       		tq: sqsum
+       		if y <> 0 [
+       			pIndexD: (((y - 1) * w) + x) * unit
+       			;sum
+				pixD1: idxD1 + pIndexD 
+				t: t + rcvGetFloatValue as integer! pixD1 unit
+       			; square sum
+       			pixD2: idxD2 + pIndexD 
+       			tq: tq + rcvGetFloatValue as integer! pixD2 unit
+       			
+			]
+        	pIndexD: ((y * w) + x) * unit
+        	pixD1: idxD1 + pIndexD 
+        	rcvSetFloatValue as integer! pixD1 t unit
+        	pixD2: idxD2 + pIndexD 
+        	rcvSetFloatValue as integer! pixD2 tq unit
+        	pix1: pix1 + 1
+        	x: x + 1
+       ]
+       y: y + 1
+    ]
+    image/release-buffer src handle1 no
+]
+
+
 
 ;*********************** Integral Matrices *************************
 ; integer Matrices 
@@ -99,12 +203,12 @@ rcvIntegralMat: routine [
     y 		[integer!]
     w 		[integer!]
     h		[integer!]
-    pindex 	[integer!]
+    pIndexD [integer!]
     val		[integer!] 
     val2	[integer!]
-    sum 	[integer!]
+    ssum 	[integer!]
     sqsum	[integer!]
-] [
+][
     svalue: vector/rs-head src  
 	d1value: vector/rs-head dst1	
 	d2value: vector/rs-head dst2
@@ -117,28 +221,26 @@ rcvIntegralMat: routine [
     x: 0
     while [x < w] [
     	y: 0
-    	sum: 0
+    	ssum: 0
     	sqsum: 0
     	val: 0
     	val2: 0
        	while [y < h][
-       		pindex: (x + (y * w)) * unit 
-       		svalue: idx1 + pindex
-       		d1value: idxD1 + pindex
-       		d2value: idxD2 + pindex 
+       		pIndexD: (x + (y * w)) * unit 
+       		svalue: idx1 + pIndexD
+       		d1value: idxD1 + pIndexD
+       		d2value: idxD2 + pIndexD 
        		val: rcvGetIntValue as integer! svalue unit 
-       		sum: sum + val                             
+       		ssum: ssum + val                             
        		sqsum: sqsum + (val * val)
        		either (x = 0) [
-       					rcvSetIntValue as integer! d1Value sum unit
-       					rcvSetIntValue as integer! d2Value sqsum unit
-       					 ] 
-       					 [
+       					rcvSetIntValue as integer! d1Value ssum unit
+       					rcvSetIntValue as integer! d2Value sqsum unit][
        					 ;sum
        					 d1value: d1value - unit
        					 val: rcvGetIntValue as integer! d1value unit
        					 d1value: d1value + unit
-       					 val2: sum + val
+       					 val2: ssum + val
        					 rcvSetIntValue as integer! d1Value val2 unit
        					 ; square sum
        					 d2value: d2value - unit
@@ -146,7 +248,7 @@ rcvIntegralMat: routine [
        					 d2value: d2value + unit
        					 val2: sqsum + val
        					 rcvSetIntValue as integer! d2Value val2 unit
-       					 ]
+       		]
        		y: y + 1
        	]
     x: x + 1   	
@@ -195,18 +297,19 @@ rcvProcessIntegralMat: routine [
 ]
 
 
-;********************** Integral Images ****************************
+;********************** Integral Images  Functions **************************
+
 
 rcvIntegral: function [
 "Calculates integral images"
 	src 	[image! vector!] 
-	sum 	[image! vector!] 
-	sqsum 	[image! vector!] 
+	ssum 	[vector!] 
+	sqsum 	[vector!] 
 	mSize 	[pair!]
 ][
 	t: type? src
-	if t = image!  [rcvIntegralImg src sum sqsum]
-	if t = vector! [rcvIntegralMat src sum sqsum msize]
+	if t = image!  [rcvIntegralImg src ssum sqsum]
+	if t = vector! [rcvIntegralMat src ssum sqsum msize]
 ]
 
 
@@ -222,6 +325,12 @@ rcvProcessIntegralImage: function [
 ][
 	t: type? src
 	if t = vector! [rcvProcessIntegralMat src w h boxW boxH thresh points] 
+	if t = image! [
+		n: src/size/x * src/size/y
+		mat: make vector! n
+		rcvImage2Mat src mat ; in libs/matrix/rcvMatrix.red
+		rcvProcessIntegralMat mat w h boxW boxH thresh points
+	]
 ]
 
 

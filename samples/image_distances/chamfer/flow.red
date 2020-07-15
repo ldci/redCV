@@ -65,7 +65,8 @@ loadImage: does [
 		imgSize: img0/size
 		img1: rcvCreateImage imgSize
 		img2: rcvCreateImage imgSize
-		imgcopy: rcvCloneImage img0
+		imgcopy: rcvCreateImage imgSize
+		rcvCopyImage img0 imgcopy
 		canvas0/image: imgcopy
 		; we need a grayscale image
 		rcv2Gray/luminosity img0 img1

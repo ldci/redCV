@@ -674,52 +674,7 @@ rcvMerge2Image: routine [
     image/release-buffer dst handle yes
 ]
 
-rcvMat2Array: routine [
-"Matrice to array"
-	mat 	[vector!] 
-	matSize [pair!]
-	/local
-	blk		[red-block!]
-	*Mat	[byte-ptr!]
-	idx 	[byte-ptr!]
-	vect 	[red-vector!]
-	s	   	[series!]
-	w 		[integer!]
-	h		[integer!]
-	i 		[integer!]
-	j 		[integer!]	 
-	p		[byte-ptr!]
-	p4		[int-ptr!]
-	p8		[float-ptr!]
-	unit	[integer!]	
-][
-	w: matSize/x
-	h: matSize/y
-	*Mat: vector/rs-head mat
-	s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
-	blk: as red-block! stack/arguments
-	block/make-at blk h
-	j: 0
-	while [j < h] [
-		i: 0
-		either unit <= 4 [vect: vector/make-at stack/push* w TYPE_INTEGER unit] 
-						 [vect: vector/make-at stack/push* w TYPE_FLOAT unit] 
-		while [i < w] [
-			idx: *Mat + (j * w + i * unit)
-			s: GET_BUFFER(vect)
-			p: alloc-tail-unit s unit
-			p4: as int-ptr! p
-			p8: as float-ptr! p	
-			either unit <= 4 [p4/value: vector/get-value-int as int-ptr! idx unit] 
-				[p8/value: vector/get-value-float idx unit]
-			i: i + 1
-		]
-		block/rs-append blk as red-value! vect
-		j: j + 1
-	]
-	blk
-]
+
 
 ; new to be updated
 rcvImg2Array: routine [
@@ -778,10 +733,59 @@ rcvImg2Array: routine [
 	blk
 ]
 
+
+_rcvMat2Array: routine [
+"Matrice to array"
+	mat 	[vector!] 
+	matSize [pair!]
+	/local
+	blk		[red-block!]
+	*Mat	[byte-ptr!]
+	idx 	[byte-ptr!]
+	vect 	[red-vector!]
+	s	   	[series!]
+	w 		[integer!]
+	h		[integer!]
+	i 		[integer!]
+	j 		[integer!]	 
+	p		[byte-ptr!]
+	p4		[int-ptr!]
+	p8		[float-ptr!]
+	unit	[integer!]	
+][
+	w: matSize/x
+	h: matSize/y
+	*Mat: vector/rs-head mat
+	s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	blk: as red-block! stack/arguments
+	block/make-at blk h
+	j: 0
+	while [j < h] [
+		i: 0
+		either unit <= 4 [vect: vector/make-at stack/push* w TYPE_INTEGER unit] 
+						 [vect: vector/make-at stack/push* w TYPE_FLOAT unit] 
+		while [i < w] [
+			idx: *Mat + (j * w + i * unit)
+			s: GET_BUFFER(vect)
+			p: alloc-tail-unit s unit
+			p4: as int-ptr! p
+			p8: as float-ptr! p	
+			either unit <= 4 [p4/value: vector/get-value-int as int-ptr! idx unit] 
+				[p8/value: vector/get-value-float idx unit]
+			i: i + 1
+		]
+		block/rs-append blk as red-value! vect
+		j: j + 1
+	]
+	blk
+]
+
 rcvMat2Array: routine [
 "Vector to block of vectors (Array)"
 	mat 	[vector!] 
 	matSize [pair!]
+	return: [block!]
 	/local
 	blk		[red-block!]
 	*Mat	[byte-ptr!]

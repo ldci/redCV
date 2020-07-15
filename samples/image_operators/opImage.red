@@ -33,10 +33,10 @@ loadImage: does [
 		scale: max 1 1 + max (2 * margins/x + rimg/size/x) / system/view/screens/1/size/x (4 * margins/y + sInfo/size/y + op1/size/y + rimg/size/y) / system/view/screens/1/size/y
 		win/text: append append append to string! to-file tmp "(1:" scale ")"
 		; redim window with min size
-		win/size/x: 2 * margins/x + max 500 rimg/size/x / scale
-		win/size/y: 4 * margins/y + sInfo/size/y + op1/size/y + max 150 rimg/size/y / scale
+		win/size/x: to-integer (2 * margins/x + max 500 rimg/size/x / to-integer scale)
+		win/size/y: to-integer (4 * margins/y + sInfo/size/y + op1/size/y + max 150 rimg/size/y / to-integer scale)
 		; redim image view
-		canvas/size: rimg/size / scale
+		canvas/size: rimg/size / to-integer scale
 		canvas/image: dst
 		; update bottom positions and infos
 		sInfo/offset/y: win/size/y - margins/y - 30 ;- sInfo/size/y 
