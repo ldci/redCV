@@ -14,12 +14,34 @@ Red [
 #include %../../libs/matrix/rcvMatrix.red
 #include %rcvTiffObject.red ; for Tiff definitions
 
+; Thanks to Xie Qingtian for bin to integer R/S func
+#system [
+	bin2int: func [
+    p       	[byte-ptr!]
+    len     	[integer!]      ;-- len <= 4
+    return: 	[integer!]
+    /local
+        i      	[integer!]
+        factor 	[integer!]
+	][
+    	i: 0
+    	factor: 0
+    	loop len [
+        	i: i + ((as-integer p/value) << factor)
+        	factor: factor + 8
+       		p: p - 1
+    	]
+    	i
+	]
+]
+
+
+
 ;global variables
 tiffValues: 		[]			; block of tags values
 tagList: 			[]			; list of tags for visualization
 IFDOffsetList: 		[]			; list of Image File Directory offsets and number of entries
 bigEndian: 			false 		; by default intel 
-;tiff:				copy #{}	; tiff file as binary
 cc: 				1			; for data offset computation
 numberOfPages:		1			; 1 image
 imageType: 			"grayscale"	; default grayscale or bi-level 
@@ -30,79 +52,6 @@ endian: func [str [binary!]
 	if not bigEndian [reverse str]
 	to-integer str
 ]
-
-
-;for 8-bit and 1-channel image (bi-level or grayscale)
-rcvTiff2Image: routine [
-"Convert Tiff image to Red image"
-	bin		[binary!]
-	dst		[image!]
-	/local
-	pixD 	[int-ptr!]
-	handle	[integer!]
-	pos		[integer!]
-	i		[integer!]
-	w		[integer!]
-	h		[integer!]
-	x		[integer!]
-	y		[integer!]
-][
-	handle: 0
-    pixD: image/acquire-buffer dst :handle
-    w: IMAGE_WIDTH(dst/size)
-    h: IMAGE_HEIGHT(dst/size)
-    y: 0
-    pos: 0
-    i: 0
-    while [y < h][
-    	x: 0
-    	while [x < w] [
-       		i: binary/rs-abs-at bin pos
-       		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
-        	pixD: pixD + 1
-        	pos: pos + 1
-        	x: x + 1
-        ]
-    	y: y + 1
-    ]
-    image/release-buffer dst handle yes
-]
-
-; for 32-bit image
-rcvBinary2mat: routine [
-"Read 32-bit Tiff images"
-	binStr 	[binary!]
-	step	[integer!]
-	return:	[vector!]
-	/local
-	mat		[red-vector!]
-	pMat	[int-ptr!]
-	s    	[series!]
-	h		[byte-ptr!]
-	t		[byte-ptr!]
-	l		[integer!]
-	int		[integer!]
-][
-	l: (binary/rs-length? binStr) / step
-	h: binary/rs-head binStr
-	t: binary/rs-tail binStr
-	;make vector -- slot, size, type, unit
-	mat: vector/make-at stack/push* l TYPE_INTEGER 4; 32-bit integer 
-	pMat: as int-ptr! vector/rs-head mat			; vector pointer
-	while [h < t] [
-		int: (integer/from-binary binStr)			; get value
-		if int 	>= 65536 [int: int / 65536]			; for 8-bit conversion
-		if int	>= 256 	[int: int / 256]			; for 8-bit conversion
-		pMat/1: int									; add to mat
-		binary/rs-skip binStr step					; next value according to step
-		pmat: pMat + 1								; update vector pointer						
-		h: h + step
-	]
-	s: GET_BUFFER(mat)							 	; get mat values as series
-    s/tail: as cell! (as float-ptr! s/offset) + l  	; set the tail properly
-    as red-vector! stack/set-last as cell! mat     	; return the new vector
-]
-
 
 rcvAssertTiffFile: func [
 "Tiff file or not?"
@@ -413,20 +362,21 @@ rcvReadTiffImageData: func [page [integer!]] [
 	rcvGetTiffImageType page			; image type in TImage
 	rcvReadTiffFileDirectory page		; read file dir and process all tags
 	; for image stripes 
-	; if flag 278 is not documented ->1 rowsPerStripe
+	; if flag 278 is not documented -> 1 rowsPerStripe
 	if TImage/RowsPerStrip = 1 [rowsPerStrip: 1]
 	; flag 258 documented 
 	if TImage/RowsPerStrip > 1 [
-		rowsPerStrip: TImage/ImageLength + TImage/RowsPerStrip - 1 / TImage/RowsPerStrip
+		rps: TImage/ImageLength + TImage/RowsPerStrip - 1 /  TImage/RowsPerStrip
+		rowsPerStrip: to-integer round/floor rps ;--Round in negative direction 
 	]
-	
+		
 	TImage/StripOffsets: head TImage/StripOffsets
 	TImage/StripByteCounts: head TImage/StripByteCounts
 	
 	;Since each strip is a stream of bytes no endianess correction is needed.
 	if rowsPerStrip = 1 [
 		; all data are here in an unique strip
-		startoff: TImage/StripOffsets/1
+		startoff: to-integer TImage/StripOffsets/1
 		dataLength: to-integer TImage/StripByteCounts/1
 		tiff:  head tiff 
 		data:  skip tiff  to-integer startoff
@@ -438,9 +388,9 @@ rcvReadTiffImageData: func [page [integer!]] [
 		sumD: 0
 		while [i < RowsPerStrip] [
 			startoff: TImage/StripOffsets/:i
-			dataLength: to-integer TImage/StripByteCounts/:i
+			dataLength: TImage/StripByteCounts/:i
 			tiff:  head tiff 
-			tdata:  skip tiff to-integer startoff
+			tdata:  skip tiff startoff
 			append imageData copy/part tdata dataLength
 			sumD: sumD + dataLength
 			i: i + 1
@@ -458,50 +408,144 @@ rcvReadTiffImageData: func [page [integer!]] [
 
 ; Tiff images to Red Image datatype
 
+;for 8-bit and 1-channel image (bi-level or grayscale)
+
+rcvTiff2Image: routine [
+"Convert Tiff image to Red image"
+	bin		[binary!]
+	dst		[image!]
+	/local
+	pixD 	[int-ptr!]
+	handle	[integer!]
+	pos		[integer!]
+	i		[integer!]
+	w		[integer!]
+	h		[integer!]
+	x		[integer!]
+	y		[integer!]
+][
+	handle: 0
+    pixD: image/acquire-buffer dst :handle
+    w: IMAGE_WIDTH(dst/size)
+    h: IMAGE_HEIGHT(dst/size)
+    y: 0
+    pos: 0
+    i: 0
+    while [y < h][
+    	x: 0
+    	while [x < w] [
+       		i: binary/rs-abs-at bin pos
+       		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
+        	pixD: pixD + 1
+        	pos: pos + 1
+        	x: x + 1
+        ]
+    	y: y + 1
+    ]
+    image/release-buffer dst handle yes
+]
+
+; for 32-bit image
+rcvBinary2mat: routine [
+"Read 32-bit Tiff images"
+	binStr 	[binary!]
+	step	[integer!]
+	return:	[vector!]
+	/local
+	mat		[red-vector!]
+	pMat	[int-ptr!]
+	s    	[series!]
+	h		[byte-ptr!]
+	t		[byte-ptr!]
+	l		[integer!]
+	int		[integer!]
+][
+	l: (binary/rs-length? binStr) / step
+	h: binary/rs-head binStr
+	t: binary/rs-tail binStr
+	;make vector -- slot, size, type, unit
+	mat: vector/make-at stack/push* l TYPE_INTEGER 4; 32-bit integer 
+	pMat: as int-ptr! vector/rs-head mat			; vector pointer
+	while [h < t] [
+		int: (integer/from-binary binStr)			; get value
+		if int 	>= 65536 [int: int / 65536]		
+    	if int	>= 256 	 [int: int / 256]	
+		pMat/1: int									; add to mat
+		binary/rs-skip binStr step					; next value according to step
+		pmat: pMat + 1								; update vector pointer						
+		h: h + step
+	]
+	s: GET_BUFFER(mat)							 	; get mat values as series
+    s/tail: as cell! (as float-ptr! s/offset) + l  	; set the tail properly
+    as red-vector! stack/set-last as cell! mat     	; return the new vector
+]
+
 tiff82Red: does [
 	iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
  	src: rcvCreateImage iSize 
-	;SamplesPerPixel is usually 1 for bilevel, grayscale, and palette-color images. 
-	;SamplesPerPixel is usually 3 for RGB images.
-	;SamplesPerPixel is usually 4 for ARGB images.
-	if samplesPerPixel = 1 [rcvTiff2Image imagedata src] 
-	if samplesPerPixel = 3 [src/rgb: copy imageData]
-	if SamplesPerPixel = 4 [src/argb: copy imageData]
+	switch SamplesPerPixel [
+		;1 [rcvTiff2Image imagedata src] 
+		1 [tiff2Red 1 imagedata src]	; for bilevel, grayscale, and palette-color images
+		3 [src/rgb:  copy imageData]	; for RGB images		
+		4 [src/argb: copy imageData]	; for ARGB images
+	]
 ]
 
-; for 16-bit image (TB Improved)
-tiff162Red: func [
+;for 1-channel image (bi-level or grayscale)
+decodeBin: routine [
+	bin 	[binary!]
+	mat		[vector!]
 	step	[integer!]
+	/local
+	s		[byte-ptr!]
+	e		[byte-ptr!]
+	n		[integer!]
+	int		[integer!]
 	scale	[integer!]
 ][
-	n: length? imageData
+	vector/rs-clear mat								;-- clear matrix
+	s: binary/rs-head bin       					;-- start
+	n: binary/rs-length? bin						;-- bin length?
+	e: s + n                    					;-- end
+	switch step [
+		1	[scale: 1]								;-- 8-bit  image default 
+		2	[scale: 16]								;-- 16-bit image
+		4	[scale: 65536]							;-- 32-bit image
+		default [scale: 1]
+	]
+	
+	while [s < e][
+		if s + step > e [step: as-integer e - s]    ;-- check if pass the end
+    	int: (bin2int s step) / scale	
+    	if step = 4 [
+    		if int = 0 [int: (bin2int s step)]		; specific 32-bit 0..255
+    	]									
+    	vector/rs-append-int mat int
+    	s: s + step
+	]
+]
+
+
+tiff2Red: func [
+	step	[integer!]
+][
 	imageData:  head imageData 
  	mat: make vector! []
- 	i: 0
- 	while [i < n] [
- 		int: (to-integer copy/part skip imageData i step) / scale
-		if [int	>= 256] [int: int / 16]
- 		append mat int
- 		i: i + step 
- 	]
+ 	decodeBin imageData mat step
  	iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
  	src: make image! iSize
  	rcvMat2Image mat src
 ]
 
+
+
 ; Show Tiff image
 rcvTiff2RedImage: func [return: [image!]] [
-	if TImage/BitsPerSample =   8 [tiff82Red] 			; RGB  8-bit Image (default)
- 	if TImage/BitsPerSample =  16 [tiff162Red 2 1]		; RGB 16-bit Image
-    ;if TImage/BitsPerSample =  32 [tiff162Red 4 256]	; RGB 32-bit Image
- 	;faster for 32-bit 
- 	if TImage/BitsPerSample = 32 [
- 		iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
- 		mat: rcvBinary2mat imageData 4
- 		src: make image! iSize
- 		rcvMat2Image mat src 
- 	]
- 	
+	switch TImage/BitsPerSample [
+		8  [tiff82Red] 		;  8-bit Image 
+		16 [tiff2Red 2]		;  16-bit Image
+		32 [tiff2Red 4]		;  32-bit Image
+	]
  	img: rcvCreateImage src/size 
  	; test motorola or intel byte order for Tiff image 
  	either bigEndian [ 

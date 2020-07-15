@@ -16,6 +16,7 @@ Red/System [
 		http://www.zlib.net/
 	}
 ]
+;modification by ldci for Red/system 0.6.4 
 
 ;#include %../os/definitions.reds
 
@@ -274,7 +275,10 @@ zlib: context [
 		out-count    [int-ptr!]  "Pointer to integer, returns output buffer size"
 		level        [integer!]  "Compression level"
 		return:      [byte-ptr!] "Returns a pointer to compressed data"
-		/local ret out-buf tmp
+		/local 
+		ret 		 [integer!]
+		out-buf		 [byte-ptr!]
+		tmp          [byte-ptr!]
 	][
 		out-count/value: z-compressBound in-count
 		out-buf: allocate out-count/value			;-- allocate the size of original buffer
@@ -306,7 +310,10 @@ zlib: context [
 		in-buf       [byte-ptr!] "Pointer to source data"
 		in-count     [integer!]  "Source data count (bytes)"
 		return:      [byte-ptr!] "Return a pointer to decompressed data"
-		/local ret out-buf tmp
+		/local 
+		ret 		 [integer!]
+		out-buf 	 [byte-ptr!]
+		tmp			 [byte-ptr!]
 		out-count    [integer!]
 	][
 		out-count: 2 * in-count						;-- allocate twice the size of original buffer
