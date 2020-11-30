@@ -40,7 +40,7 @@ loadImage: does [
 		bb/image: img1
 		canvas/image: dst
 		isFile: true
-		rcvLaplacian currentImage dst img1/size param
+		rcvLaplacian currentImage dst param
 		r1/data: true
 		r2/data: false
 		r3/data: false
@@ -58,7 +58,7 @@ view win: layout [
 		cb: check "Grayscale" 	[either cb/data 
 									[currentImage: rcvCloneImage gray]
 					   				[currentImage: rcvCloneImage img1]
-									rcvLaplacian currentImage dst img1/size param
+									rcvLaplacian currentImage dst param
 								]
 					
 		button 60 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage gray 
@@ -67,9 +67,9 @@ view win: layout [
 		return
 		bb: base 128x128 img1
 		return
-		r1: radio "Connexity 4" [param: 4 rcvLaplacian currentImage dst currentImage/size param ]
-		r2: radio "Connexity 8" [param: 8 rcvLaplacian currentImage dst currentImage/size param]	
-		r3: radio "Connexity 16" [param: 16 rcvLaplacian currentImage dst currentImage/size param]
+		r1: radio "Connexity 4"  [param: 4 rcvLaplacian currentImage dst param ]
+		r2: radio "Connexity 8"  [param: 8 rcvLaplacian currentImage dst param]	
+		r3: radio "Connexity 16" [param: 16 rcvLaplacian currentImage dst param]
 		return
 		canvas: base 512x512 dst	
 		do [r1/data: true]

@@ -52,7 +52,7 @@ getHistograms: does [
 		blk: copy []
 		repeat j nBins [
 			pos: (i - 1 * nBins + j - 1) + 1
-			append blk matInt/:pos
+			append blk matInt/data/:pos
 		]
 		append/only blkH blk
 	]
@@ -155,12 +155,12 @@ process: does [
 		gy: 	make vector! []
 		if error? try [nDivs: to-integer f1/text] [nDivs: 2]
 		if error? try [nBins: to-integer f3/text] [nBins: 16]
+		nHog: nDivs * nDivs * nBins
 		drawGrid
     	f2/text: form as-pair cellX cellY
 		sb2/text: rejoin ["HOG Matrix Size: " form nHog]
-		matHog: rcvHOG img1 gx gy nBins nDivs		; calculate histograms
-		matInt: make vector! nHog 
-		rcvMatFloat2Int matHog matInt 150.0			; to integer matrix
+		matHog: rcvHOG img1 nBins nDivs				;--calculate histograms
+		matInt: rcvMatFloat2Int matHog 32 150.0		;-- to integer matrix
 		getHistograms 
 		drawHistograms
 	]
@@ -171,7 +171,6 @@ win: layout [
 	origin margins space margins
 	button  "Load Image"		[loadImage process]
 	
-	
 	text 50 "Dividor"  	
 	f1: field 40		[if error? try [nDivs: to-integer f1/text] [nDivs: 2]
 						 process ]
@@ -179,7 +178,6 @@ win: layout [
 	text 100 " Number of Bins" 
 	f3: field 40			[if error? try [nBins: to-integer f3/text] [nBins: 16]
 							process]
-	
 	
 	button "Process" 		[process] 
 	button 50 "Quit" 		[quit]

@@ -38,13 +38,13 @@ loadImage: does [
 		imgC2: rcvCreateImage img1/size
 		imgC3: rcvCreateImage img1/size
 		imgD:  rcvCreateImage img1/size					; and merged image
-		mat0: rcvCreateMat 'integer! bitSize img1/size	; create all matrices we need for argb
-		mat1: rcvCreateMat 'integer! bitSize img1/size
-		mat2: rcvCreateMat 'integer! bitSize img1/size
-		mat3: rcvCreateMat 'integer! bitSize img1/size
-		mat11: rcvCreateMat 'integer! bitSize img1/size
-		mat21: rcvCreateMat 'integer! bitSize img1/size
-		mat31: rcvCreateMat 'integer! bitSize img1/size
+		mat0:  matrix/init 2 bitSize img1/size	; create all matrices we need for argb
+		mat1:  matrix/init 2 bitSize img1/size
+		mat2:  matrix/init 2 bitSize img1/size
+		mat3:  matrix/init 2 bitSize img1/size
+		mat11: matrix/init 2 bitSize img1/size
+		mat21: matrix/init 2 bitSize img1/size
+		mat31: matrix/init 2 bitSize img1/size
 		canvas1/image: img1
 		sl1/data: 0.0 sl2/data: 0.0
 		convolve
@@ -53,10 +53,14 @@ loadImage: does [
 
 
 convolve: does [
-	rcvSplit2Mat img1 mat0 mat1 mat2 mat3
-	rcvConvolveMat mat1 mat11 img1/size mask factor delta
-	rcvConvolveMat mat2 mat21 img1/size mask factor delta
-	rcvConvolveMat mat3 mat31 img1/size mask factor delta
+	b: rcvSplit2Mat img1 bitSize
+	mat0: b/1
+	mat1: b/2
+	mat2: b/3
+	mat3: b/4
+	rcvConvolveMat mat1 mat11 mask factor delta
+	rcvConvolveMat mat2 mat21 mask factor delta
+	rcvConvolveMat mat3 mat31 mask factor delta
 	rcvMat2Image mat11 imgC1 
 	rcvMat2Image mat21 imgC2 
 	rcvMat2Image mat31 imgC3 

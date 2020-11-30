@@ -15,14 +15,14 @@ Red [
 
 margins: 5x5
 msize: 256x256
-intSize: 8
+bitSize: 8
 
 img1: make image! reduce [msize black]	; src
 img2: rcvCreateImage img1/size
 img3: rcvCreateImage img1/size
-mat1: rcvCreateMat 'integer! intSize img1/size
-sum: rcvCreateMat 'integer! intSize img1/size			; dst 1
-sqsum: rcvCreateMat 'integer! intSize img1/size			; dst 2
+mat1: matrix/init 2 bitSize img1/size
+ssum: matrix/init 2 bitSize img1/size		; dst 1
+sqsum: matrix/init 2 bitSize img1/size		; dst 2
 
 
 loadImage: does [
@@ -34,18 +34,14 @@ loadImage: does [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
 		img3: rcvCreateImage img1/size
-		mat1: rcvCreateMat 'integer! intSize img1/size
-		sum: rcvCreateMat 'integer! intSize img1/size
-		sqsum: rcvCreateMat 'integer! intSize img1/size
+		mat1: matrix/init 2 bitSize img1/size
+		ssum: matrix/init 2 bitSize img1/size		; dst 1
+		sqsum: matrix/init 2 bitSize img1/size		; dst 2
 		rcvImage2Mat img1 mat1
-		
-		
-		rcvIntegral mat1 sum sqsum img1/size
-		
+		rcvIntegral mat1 ssum sqsum
 		rcvMat2Image mat1 img1
-		rcvMat2Image sum img2
+		rcvMat2Image ssum img2
 		rcvMat2Image sqsum img3	
-		
 		canvas1/image: img1
 		canvas2/image: img2
 		canvas3/image: img3

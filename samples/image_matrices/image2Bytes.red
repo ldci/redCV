@@ -14,7 +14,7 @@ bitSize: 8
 
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
-mat:  rcvCreateMat 'char! bitSize isize
+mat:  matrix/init 2 bitSize isize
 
 loadImage: does [
 	canvas1/image/rgb: black
@@ -23,17 +23,17 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage tmp
 		img2: rcvCreateImage img1/size
+		mat: matrix/init 2 bitSize img1/size
 		canvas1/image: img1
 		convert
 	]
 ]
 
 convert: does [
-	mat:  rcvCreateMat 'char! bitSize img1/size
 	f/text: rejoin [form bitSize "-bit"]
-	rcvImage2Mat img1 mat 		; Converts image to a bytes matrix [0..255] 
-	rcvMat2Image mat img2 		; Converts matrix to red image
-	canvas2/image: img2			; Shows converted image
+	rcvImage2Mat img1 mat 	; Converts image to a bytes matrix [0..255] 
+	rcvMat2Image mat img2	; Converts matrix to red image
+	canvas2/image: img2		; Shows converted image
 ]
 
 ; ***************** Test Program ****************************

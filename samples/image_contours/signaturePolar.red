@@ -16,8 +16,7 @@ Red [
 
 
 iSize: 512x512
-mat:  rcvCreateMat 'integer! 32 iSize
-bMat: rcvCreateMat 'integer! 32 iSize
+mat:  matrix/init/value 2 32 iSize 0
 img:  rcvCreateImage iSize
 plot:  compose [fill-pen white box 155x155 355x355]
 _plot: compose [line-width 1 pen green 
@@ -38,10 +37,10 @@ processImage: does [
    	rcvZeroImage img
     canvas/image: draw img canvas/draw; reduce [plot]
 	rcvImage2Mat img mat 	 
-	rcvMakeBinaryMat mat bmat
-	cg: rcvGetMatCentroid bmat img/size 	; get shape centroid
+	bmat: rcvMakeBinaryMat mat
+	cg: rcvGetMatCentroid bmat 	; get shape centroid
 	border: []
-	rcvMatGetBorder bmat iSize fgVal border ; get border
+	rcvMatGetBorder bmat 1 border ; get border
 	angles: copy []
 	foreach p border [
 		; use x y coordinates and calculate rho and theta

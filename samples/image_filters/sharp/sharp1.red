@@ -50,8 +50,8 @@ loadImage: does [
 ]
 
 ops: [
-	[rcvSharpen cImg dst img1/size]
-	[rcvBinomialFilter cImg dst img1/size degree]
+	[rcvSharpen cImg dst ]
+	[rcvBinomialFilter cImg dst degree]
 ]
 
 

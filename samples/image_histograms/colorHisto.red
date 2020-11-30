@@ -8,24 +8,19 @@ Red [
 ;required libs
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
 #include %../../libs/math/rcvHistogram.red	
 
 
 margins: 5x5
 msize: 256x256
-img1: 		make image! reduce [msize black]
-histor: 	make vector! 256	; R
-histog: 	make vector! 256	; G
-histob: 	make vector! 256	; B
-historgb:	make vector! 256	; grayscale
-historc: 	make vector! 256	; R scaled
-histogc: 	make vector! 256	; G scaled
-histobc: 	make vector! 256	; B scaled
-historgbc: 	make vector! 256	; grayscale Scaled
-
+img1: make image! reduce [msize black]
+bitSize: 8
+histor: matrix/init 2 bitSize 256x1	
+histog: matrix/init 2 bitSize 256x1	
+histob: matrix/init 2 bitSize 256x1	
+historgb: matrix/init 2 bitSize 256x1
 smooth: false
-recycle/off ; for keeping matrices alive
+recycle/off ; avoid GC for matrices
 
 loadImage: does [
 	canvas1/image: none
@@ -35,54 +30,49 @@ loadImage: does [
 	canvas3/draw: none
 	tmpf: request-file
 	if not none? tmpf [
-		img1:  rcvLoadImage  tmpf
+		img1: rcvLoadImage  tmpf
 		canvas1/image: img1
 	]
 ]
 
 
 processMat: does [
-	histor: 	rcvHistoImg img1 1	;R
-	histog: 	rcvHistoImg img1 2	;G
-	histob: 	rcvHistoImg img1 3	;B
-	historgb: 	rcvHistoImg img1 4	;Grayscale
+	;--update matrices data with vectors
+	;--rcvHistoImg returns 32-bit vectors
+	histor/data: rcvHistoImg img1 1	;R 
+	histog/data: rcvHistoImg img1 2	;G
+	histob/data: rcvHistoImg img1 3	;B
+	historgb/data: rcvHistoImg img1 4 ;Grayscale
 	
-	; we need maxi for scale conversion
-	maxi: rcvMaxMat histor
-	rcvConvertMatScale/std histor historc  maxi 200 ; change scale
-	if smooth [tmp: rcvSmoothHistogram historc  historc: tmp]
-	maxi: rcvMaxMat histog
-	rcvConvertMatScale/std histog histogc  maxi 200 ; change scale
-	if smooth [tmp: rcvSmoothHistogram histogc histogc: tmp]
-	maxi: rcvMaxMat histob
-	rcvConvertMatScale/std histob histobc  maxi 200 ; change scale
-	if smooth [tmp: rcvSmoothHistogram histobc histobc: tmp]
-	maxi: rcvMaxMat historgb
-	rcvConvertMatScale/std historgb historgbc  maxi 200 ; change scale
-	if smooth [tmp: rcvSmoothHistogram historgbc historgbc: tmp]
+	;--we need maxi for scale conversion
+	historc: rcvConvertMatIntScale histor matrix/maxi histor 200 ; change scale
+	histogc: rcvConvertMatIntScale histog matrix/maxi histog 200 ; change scale
+	histobc: rcvConvertMatIntScale histob matrix/maxi histob 200 ; change scale
+	historgbc: rcvConvertMatIntScale historgb matrix/maxi historgb 200 ; change scale
+	if smooth [
+		tmp: rcvSmoothHistogram historc historc: tmp
+		tmp: rcvSmoothHistogram histogc histogc: tmp
+		tmp: rcvSmoothHistogram histobc histobc: tmp
+		tmp: rcvSmoothHistogram historgbc historgbc: tmp
+	]
 ]
 
 showPlot: does [
-	plotr: 		copy [line-width 1 pen red line]
-	plotg: 		copy [line-width 1 pen green line]
-	plotb: 		copy [line-width 1 pen blue line]
-	plotrgb: 	copy [line-width 1 pen white line]
+	plotr:		copy [line-width 1 pen red line]
+	plotg:		copy [line-width 1 pen green line]
+	plotb:		copy [line-width 1 pen blue line]
+	plotrgb:	copy [line-width 1 pen white line]
 	
-	i: 1 
-	while [i <= 256] [  coord: as-pair (i) (250 - historc/(i))
-						append plotr coord
-						coord: as-pair (i) (250 - histogc/(i))
-						append plotg coord
-						coord: as-pair (i) (250 - histobc/(i))
-						append plotb coord
-						coord: as-pair (i) (250 - historgbc/(i))
-						append plotrgb coord
-						i: i + 1]			
+	repeat i 256 [
+		append plotr as-pair i 250 - historc/data/:i
+		append plotg as-pair i 250 - histogc/data/:i
+		append plotb as-pair i 250 - histobc/data/:i
+		append plotrgb as-pair i 250 - historgbc/data/:i
+		i: i + 1
+	]		
 	canvas2/draw: reduce [plotr plotg plotb] 
 	canvas3/draw: reduce [plotrgb] 
 ]
-
-
 
 ; ***************** Test Program ****************************
 view win: layout [

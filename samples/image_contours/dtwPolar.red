@@ -17,9 +17,8 @@ bitSize: 32
 matSize: 256x256
 img1: rcvCreateImage 256x256
 img2: rcvCreateImage 256x256
-mat1: rcvCreateMat 'integer! bitSize matSize
-mat2:  rcvCreateMat 'integer! bitSize matSize
-
+mat1: matrix/init/value 2 bitSize matSize 0
+mat2: matrix/init/value 2 bitSize matSize 0
 isLoad1: false
 isLoad2: false
 cg1: 128x128
@@ -51,28 +50,28 @@ loadImage: func [n [integer!] return: [logic!]][
 		1 [ img1: rcvLoadImage tmp
 			img11: rcvCreateImage img1/size
 			matSize1: img1/size
-			mat1:   rcvCreateMat 'integer! bitSize matSize1
-			bmat1:  rcvCreateMat 'integer! bitSize matSize1
-			visited1: rcvCreateMat 'integer! bitSize matSize1
+			mat1:   matrix/init/value 2 bitSize matSize1 0
+			visited1: matrix/init/value 2 bitSize matSize1 0
 			rcv2WB img1 img11 
 			rcvImage2Mat img11 mat1 		; process image to a bytes matrix [0..255] 
-			rcvMakeBinaryMat mat1 bmat1		; processImages to a binary matrix [0..1]
-			cg1: rcvGetMatCentroid bmat1 matSize1
+			bmat1: rcvMakeBinaryMat mat1 	; processImages to a binary matrix [0..1]
+			cg1: rcvGetMatCentroid bmat1
 			canvas1/image: img11
 			w1: img1/size/x
+			f3/text: form img1/size
 		]
 		2 [ img2: rcvLoadImage tmp
 			img21: rcvCreateImage img2/size
 			matSize2: img2/size
-			mat2:  rcvCreateMat 'integer! bitSize matSize2
-			bmat2:  rcvCreateMat 'integer! bitSize matSize2
-			visited2: rcvCreateMat 'integer! bitSize matSize2
+			mat2:  matrix/init/value 2 bitSize matSize2 0
+			visited2: matrix/init/value 2 bitSize matSize2 0
 			rcv2WB img2 img21
 			rcvImage2Mat img21 mat2 		; process image to a bytes matrix [0..255] 
-			rcvMakeBinaryMat mat2 bmat2		; processImages to a binary matrix [0..1]
-			cg2: rcvGetMatCentroid bmat2 matSize2
+			bmat2: rcvMakeBinaryMat mat2 	; processImages to a binary matrix [0..1]
+			cg2: rcvGetMatCentroid bmat2 
 			canvas2/image: img21
 			w2: img2/size/x
+			f4/text: form img2/size
 		]
 	]
 		isLoad: true
@@ -84,13 +83,13 @@ loadImage: func [n [integer!] return: [logic!]][
 getSignature: func [n [integer!]][
 	border: copy []
 	switch n [
-		1 [rcvMatGetBorder bmat1 matSize1 fgVal border
-			foreach p border [rcvSetInt2D visited1 matSize1 p fgVal]
+		1 [rcvMatGetBorder bmat1 fgVal border
+			foreach p border [rcvSetContourValue visited1 p fgVal]
 			cg: cg1 w: w1
 			color: green
 		]
-		2 [rcvMatGetBorder bmat2 matSize2 fgVal border
-		foreach p border [rcvSetInt2D visited2 matSize2 p fgVal]
+		2 [rcvMatGetBorder bmat2 fgVal border
+		foreach p border [rcvSetContourValue visited2 p fgVal]
 		cg: cg2 w: w2
 		color: red
 		]
@@ -103,14 +102,13 @@ getSignature: func [n [integer!]][
 	i: 1
 	while [i <= perim] [
 		case [
-			n = 1 [d: rcvMatGetChainCode visited1 matSize1 p fgVal] 
-			n = 2 [d: rcvMatGetChainCode visited2 matSize2 p fgVal]
+			n = 1 [d: rcvMatGetChainCode visited1  p fgVal] 
+			n = 2 [d: rcvMatGetChainCode visited2  p fgVal]
 		]
 		if d <> -1 [append outBorder p]
-		idx: (p/y * w + p/x) + 1	
 		case [
-			n = 1 [visited1/:idx: 0]
-			n = 2 [visited2/:idx: 0]
+			n = 1 [rcvSetContourValue visited1 p 0]
+			n = 2 [rcvSetContourValue visited2 p 0]
 		]
 		;get the next pixel to process
 		p: rcvGetContours p d
@@ -118,28 +116,40 @@ getSignature: func [n [integer!]][
 	]
 	
 	; get in contours with difference if necessary 
-	inBorder: difference border outBorder
+	;inBorder: difference border outBorder
 	
-	angles: copy []
+	;--calculate polar coordinates
+	polar: copy []
+	maxRho: 0.0
 	foreach p outBorder [
 		rho: rcvGetEuclidianDistance p cg
+		; x normalization [-pi +pi]
+		;theta: rcvGetAngleRadian p - cg 
+		; x normalization [360°] for a better visualisation
 		theta: rcvGetAngle p cg
 		bloc: copy []
+		; calculate maxRho for y normalization
+		if rho > maxRho [maxRho: rho]	
 		append append bloc theta rho
-		append/only angles bloc
+		append/only polar bloc
 	]
+	
+	; y normalization [0.0 .. 1.0]
+	normf: 1.0 / maxRho
 	; for signature visualization
 	plot: compose [line-width 1 pen (color) line]
+	either cb/data [scale: 100] [scale: 1]
 	serie: copy []
-	foreach i angles [
+	foreach i polar [
 		theta: first i
-		rho: second i
+		rho: second i 
+		if cb/data [rho: rho * normf]
 		append serie rho
-		p: as-pair theta  (127 * n - rho)
+		p: as-pair theta  (127 * n) - (rho * scale)
 		p: p + 10x0
 		append append append plot 'box (p) (p + 1)
 	]
-	; for dtw series
+	;--for dtw series
 	case [
 		n = 1 [x: copy serie plot1: copy plot]
 		n = 2 [y: copy serie plot2: copy plot]
@@ -156,9 +166,9 @@ calculateDTW: does [
 	f2/text: form length? y
 	append plot1 plot2
 	canvas3/draw: reduce [plot1]
-	matsize: (length? x) * (length? y)
-	dMatrix: make vector! reduce ['float! 64 matSize]
-	cMatrix: make vector! reduce ['float! 64 matSize]
+	matsize: as-pair (length? x) (length? y)
+	dMatrix: matrix/init 3 64 matsize
+	cMatrix: matrix/init 3 64 matsize
 	xPath: copy []
 	rcvDTWDistances x y dMatrix
 	rcvDTWCosts x y dMatrix cMatrix
@@ -167,7 +177,7 @@ calculateDTW: does [
 	append fDTW/text form dtw
 	;optimum warping path
 	rcvDTWGetPath x y cMatrix xPath
-	img: rcvCreateImage as-pair (length? x) (length? y)
+	img: rcvCreateImage matsize
 	plot: compose [line-width 2 pen yellow line]
 	append plot (xPath)
 	canvas4/image: draw img plot
@@ -177,14 +187,15 @@ calculateDTW: does [
 ; ***************** Test Program ****************************
 view win: layout [
 	title "red CV: Dynamic Time Warping and Shape Signature"
-	button "Load Image 1"	[isLoad1: loadImage 1]
-	button "Load Image 2"	[isLoad2: loadImage 2]
+	button "Load Image 1"		[isLoad1: loadImage 1]
+	button "Load Image 2"		[isLoad2: loadImage 2]
 	text 100 "Foreground"
 	r1: radio 30 "1" [fgVal: 1 bgVal: 0]
 	r2: radio 30 "0" [fgVal: 0 bgVal: 1]
-	button "Compare Images"	[if all [isLoad1 isLoad2] [calculateDTW]]			
+	button "Compare Images"		[if all [isLoad1 isLoad2] [calculateDTW]]
+	cb: check 100 "Normalize" 	[if all [isLoad1 isLoad2] [calculateDTW]]			
 	fDTW: field 200
-	pad 320x0
+	pad 220x0
 	button "Quit" [Quit]
 	return
 	text 100 green "Image 1" f1: field 100 pad 36x0
@@ -196,6 +207,9 @@ view win: layout [
 	canvas2: base 256x256 black img2
 	canvas3: base 380x256 black 
 	canvas4: base 256x256 black
+	return
+	f3: field 256
+	f4: field 256
 	do [r1/data: true r2/data: false]
 ]
 

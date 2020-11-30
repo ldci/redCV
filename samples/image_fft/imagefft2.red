@@ -29,8 +29,11 @@ loadImage: does [
 		canvas3/image: none
 		img:  rcvLoadImage tmp
 		img0: rcvCreateImage img/size
-		rcv2Gray/luminosity img img0
+		rcv2Gray/average img img0
 		img1: rcvResizeImage img0 isize
+		img2: rcvResizeImage img0 isize
+		img3: rcvResizeImage img0 isize
+		
 		canvas1/image: img1
 		sb/text: ""
 		fft
@@ -39,8 +42,23 @@ loadImage: does [
 
 fft: does [
 	t1: now/time/precise
-	canvas2/image: rcvFFTImage/forward img1		; show FFT image
-	canvas3/image: rcvFFTImage/backward img1	; show inverse FFT image
+	matInt: matrix/init 2 32 isize
+	rcvImage2Mat img1 matInt
+	matR: rcvMatInt2Float matInt 64 1.0 
+	matI: matrix/init 3 64 isize
+	matF: rcvFFTMat/forward matR matI
+	matB: rcvFFTMat/backward matR matI
+	
+	;--log scale and show result
+	matL: rcvLogMatFloat matF 1.0	
+	matInt: rcvMatFloat2Int matL 32 255.0
+	rcvMat2Image matInt img2
+	canvas2/image: img2
+	;--log scale and show result
+	matL: rcvLogMatFloat matB 255.0	
+	matInt: rcvMatFloat2Int matL 32 255.0
+	rcvMat2Image matInt img3
+	canvas3/image: img3
 	t2: now/time/precise
 	sb/text: rejoin ["Processed in " form to-integer (third t2 - t1) * 1000 " ms"]
 ]

@@ -25,7 +25,8 @@ knl: [1.0 1.0 1.0 1.0 -2.0 1.0 -1.0 -1.0 -1.0] ; Robinson Filter
 
 process: does [
 	tf/text: form now/time/precise
-	src: cam/image
+	camImg: to-image cam
+	src: rcvResizeImage camImg iSize
 	rcvConvolve src dst knl 1.0 threshold
 	canvas/image: dst
 	cam/image: none
@@ -58,7 +59,8 @@ view win: layout [
 					canvas/text: ""
 				][
 					cam/selected: cam-list/selected
-					src: to-image cam
+					camImg: to-image cam
+					src: rcvResizeImage camImg iSize
 					dst: rcvCloneImage src
 					cSize/text: form src/size
 					canvas/rate: 0:0:0.04;  max 1/25 fps in ms

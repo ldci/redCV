@@ -71,15 +71,13 @@ view win: layout [
 		button 35 "%" [rcvRemS img1 dst 2]
 		return
 		text 80 "Misc"
-		button 35 "^n" [rcvPow img1 dst 0.75]
-		button 35 "<<" [rcvLSH img1 dst 2]
-		button 35 ">>" [rcvRSH img1 dst 2]
+		button 50 "Pow" [rcvPow img1 dst 0.75]
+		button 50 "<<" [rcvLSH img1 dst 2]
+		button 50 ">>" [rcvRSH img1 dst 2]
 		button 50 "Sqr"[rcvSQR img1 dst 0.0]
-		
-		
 		return
 		canvas: base 512x512 dst
 		
-		do [_rcvMath img1 img2 dst 0]
+		do [rcvMath img1 img2 dst 0]
 ]
 

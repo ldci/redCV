@@ -21,18 +21,15 @@ Red [
 
 
 margins: 10x10
-isize: 512x512
+isize: 384x384;512x512
 bitSize: 32; => unit: 4
 
 img0: rcvCreateImage isize
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 imgcopy: rcvCreateImage isize
-binaryMat: rcvCreateMat 'integer! bitSize isize
-flowMat: rcvCreateMat 'integer! bitSize isize
-lumMat: rcvCreateMat 'integer! bitSize isize
-gradientMat: rcvCreateMat 'integer! bitSize isize
-distMat: rcvCreateMat 'float! 64 isize
+binaryMat: flowMat: lumMat: gradientMat: none;matrix/init 2 bitSize isize
+distMat: none;matrix/init 3 64 isize
 threshold: 1
 distance: 5.0
 gMax: 0
@@ -56,19 +53,18 @@ eFlow: make vector! [0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
 eInertia: make vector! [0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
 ;coefficients for the 4 energy functions
 sAlpha: 1.1	;sAlpha = coefficient for uniformity
-sBeta: 1.2	;coefficient for curvature
+sBeta:  1.2	;coefficient for curvature
 sGamma: 1.5	;coefficient for sFlow 
 sDelta: 3.0	; coefficient for inertia
 maxLen: 16
 minLen: 8
-autoAdapt: true
+autoAdapt: false
 autoAdaptLoop: 10
-maxIteration: 512
+maxIteration: 300
 nLoop: 0
-showAnimation: false
+showAnimation: true
 
 ; snake actions (methods)	
-; note: function -> Defines a function, making all set-words found in body, local.
 	
 ; snake routines for a faster access	
 getDistance2D: routine [
@@ -111,7 +107,7 @@ getSnakeSize: routine [
 	 block/rs-length? snakeData
 ]
 
-getSnakeValue1: routine [
+getSnakeValue: routine [
 	snakeData	[block!]
 	pos			[integer!]
 	return:		[pair!]
@@ -170,8 +166,8 @@ curvature: routine [
 	vy: as float!  p/y - _next/y
 	vn: sqrt ((vx * vx) + (vy * vy))
 	if any [un = 0.0 vn = 0.0] [return 0.0]
-	cx: (vx + ux)/(un * vn)
-	cy: (vy + uy)/(un * vn)
+	cx: (vx + ux) / (un * vn)
+	cy: (vy + uy) / (un * vn)
 	;curvature energy
 	(cx * cx) + (cy * cy)
 ]
@@ -183,18 +179,18 @@ curvature: routine [
 gflow: routine [
 	cur 		[pair!] 
 	p 			[pair!]
-	flowMat		[vector!]
+	flowVec		[vector!]
 	sWidth		[integer!]
 	return: 	[float!]
 	/local
 	idx dcur dp
 	mvalue unit
 ][
-	mvalue: vector/rs-head flowMat
-    unit: 4; rcvGetMatBitSize flowMat
-    idx: mvalue + (((cur/y * sWidth) + cur/x) * unit) 
+	mvalue: vector/rs-head flowVec
+    unit: 4; rcvGetMatBitSize flowVec
+    idx: mvalue + (cur/y * sWidth + cur/x * unit) 
     dcur: vector/get-value-int as int-ptr! idx unit
-    idx: mvalue + (((p/y * sWidth) + p/x) * unit)
+    idx: mvalue + (p/y * sWidth + p/x * unit)
     dp: vector/get-value-int as int-ptr! idx unit
    	as float! dp - dcur 
 ]
@@ -204,16 +200,16 @@ gflow: routine [
 inertia: routine [
 	cur 		[pair!] 
 	p 			[pair!]
-	gradMat		[vector!]
+	gradVec		[vector!]
 	sWidth		[integer!]
 	return: 	[float!]
 	/local
 	idx d g
 	mvalue unit	
 ][
-	unit: 4; rcvGetMatBitSize gradMat
-	mvalue: vector/rs-head gradMat
-	idx: mvalue + (((cur/y * sWidth) + cur/x) * unit)
+	unit: 4; rcvGetMatBitSize gradVec
+	mvalue: vector/rs-head gradVec
+	idx: mvalue + (cur/y * sWidth + cur/x * unit)
 	d: getDistance2D cur p
 	g: as float! vector/get-value-int as int-ptr! idx unit
 	g * d
@@ -223,12 +219,12 @@ inertia: routine [
 ; functions
 
 normalizeMat: func [array [vector!]
-"Normalizes energy matrix"
+"Normalizes energy matrices"
 ][
-	sum: 0.0
-	foreach p array [sum: absolute(sum + p)]
-	if sum = 0.0 [exit]
-	array: array / sum
+	nsum: 0.0
+	foreach p array [nsum: absolute (nsum + p)]
+	if nsum = 0.0 [exit]
+	array: array / nsum
 ]
 	
 
@@ -273,8 +269,8 @@ snakeStep: func [ return: [logic!]] [
 				p: as-pair _cur/x + dx _cur/y + dy
 				eUniformity/(idx): uniformity snakeData _prev p
 				eCurvature/(idx): curvature _prev p _next
-				eFlow/(idx): gflow _cur p flowMat sWidth
-				eInertia/(idx): inertia _cur p gradientMat sWidth
+				eFlow/(idx): gflow _cur p flowMat/data sWidth
+				eInertia/(idx): inertia _cur p gradientMat/data sWidth
 				dx: dx + 1
 			]
 			dy: dy + 1
@@ -439,27 +435,34 @@ quitApp: does [
 	rcvReleaseImage img1
 	rcvReleaseImage img2
 	rcvReleaseImage imgcopy
-	rcvReleaseMat binaryMat
-	rcvReleaseMat flowMat
-	rcvReleaseMat lumMat
-	rcvReleaseMat gradientMat
-	rcvReleaseMat distMat
+	if isFile [
+		rcvReleaseMat binaryMat
+		rcvReleaseMat flowMat
+		rcvReleaseMat lumMat
+		rcvReleaseMat gradientMat
+		rcvReleaseMat distMat
+	]
 	Quit
 ]
 
 
-computeFlow: does [		
+computeFlow: does [	
+	; Gradient (sobel) 	mat				
+	gMax: rcvMakeGradient lumMat gradientMat img0/size	
 	; binary thresholding		
 	rcvMakeBinaryGradient gradientMat binaryMat gMax threshold img0/size
-	; Chamfer distance map
-	rcvChamferInitMap binaryMat distMat	
-	rcvChamferCompute distMat chamfer img0/size 
-	rcvChamferNormalize distMat normalizer
+	;--Chamfer distance map: needs vectors
+	distVector: rcvChamferCreateOutput img0/size 
+	rcvChamferInitMap binaryMat/data distVector
+	rcvChamferCompute distVector chamfer img0/size 
+	rcvChamferNormalize distVector normalizer
 	;distance map to binarized gradient
-	maxf: rcvFlowMat distMat flowMat distance
+	maxf: rcvFlowMat distVector flowMat/data distance
+	;rcvnormalizeFlow flowMat maxf
 	rcvMat2Image flowMat img1
 	; flow and gradient
 	rcvGradient&Flow flowMat binaryMat img2	
+	canvas1/image: img2
 ]
 
 
@@ -483,13 +486,6 @@ startSnake: func [img [image!]][
 	]
 	sWidth: w
 	sHeight: h
-	if error? try [sAlpha: to-float falpha/text][sAlpha: 1.1]
-	if error? try [sBeta: to-float fbeta/text][sBeta: 1.2]
-	if error? try [sGamma: to-float fgamma/text][sGamma: 1.5]
-	if error? try [sDelta: to-float fdelta/text][sDelta: 1.0]
-	if error? try [maxIteration: to-integer maxIter/text] [maxIteration: 512]
-	if error? try [minLen: to-integer fMinL/text] [minLen: 8]
-	if error? try [maxLen: to-integer fMinL/text] [maxLen: 16]
 	; coefficient for inertia
 	snakeSize: getSnakeSize snakeData 
 	snakeLength: getSnakeLength snakeData 
@@ -507,7 +503,7 @@ runSnake: does [
 		startSnake img0
 		t1: now/time/precise
 		snakeLoop
-		fTime/text: form now/time/precise - t1
+		fTime/text: form round/to third (now/time/precise - t1) * 1000 0.01
 		drawSnake
 		
 	]
@@ -518,6 +514,7 @@ drawSnake: does [
 	; we need 3 points or more for a polygon 
 	if (getSnakeSize snakeData) >= 3 [
 		snSize/text: form getSnakeSize snakeData
+		if showAnimation [do-events/no-wait]
 		rcvCopyImage img0 imgcopy
 		plot: copy [line-width 1 pen red polygon]
 		foreach p snakeData [append plot p]
@@ -539,11 +536,11 @@ loadImage: does [
 		img1: rcvCreateImage img0/size
 		img2: rcvCreateImage img0/size
 		imgcopy: rcvCreateImage img0/size 
-		lumMat: rcvCreateMat 'integer! bitSize img0/size ; grasycale matrix
-		gradientMat: rcvCreateMat 'integer! bitSize img0/size ;
-		binaryMat: rcvCreateMat 'integer! bitSize img0/size ; for binary gradient [0/1]
-		flowMat: rcvCreateMat 'integer! bitSize img0/size; for flow in image
-		distMat: rcvChamferCreateOutput img0/size;
+		binaryMat: 	 matrix/init 2 bitSize img0/size
+		flowMat: 	 matrix/init 2 bitSize img0/size
+		lumMat: 	 matrix/init 2 bitSize img0/size
+		gradientMat: matrix/init 2 bitSize img0/size
+		distMat: matrix/init 3 64 img0/size
 		; for chamfer distance
 		chamfer: first rcvChamferDistance chamfer5
 		normalizer: second rcvChamferDistance chamfer5
@@ -553,10 +550,7 @@ loadImage: does [
 		rcv2Gray/luminosity img0 img1
 		; GrayLevelScale (Luminance) mat
 		rcvImage2Mat img1 lumMat
-		; Gradient (sobel) 	mat				
-	    gMax: rcvMakeGradient lumMat gradientMat img0/size
 		computeFlow 
-		canvas1/image: img2
 		clear niter/text
 		startSnake img0
 		fsize/data: form img0/size
@@ -573,20 +567,21 @@ view win: layout [
 	fsize: field 100
 	
 	text "Number of Iterations" 
-	maxIter: field 50 [if error? try [maxIteration: to-integer face/text] [maxIteration: 512]]
+	maxIter: field 50 [
+			if error? try [maxIteration: to-integer face/text] [maxIteration: 512]
+	]
 	
 	cb1: check "Spline" [autoAdapt: face/data]
-	;cb2: check "Show Animation" [showAnimation: face/data]
+	cb2: check "Show Animation" true [showAnimation: face/data]
 	button "Reset" [startSnake img0]
 	
 	button " Run Snake" [runSnake]
 	text "Rendered in " 
 	ftime: field 120
-	pad 20x0
 	button "Quit" [quitApp]
 	return
 	text 100 "Flow + Gradient"
-	pad 412x0
+	pad 282x0
 	text 100 "Snake iterations" 
 	niter: field 50
 	text "Snake Size"
@@ -594,10 +589,23 @@ view win: layout [
 	
 	return
 	canvas1: base isize img1
-	canvas2: base isize img2
+	canvas2: base isize img2 
+	text 70 "Alpha" center ;-Uniformity
+	text 70 "Beta" center;-Curvature
+	text 70 "Gamma" center;-Flow
+	text 70 "Delta" center;Inertia
+	at 800x110 falpha: field 70 center
+	at 880x110 fbeta: field 70 center
+	at 960x110 fgamma: field 70 center
+	at 1040x110 fdelta: field 70 center
+	
+	at 830x140  sa: slider 16x324 [sAlpha: 1.0 + to-float face/data * 9.0 falpha/text: form round/to sAlpha 0.01]
+	at 910X140  sb: slider 16x324 [sBeta:  1.0 + to-float face/data * 9.0 fbeta/text:  form round/to sBeta 0.01]
+	at 990x140  sg: slider 16x324 [sGamma: 1.0 + to-float face/data * 9.0 fgamma/text: form round/to sGamma 0.01]
+	at 1070x140 sd: slider 16x324 [sDelta: 1.0 + to-float face/data * 9.0 fdelta/text: form round/to sDelta 0.01]
 	return
 	text "Gradient Threshold"
-	sl: slider 320 [
+	sl: slider 200 [
 		if isFile [
 			threshold: 1 + (to-integer face/data * 98)
 			fgt/text: form threshold
@@ -605,17 +613,21 @@ view win: layout [
 		] 
 	]
 	fgt: field 40 "0" 
-	pad 10x0
-	text 70 "Uniformity" falpha: field 40 "1.1"
-	text 70 "Curvature" fbeta: field 40 "1.2"
-	text 50 "Flow" fgamma: field 40 "1.5"
-	text 50 "Inertia" fdelta: field 40 "1.0"
-	return
-	pad 520x0
-	text "Minimal Length"  fMinL: field 40 "8"
-	text "Maximal Length"  fMaxL: field 40 "16"
-	do [cb1/data: true maxIter/text: form maxIteration ]
+	pad 40x0
+	text "Minimal Length"  
+	fMinL: field 40 "8" [if error? try [minLen: to-integer fMinL/text] [minLen: 8]]
+	text "Maximal Length"  
+	fMaxL: field 40 "16" [if error? try [maxLen: to-integer fMaxL/text] [maxLen: 16]]
+	
+	do [cb1/data: false maxIter/text: form maxIteration 
+		falpha/text: form sAlpha sa/data: 1.1%
+		fbeta/text: form sBeta sb/data: 1.2%
+		fgamma/text: form sGamma sg/data: 1.5%
+		fdelta/text: form sDelta sd/data: 30%
+		
+	]
 ]
+
 
 
 

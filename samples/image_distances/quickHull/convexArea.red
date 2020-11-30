@@ -59,9 +59,8 @@ showHull: does [
 	sumY: 0
 	; for centroid
 	foreach p chull [append plot p sumX: sumX + p/x sumY: sumY + p/y]
-	cg/x: sumX / n
-	cg/y: sumY / n 
-	
+	cg/x: to-integer sumX / n
+	cg/y: to-integer sumY / n 
 	if cb1/data [i: 1 foreach p chull [append plot reduce ['text p form (i)] i: i + 1]]
 	i: 1
 	foreach p chull [s: form i append append  s " : " to string! p

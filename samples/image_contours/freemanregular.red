@@ -5,54 +5,51 @@ Red [
 	Needs:	 'View
 ]
 
-
-
 ;required libs
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/imgproc/rcvFreeman.red
 
-
-iSize: 512x512
-mat:  	rcvCreateMat 'integer! 32 iSize
-bMat: 	rcvCreateMat 'integer! 32 iSize
-visited: rcvCreateMat 'integer! 32 iSize
-img: 	rcvCreateImage iSize
-edges: 	rcvCreateImage iSize
-color: 	random white
-plot: 	compose [pen color fill-pen color box 128x128 384x384]
-fgVal: 1
-anim: false
-canvas: none
+iSize: 		512x512
+mat:  		matrix/init 2 32 iSize
+img: 		rcvCreateImage iSize
+color: 		random white
+plot: 		copy [pen color fill-pen color box 128x128 384x384]
+fgVal: 		1
+anim: 		false
+border:		[]
+newShape:	true
 
 processImage: does [
-	;img: to-image canvas ; pbs with GTK
+	;img: to-image canvas ; to-image: problems with GTK
 	rcvZeroImage img
-    canvas/image: draw img reduce [plot]
-	rcvImage2Mat img mat 	 
-	rcvMakeBinaryMat mat bmat
-	visited: rcvCreateMat 'integer! 32 iSize
-	lPix: rcvMatleftPixel bmat iSize fgVal
-	rPix: rcvMatRightPixel bmat iSize fgVal
-	uPix: rcvMatUpPixel bmat iSize fgVal
-	dPix: rcvMatDownPixel bmat iSize fgVal
+    canvas/image: draw img canvas/draw; reduce [plot]
+	rcvImage2Mat img mat 
+	bmat: rcvMakeBinaryMat mat
+	lPix: rcvMatleftPixel bmat fgVal
+	rPix: rcvMatRightPixel bmat fgVal
+	uPix: rcvMatUpPixel bmat fgVal
+	dPix: rcvMatDownPixel bmat fgVal
 	f1/text: form as-pair lPix/x uPix/y
 	f2/text: form as-pair rPix/x uPix/y
 	f3/text: form as-pair lPix/x dPix/y
 	f4/text: form as-pair rPix/x dPix/y 
-	border: []
-	rcvMatGetBorder bmat iSize fgVal border
-	foreach p border [rcvSetInt2D visited iSize p 255]
+	clear border
+	rcvMatGetBorder bmat fgVal border
+	;--set visited matrix
+	visited: matrix/init/value 2 8 iSize 0
+	foreach p border [rcvSetContourValue visited p 1]
 	perim: length? border
 	p: first border
 	i: 1
 	s: copy ""
 	clear r/text
 	append append plot 'pen 'green
-	while [i < perim] [
-		d: rcvMatGetChainCode visited iSize p 255
-		rcvSetInt2D visited iSize p 0	; pixel processed
+	while [i <= perim] [
+		d: rcvMatGetChainCode visited p 1
+		idx: (p/y * visited/cols + p/x) + 1
+		rcvSetContourValue visited p 0; pixel is visited
 		append append append plot 'circle (p) 1 
 		append s form d
 		pgb/data: to-percent (i / to-float perim)
@@ -62,7 +59,9 @@ processImage: does [
 		i: i + 1
 	]
 	r/text: s
+	newShape: false
 ]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
@@ -80,26 +79,27 @@ view win: layout [
 		color: 	random white
 		canvas/image: none
 		switch face/selected [
-			1 [plot: compose [pen color fill-pen color box 128x128 384x384]]
-			2 [plot: compose [pen color fill-pen color circle (256x256) 128]]
-			3 [plot: compose [pen color fill-pen color triangle 256x128 128x300 384x300]]
-			4 [plot: compose [pen color fill-pen color polygon 256x100 384x300 128x400 128x300 256x10]]
+			1 [plot: copy [pen color fill-pen color box 128x128 384x384]]
+			2 [plot: copy [pen color fill-pen color circle 256x256 128]]
+			3 [plot: copy [pen color fill-pen color triangle 256x128 128x300 384x300]]
+			4 [plot: copy [pen color fill-pen color polygon 256x100 384x300 128x400 128x300 256x10]]
 		]
+		newShape: true
 		canvas/draw: reduce [plot]
 	]
+	pad 20x0
 	cb: check "Show Anination" [anim: face/data]
-	button "Process" [processImage]
-	pgb: progress 180
-	pad 150x0
+	button "Process" [if newShape [processImage]]
+	pgb: progress 170
+	pad 130x0
 	button "Quit" [
 			rcvReleaseImage img
-			rcvReleaseImage edges
 			rcvReleaseMat mat
 			rcvReleaseMat bmat
 			rcvReleaseMat visited
 			Quit]
 	return
-	canvas: base iSize black draw plot
+	canvas: base iSize black
 	r: area 200x512
 	return
 	pad 120x0
@@ -107,6 +107,9 @@ view win: layout [
 	f2: field 60
 	f3: field 60
 	f4: field 60
+	do [canvas/draw: reduce [plot]]
 ]
+
+
 
 		

@@ -37,7 +37,7 @@ loadImage: does [
 		dst:  rcvCloneImage cImg
 		iSize: cImg/size
 		bb/image: img1
-		rcvRobinson cImg dst iSize
+		rcvRobinson cImg dst
 		canvas/image: dst
 		isFile: true
 	]
@@ -52,7 +52,7 @@ view win: layout [
 					either cb/data  [cImg: rcvCloneImage gray]
 					[cImg: rcvCloneImage img1]
 					dst:  rcvCloneImage cImg
-					rcvRobinson cImg dst iSize
+					rcvRobinson cImg dst
 					canvas/image: dst
 		]
 			

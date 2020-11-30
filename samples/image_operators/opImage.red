@@ -11,18 +11,19 @@ Red [
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvColorSpace.red
+#include %../../libs/imgproc/rcvImgEffect.red
+#include %../../libs/imgproc/rcvGaussian.red
 #include %../../libs/math/rcvStats.red	
 
 dst: make image! reduce [512x512 black]
 isFile: false
 margins: 10x10
-;system/view/auto-sync?: no ; pbs with macOS
 
 loadImage: does [
 	isFile: false
 	canvas/image: none
 	tmp: request-file
-	
 	if not none? tmp [
 		t1: now/time/precise
 		rimg:  rcvLoadImage  tmp

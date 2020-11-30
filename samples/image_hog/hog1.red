@@ -36,8 +36,6 @@ loadImage: does [
 ]
 
 process: does [
-	gx: 	make vector! []
-	gy: 	make vector! []
 	if error? try [nDivs: to-integer f1/text] [nDivs: 2]
 	if error? try [nBins: to-integer f3/text] [nBins: 16]
 	nHog: nDivs * nDivs * nBins
@@ -46,12 +44,11 @@ process: does [
     f2/text: form as-pair cellX cellY
 	sb2/text: form nHog
 	plot: 	copy [line-width 1 pen red fill-pen blue]
-	matHog: rcvHOG img1 gx gy nBins nDivs
-	matInt: make vector! length? matHog
-	rcvMatFloat2Int matHog matInt 200.0
+	matHog: rcvHOG img1 nBins nDivs
+	matInt: rcvMatFloat2Int matHog 32 200.0
 	x: 10
 	repeat i nHog [
-		tL: as-pair (x) 240 - matInt/:i
+		tL: as-pair (x) 240 - matInt/data/:i
 		bR: as-pair (x + 4) 240
 		append plot 'box
 		append plot tl 

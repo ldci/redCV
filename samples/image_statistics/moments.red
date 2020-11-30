@@ -18,7 +18,7 @@ isize: 256x256
 bitSize: 32
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
-mat1: rcvCreateMat 'integer! bitSize isize
+mat1: matrix/init 2 bitSize isize
 isFile: false
 
 
@@ -40,7 +40,7 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage tmp
 		img2: rcvCreateImage img1/size			
-		mat1: rcvCreateMat 'integer! bitSize img1/size
+		mat1: matrix/init/value 2 bitSize img1/size 0
 		canvas1/image: img1
 		rcvImage2Mat img1 mat1
 		rcvMat2Image mat1 img2
@@ -52,9 +52,9 @@ loadImage: does [
 		plot: compose [line-width 1 fill-pen green circle (xyb) 5.0]
 		img: draw img2 plot
 		canvas2/image: img2
-		cm/text: form rcvGetMatCentralMoment mat1 img1/size 0.0 0.0
+		cm/text: form rcvGetMatCentralMoment mat1 0.0 0.0
 		
-		hu: rcvGetMatHuMoments mat1 img1/size
+		hu: rcvGetMatHuMoments mat1
 		hu1/text: form hu/1
 		hu2/text: form hu/2
 		hu3/text: form hu/3

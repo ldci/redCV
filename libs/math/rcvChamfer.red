@@ -10,6 +10,11 @@ Red [
 	}
 ]
 
+;#include %../core/rcvCore.red ;--for stand alone test
+;#include %../matrix/rcvMatrix.red ;--for stand alone test
+;#include %../tools/rcvTools.red ;--for stand alone test
+;#include %../matrix/matrix-as-obj/matrix-obj.red
+;#include %../matrix/matrix-as-obj/routines-obj.red
 ; ************** Chamfer distance **********
 
 { Thanks to Pierre Schwartz & Xavier Philippeau
@@ -28,51 +33,37 @@ normalizer:  0
 chamfer:	 copy []
 
 
-
+;******************* routines for matrices ************************
 rcvMakeGradient: routine [
 "Makes a gradient matrix for contour detection (similar to Sobel) and returns max value"
-    src  		[vector!] ;src and dst are integer matrices
-    dst  		[vector!]
+    src  		[object!] ;src and dst are integer matrices
+    dst  		[object!]
     size		[pair!]
     return: 	[integer!]
     /local
-    sValue 		[byte-ptr!]
-    dValue 		[byte-ptr!]
-    idx 		[byte-ptr!]
-    idx2		[byte-ptr!]
-    sx 			[float!]
-    sy 			[float!]			
-    snorm		[float!]
-    unit		[integer!]
-    w			[integer!]
-    h			[integer!]
-    x			[integer!] 
-    y			[integer!]
-    v 			[integer!]
-    p00 		[integer!]	
-    p01 		[integer!]
-    p02			[integer!]
-    p10 		[integer!]
-    p12 		[integer!]
-    p20 		[integer!]
-    p21			[integer!]
-    p22			[integer!]
-    maxGradient	[integer!]
+    	vecS vecD						[red-vector!]
+    	sValue dValue idx idx2			[byte-ptr!]
+    	sx sy snorm		 				[float!]
+    	unit w  h x y v maxGradient		[integer!]
+    	p00 p01 P02 p10 p12 p20 p21 p22	[integer!]	
+    	s								[series!]
 ][
 	w: size/x
 	h: size/y
-	sValue: vector/rs-head src  			
-	dValue: vector/rs-head dst		
-    unit: rcvGetMatBitSize src 
+	vecS: mat/get-data src
+	vecD: mat/get-data dst
+	sValue: vector/rs-head vecS  			
+	dValue: vector/rs-head vecD	
+	s: GET_BUFFER(vecS)
+	unit: GET_UNIT(s)		
 	w: w - 2
     h: h - 2
-    x: 0
-    y: 0
     maxGradient: 0			
     idx:  svalue
     idx2: dvalue
     
     ; Similar to Sobel filter
+    y: 0
     while [y < h] [
     	x: 0
 		while [x < w][
@@ -112,24 +103,25 @@ rcvMakeGradient: routine [
  
 rcvMakeBinaryGradient: routine [
 "Makes a binary [0 1] matrix for contour detection"
-    src  		[vector!]		;src and bingradient are integer matrices
-    bingradient [vector!]
+    src  		[object!]		;src and bingradient are integer matrices
+    bingradient [object!]
     maxG		[integer!]		; threshold
     threshold 	[integer!]
     /local
-    sValue 		[byte-ptr!]	
-    sTail		[byte-ptr!]
-    dValue 		[byte-ptr!]	
-    v 			[integer!]
-    scale		[integer!]
-    unit		[integer!]
+    	vecS vecD			[red-vector!]
+    	sValue sTail dValue	[byte-ptr!]	
+    	v scale unit		[integer!]
+    	s					[series!]
 ][
-	sValue: vector/rs-head src			; byte ptr
-	sTail: vector/rs-tail src			; byte ptr
-    dValue: vector/rs-head bingradient	; byte ptr
-    unit: rcvGetMatBitSize src 		; bit size
+	vecS: mat/get-data src
+	vecD: mat/get-data bingradient
+	sValue: vector/rs-head vecS			; byte ptr
+	sTail: vector/rs-tail vecS			; byte ptr
+    dValue: vector/rs-head vecD	; byte ptr
+   	s: GET_BUFFER(vecS)
+	unit: GET_UNIT(s)	
     scale: threshold * maxG / 100
-    while [svalue <= sTail] [
+    while [svalue < sTail] [
     		v: rcvGetIntValue as integer! sValue unit
     		either  (v > scale) [dValue/value: #"^(01)"] ;as byte! 1 
 								[dValue/value: #"^(00)"] ;as byte! 0
@@ -138,98 +130,29 @@ rcvMakeBinaryGradient: routine [
     ]  
 ]
 
-; input float mat output integer mat
-rcvFlowMat: routine [
-"Calculates the distance map to binarized gradient"
-	input 		[vector!] 	; float mat
-	output 		[vector!]	; integer mat
-	scale		[float!]	; float scale
-	return: 	[float!]
-	/local
-	mvalueIN	[byte-ptr!]
-	mTailIN		[byte-ptr!]
-	mvalueOUT	[byte-ptr!]
-	v			[integer!]
-	unit1 		[integer!]
-	unit2		[integer!]
-	f 			[float!]
-	maxf		[float!]
-][
-	f: 0.0
-	maxf: 0.0
-	v: 0
-	mvalueIN: vector/rs-head input
-	mTailIN: vector/rs-tail input
-	mvalueOUT: vector/rs-head output
-	unit1: rcvGetMatBitSize input
-	unit2: rcvGetMatBitSize output
-	while [mvalueIN <= mTailIN] [
-		f: rcvGetFloatValue as integer! mvalueIN 
-		if (f * scale)  > maxf [maxf: f * scale]
-		v: as integer! (f * scale) 
-		rcvSetIntValue as integer! mvalueOUT v unit2
-		mvalueIN: mvalueIN + unit1
-		mvalueOUT: mvalueOUT + unit2	
-	]
-	maxf
-]
-
-
-; distance to a 0.. 255 scale
-; input: integer mat
-rcvnormalizeFlow: routine [
-"Normalizes distance into 0..255 range"
-	input 		[vector!] ; integer mat
-	factor		[float!]
-	/local
-	mvalueIN	[byte-ptr!]
-	mTailIN		[byte-ptr!]
-	scale		[float!]
-	v			[float!]
-	unit		[integer!]
-	vFlow		[integer!]
-][
-	mvalueIN: vector/rs-head input
-	mTailIN: vector/rs-tail input
-	unit: rcvGetMatBitSize input
-	scale: 255.0 / factor
-	while [mvalueIN <= mTailIN] [
-		vFlow: rcvGetIntValue as integer! mvalueIN unit
-		v: scale * vFlow
-		rcvSetIntValue as integer! mvalueIN as integer! v unit
-		mvalueIN: mvalueIN + unit
-	]
-]
-
 ; 2 integer matrices and 1 image
 rcvGradient&Flow: routine [
 "Creates an image including flow and gradient calculation"
-	input1		[vector!]
-	input2		[vector!]
+	input1		[object!]
+	input2		[object!]
 	dst			[image!]
 	/local
-	mvalueIN1	[byte-ptr!]
-	mTailIN1	[byte-ptr!]
-	mvalueIN2	[byte-ptr!]
-	dvalue		[int-ptr!]
-	unit		[integer!]
-	handleD		[integer!]
-	vFlow 		[integer!]
-	vGrad		[integer!]
-	r 			[integer!]
-	g 			[integer!]
-	b			[integer!]
+		vec1 vec2							[red-vector!]					
+		mvalueIN1 mTailIN1 mvalueIN2 		[byte-ptr!]
+		dvalue 								[int-ptr!]
+		unit handleD vFlow vGrad r g b		[integer!]
 ][
 	handleD: 0
-	mvalueIN1: vector/rs-head input1
-	mTailIN1: vector/rs-tail input1
-	mvalueIN2: vector/rs-head input2
-	unit: rcvGetMatBitSize input1
+	vec1: mat/get-data input1
+	vec2: mat/get-data input2
+	mvalueIN1: vector/rs-head vec1
+	mTailIN1: vector/rs-tail vec1
+	mvalueIN2: vector/rs-head vec2
+	unit: mat/get-unit input1
 	dvalue: image/acquire-buffer dst :handleD
-	while [mvalueIN1 <= mTailIn1] [
+	while [mvalueIN1 < mTailIn1] [
     	vFlow: rcvGetIntValue as integer! mvalueIN1 unit
     	vGrad: rcvGetIntValue as integer! mvalueIN2 unit
-    	
     	either (vGrad > 0) [vGrad: 255] [vGrad: 0]
     	; distance can be > 255 so we need to recalculate vFlow
     	;f: log-2 (1.0 + vFlow) / 50.0  r: 255 * maxInt 1 as integer! f 
@@ -243,24 +166,83 @@ rcvGradient&Flow: routine [
     image/release-buffer dst handleD yes
 ]
 
+; distance to a 0.. 255 scale
+; input: integer mat
+rcvnormalizeFlow: routine [
+"Normalizes distance into 0..255 range"
+	input 		[object!] ; integer mat
+	factor		[float!]
+	/local
+		vecI				[red-vector!]			
+		mvalueIN mTailIN	[byte-ptr!]
+		scale v				[float!]
+		unit vFlow			[integer!]
+][
+	vecI: mat/get-data input
+	mvalueIN: vector/rs-head vecI
+	mTailIN: vector/rs-tail vecI
+	unit: mat/get-unit input
+	scale: 255.0 / factor
+	while [mvalueIN < mTailIN] [
+		vFlow: rcvGetIntValue as integer! mvalueIN unit
+		v: scale * as float! vFlow
+		rcvSetIntValue as integer! mvalueIN (as integer! v) unit
+		mvalueIN: mvalueIN + unit
+	]
+]
 
+;************************ routines for vectors ************************
 
+; input float mat output integer mat
+rcvFlowMat: routine [
+"Calculates the distance map to binarized gradient"
+	input 		[vector!] 	;--float vector
+	output 		[vector!]	;--integer vector
+	scale		[float!]	;--float scale
+	return: 	[float!]
+	/local
+		mvalueIN mTailIN mvalueOUT	[byte-ptr!]
+		v unit1 unit2				[integer!]
+		f maxf						[float!]
+		s							[series!]
+][
+	f: 0.0
+	maxf: 0.0
+	v: 0
+	mvalueIN: vector/rs-head input
+	mTailIN: vector/rs-tail input
+	mvalueOUT: vector/rs-head output
+	s: GET_BUFFER(input)
+	unit1: GET_UNIT(s)	
+	s: GET_BUFFER(output)
+	unit2: GET_UNIT(s)	
+	while [mvalueIN < mTailIN] [
+		f: rcvGetFloatValue as integer! mvalueIN 
+		if (f * scale)  > maxf [maxf: f * scale]
+		v: as integer! (f * scale) 
+		rcvSetIntValue as integer! mvalueOUT v unit2
+		mvalueIN: mvalueIN + unit1
+		mvalueOUT: mvalueOUT + unit2	
+	]
+	maxf
+]
 
 rcvChamferNormalize: routine [
-"Normalization"
-	output 		[vector!]
+"Normalization of distance vector"
+	output 		[vector!]	;--distance vector
 	normalizer  [integer!]
 	/local
-	mvalueOUT	[byte-ptr!]
-	mtailOUT	[byte-ptr!]
-	unit		[integer!]
-	f			[float!]
+		mvalueOUT mtailOUT	[byte-ptr!]
+		unit				[integer!]
+		f					[float!]
+		s					[series!]
 ][
 	mvalueOUT: vector/rs-head output
-	mtailOUT: vector/rs-tail output
-	unit: rcvGetMatBitSize output
-	while [mvalueOUT <= mtailOUT] [
-		f: (rcvGetFloatValue as integer! mvalueOUT)  / normalizer
+	mtailOUT:  vector/rs-tail output
+	s: GET_BUFFER(output)
+	unit: GET_UNIT(s)	
+	while [mvalueOUT < mtailOUT] [
+		f: (rcvGetFloatValue as integer! mvalueOUT)  / as float! normalizer
 		rcvSetFloatValue as integer! mvalueOUT f unit
 		mvalueOUT: mvalueOUT + unit
 	]
@@ -277,23 +259,23 @@ _initDistance: routine [
 	input 		[vector!] 
 	output 		[vector!]
 	/local
-	mvalueIN	[byte-ptr!]
-	mTailIN		[byte-ptr!]
-	mvalueOUT	[byte-ptr!]
-	unit1 		[integer!]
-	unit2		[integer!]
+		mValueIN mTailIN mValueOUT	[byte-ptr!]
+		unit1 unit2					[integer!]
+		s							[series!]
 ] [
-	mvalueIN: vector/rs-head input
+	mValueIN: vector/rs-head input
 	mTailIN: vector/rs-tail input
-	mvalueOUT: vector/rs-head output
-	unit1: rcvGetMatBitSize input
-	unit2: rcvGetMatBitSize output
-	while [mvalueIN <= mTailIN] [
-		either ((rcvGetIntValue as integer! mvalueIN unit1)  = 1) 	
-					[rcvSetFloatValue as integer! mvalueOUT 0.0 unit2] 
-					[rcvSetFloatValue as integer! mvalueOUT -1.0 unit2]
-		mvalueIN: mvalueIN + unit1
-		mvalueOUT: mvalueOUT + unit2
+	mValueOUT: vector/rs-head output
+	s: GET_BUFFER(input)
+	unit1: GET_UNIT(s)	
+	s: GET_BUFFER(output)
+	unit2: GET_UNIT(s)	
+	while [mValueIN < mTailIN] [
+		either ((rcvGetIntValue as integer! mValueIN unit1)  = 1) 	
+					[rcvSetFloatValue as integer! mValueOUT 0.0 unit2] 
+					[rcvSetFloatValue as integer! mValueOUT -1.0 unit2]
+		mValueIN: mValueIN + unit1
+		mValueOUT: mValueOUT + unit2
 	]
 ]
 
@@ -305,13 +287,14 @@ _testAndSet: routine [
 	y 			[integer!] 
 	newvalue 	[float!]
 	/local
-	mvalueOUT	[byte-ptr!]
-	f			[float!]
-	unit		[integer!]
-	ptr			[integer!]		
+		mvalueOUT	[byte-ptr!]
+		f			[float!]
+		unit ptr	[integer!]
+		s			[series!]	
 ][
 	mvalueOUT: vector/rs-head output
-	unit: rcvGetMatBitSize output
+	s: GET_BUFFER(output)
+	unit: GET_UNIT(s)	
 	if any [x < 0 x >= w] [exit]	;
 	if any [y < 0 y >= h] [exit]
 	ptr: as integer! mvalueOUT + (((y * w) + x) * unit)
@@ -359,36 +342,27 @@ rcvChamferCompute: routine [
 	chamfer		[block!]
 	size		[pair!]
 	/local
-	mvalueOUT	[byte-ptr!]
-	idx2		[byte-ptr!]
-	mvalueKNL	[red-value!]
-	idx			[red-value!]
-	w 			[integer!] 
-	h 			[integer!] 
-	x 			[integer!] 
-	y			[integer!] 
-	v			[red-integer!] 
-	f			[float!]
-	unit		[integer!] 
-	n 			[integer!] 
-	k			[integer!] 
-	dx 			[integer!] 
-	dy 			[integer!] 
-	dt			[float!] 
+		mvalueOUT idx2	[byte-ptr!]
+		mvalueKNL	idx	[red-value!]
+		w h x y 		[integer!] 
+		unit n k dx dy	[integer!] 
+		v				[red-integer!]
+		f dt			[float!]
+		s				[series!]
 ][
 	w: size/x
 	h: size/y
 	mvalueOUT: vector/rs-head output
 	mvalueKNL: block/rs-head chamfer
-	unit: rcvGetMatBitSize output
-	
+	s: GET_BUFFER(output)
+	unit: GET_UNIT(s)	
 	; forward OK
 	mvalueOUT: vector/rs-head output
 	n: (block/rs-length? chamfer) / 3
 	y: 0
-	while [y <= (h - 1)] [
+	while [y < h] [
 		x: 0
-		while [x <= (w - 1)] [
+		while [x < w] [
 			idx2: mvalueOUT  + (((y * w) + x) * unit) 
 			f: rcvGetFloatValue as integer! idx2
 			if f >= 0.0 [

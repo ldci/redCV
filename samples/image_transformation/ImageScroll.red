@@ -8,9 +8,9 @@ Red [
 
 ; required libs
 #include %../../libs/core/rcvCore.red
-#include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
-#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvConvolutionImg.red
+#include %../../libs/imgproc/rcvGaussian.red
+#include %../../libs/imgproc/rcvImgEffect.red
 
 xy: 0x0
 margins: 10x10

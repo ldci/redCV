@@ -13,7 +13,6 @@ Red [
 #include %../../libs/math/rcvDistance.red
 #include %../../libs/math/rcvStats.red
 
-
 isize: 256x256
 bitSize: 32
 
@@ -21,9 +20,7 @@ img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 img3: rcvCreateImage isize
 clone: rcvCreateImage isize
-
-mat:  rcvCreateMat 'integer! bitSize isize
-bmat:  rcvCreateMat 'integer! bitSize isize
+mat:  matrix/init/value 2 bitSize iSize 0
 lPix: rPix: uPix: dPix: 0x0
 matSize: 0x0
 fgVal: 1
@@ -34,6 +31,7 @@ perim: 0
 isLoad: false
 cg: 0x0
 stats: copy []
+
 
 setHeight: function [p1 [pair!] p2 [pair!] return: [integer!]][
 	p1/y - p2/y + 1
@@ -68,9 +66,8 @@ loadImage: does [
 		w: img1/size/x
 		h: img1/size/y
 		matSize: img1/size
-		mat:  rcvCreateMat 'integer! bitSize matSize
-		bmat: rcvCreateMat 'integer! bitSize matSize
-		visited: rcvCreateMat 'integer! bitSize matSize
+		mat:  matrix/init/value 2 bitSize matSize 0
+		visited: matrix/init/value 2 bitSize matSize 0
 		rcv2WB img1 img2 
 		canvas2/image: img2
 		canvas1/image: img1
@@ -88,13 +85,13 @@ processImage: does [
 	rcvImage2Mat img2 mat 		; process image to a bytes matrix [0..255] 
 	surface: rcvCountNonZero mat; get shape surface in pixels
 	if fgVal = 0 [surface: matSize/x * matSize/y  - surface]
-	rcvMakeBinaryMat mat bmat	; processImages to a binary matrix [0..1]
+	bmat: rcvMakeBinaryMat mat 	; processImages to a binary matrix [0..1]
 	rcvMat2Image mat img2 		; processImages matrix to red image
 	rcvCopyImage img2 clone		; copy image for drawing
-	lPix: rcvMatleftPixel bmat matSize fgVal
-	rPix: rcvMatRightPixel bmat matSize fgVal
-	uPix: rcvMatUpPixel bmat matSize fgVal
-	dPix: rcvMatDownPixel bmat matSize fgVal
+	lPix: rcvMatleftPixel bmat fgVal
+	rPix: rcvMatRightPixel bmat fgVal
+	uPix: rcvMatUpPixel bmat fgVal
+	dPix: rcvMatDownPixel bmat fgVal
 	hForm: setHeight dPix uPix  
 	wform: setWidth rPix lPix
 	f1/text: form as-pair lPix/x uPix/y 
@@ -109,8 +106,8 @@ processImage: does [
 getContour: does [
 	; get all shape contours
 	border: copy []
-	rcvMatGetBorder bmat matSize fgVal border
-	foreach p border [rcvSetInt2D visited matSize p 1]
+	rcvMatGetBorder bmat fgVal border
+	foreach p border [rcvSetContourValue visited p 1]
 	; get only out contours with Freeman chain code
 	outBorder: copy []
 	inBorder: copy []
@@ -121,15 +118,16 @@ getContour: does [
 	p: first border
 	i: 1
 	while [i <= perim] [
-		d: rcvMatGetChainCode visited matSize p fgVal
+		d: rcvMatGetChainCode visited p fgVal
 		if d <> -1 [append outBorder p]
-		idx: (p/y * w + p/x) + 1	
-		visited/:idx: 0; pixel is visited
+		rcvSetContourValue visited p 0
+		;idx: (p/y * w + p/x) + 1	
+		;visited/:idx: 0; pixel is visited
 		;get the next pixel to process
 		p: rcvGetContours p d
 		i: i + 1
 	]
-	; get only in contours with difference 
+	; get only inner contours with difference 
 	inBorder: difference border outBorder
 	
 	; draw results
@@ -181,7 +179,7 @@ getSignature: does [
 	rcvZeroImage img3
 	plot2: compose [line-width 1 pen green fill-pen green]
 	
-	cg: rcvGetMatCentroid bmat matSize 	; get shape centroid	
+	cg: rcvGetMatCentroid bmat 	; get shape centroid	
 	if cb1/data [
 		points: processContour outBorder
 		; draw shape

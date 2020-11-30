@@ -21,12 +21,12 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage tmp
 		img2:  rcvCreateImage img1/size				; create image for grayscale
-		mat: rcvCreateMat 'integer! 32 img1/size	; a 32-bit matrix
-	rcvImage2Mat img1 mat 							; Converts  image to 1 Channel matrix [0..255]  
-	rcvMat2Image mat img2 							; from matrix to red image
-	img3: rcvCloneImage img2
-	img: rcvCreateImage img1/size
-	canvas/image: img2	
+		mat: matrix/init 2 32 img1/size	; 			a 32-bit matrix
+		rcvImage2Mat img1 mat 							; Converts  image to 1 Channel matrix [0..255]  
+		rcvMat2Image mat img2 							; from matrix to red image
+		img3: rcvCloneImage img2
+		img: rcvCreateImage img1/size
+		canvas/image: img2	
 	]
 ]
 
@@ -41,10 +41,10 @@ view win: layout [
 		button 80 "Sum" 	[sbar/data: rcvSum mat canvas/image: img2]
 		button 80 "Mean" 	[sbar/data: first rcvMean mat canvas/image: img2]
 		button 80 "SD"  	[sbar/data: first rcvSTD mat canvas/image: img2]
-		button 80 "Median"	[sbar/data: first rcvMedian mat canvas/image: img2]
+		button 80 "Median"	[sbar/data: rcvMedian mat canvas/image: img2]
 		return 
-		button 80 "Min"		[sbar/data: first rcvMinValue mat canvas/image: img2]
-		button 80 "Max"		[sbar/data: first rcvMaxValue mat canvas/image: img2]
+		button 80 "Min"		[sbar/data: rcvMinValue mat canvas/image: img2]
+		button 80 "Max"		[sbar/data: rcvMaxValue mat canvas/image: img2]
 		button 80 "Min Loc"	[sbar/data: xy: rcvMinLoc mat img1/size
 							 	plot: compose [line-width 1 fill-pen white circle (xy) 10.0]
 							 	img3: rcvCloneImage img2

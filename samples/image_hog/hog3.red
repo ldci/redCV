@@ -89,11 +89,11 @@ drawGrid: func [n [integer!]] [
 ]
 
 compareHistograms: does [
-	f5/text: " "
-	f6/text: " "
-	f7/text: " "
-	v: rcvDTWCompute to-block matInt1 to-block matInt2
-	d: round/to getEuclidianDistance matInt1 matInt2 0.01
+	f5/text: "0"
+	f6/text: "0"
+	f7/text: ""
+	v: rcvDTWCompute to-block matInt1/data to-block matInt2/data
+	d: round/to getEuclidianDistance matInt1/data matInt2/data 0.01
 	f5/text: form d
 	f6/text: form v
 	if v <= dMin [f7/text: "Similar" ]
@@ -120,14 +120,14 @@ drawHistograms: does [
 	plot1: 	compose [line-width 1 pen red line]
 	step: 576 / nHog
 	x: 600 - (step * nhog ) / 2
-	foreach v matInt1 [
+	foreach v matInt1/data [
 		append plot1 as-pair (x) 125 - v
 			x: x + step
 	]
 	
 	x: 600 - (step * nhog ) / 2
 	plot2: 	compose [line-width 1 pen green line]
-	foreach v matInt2 [
+	foreach v matInt2/data [
 		append plot2 as-pair (x) 250 - v
 			x: x + step
 	]
@@ -137,26 +137,21 @@ drawHistograms: does [
 
 
 process: does [
-	f5/text: " "
-	f6/text: " "
 	if all [isFile1 isFile2] [
-		gx1: 	make vector! []
-		gy1: 	make vector! []
-		gx2: 	make vector! []
-		gy2: 	make vector! []
 		if error? try [nDivs: to-integer f1/text] [nDivs: 3]
 		if error? try [nBins: to-integer f3/text] [nBins: 8]
+		nHog: nDivs * nDivs * nBins
 		drawGrid 1
 		drawGrid 2
 		cellX: gSize/x / nDivs
 		cellY: gSize/y / nDivs
     	f2/text: form as-pair cellX cellY
-		matHog1: rcvHOG img12 gx1 gy2 nBins nDivs		; calculate histograms
-		matInt1: make vector! nHog 
-		matHog2: rcvHOG img22 gx1 gy2 nBins nDivs		; calculate histograms
-		matInt2: make vector! nHog 
-		rcvMatFloat2Int matHog1 matInt1 100.0			; to integer matrix
-		rcvMatFloat2Int matHog2 matInt2 100.0			; to integer matrix
+    	;--calculate both histograms
+    	matHog1: rcvHOG img12 nBins nDivs
+    	matHog2: rcvHOG img22 nBins nDivs
+		;--just 1D float matrices
+		matInt1: rcvMatFloat2Int matHog1 32 100.0		; to integer matrix
+		matInt2: rcvMatFloat2Int matHog2 32 100.0		; to integer matrix
 		drawHistograms
 	]
 ]
@@ -170,8 +165,12 @@ win: layout [
 	button "Image 1"		[loadImage 1]
 	button "Image 2"		[loadImage 2]
 	text 50 "Dividor"  	
-	f1: field 40
-	f2: Field 60
+	f1: field 40		[if error? try [nDivs: to-integer f1/text] [nDivs: 3]
+						process compareHistograms
+						]
+	f2: Field 60		[if error? try [nBins: to-integer f3/text] [nBins: 8]
+						process compareHistograms
+	]
 	text 40  "Bins" 
 	f3: field 40
 	button 70 "Update"		[process compareHistograms]
@@ -199,6 +198,8 @@ win: layout [
 		f3/text: form nBins
 		f4/text: form dMin
 		f2/text: form as-pair cellX cellY
+		f5/text: f6/text: f7/text: ""
+		
 	]
 ]
 

@@ -7,6 +7,7 @@ Red [
 
 ;required libs
 #include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/imgproc/rcvMorphology.red
 
 margins: 2x5

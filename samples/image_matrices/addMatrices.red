@@ -28,9 +28,9 @@ loadImage: does [
 		img1: rcvLoadImage tmp
 		img2: rcvCreateImage img1/size			
 		img3: rcvCreateImage img1/size
-		mat1: rcvCreateMat 'integer! bitSize img1/size
-		mat2: rcvCreateMat 'integer! bitSize img1/size
-		mat3: rcvCreateMat 'integer! bitSize img1/size
+		mat1: matrix/init 2 bitSize img1/size
+		mat2: matrix/init 2 bitSize img1/size
+		mat3: matrix/init 2 bitSize img1/size
 		canvas1/image: img1
 		rcvImage2Mat img1 mat1
 		isFile: true
@@ -40,10 +40,10 @@ loadImage: does [
 ; generate random image
 generate: does [
 	if isFile [
-		rcvRandomMat mat2 127
+		mat2: matrix/init/value/rand 2 bitSize img1/size 128
 		rcvMat2Image mat2 img2
 		canvas2/image: img2
-		mat3: rcvAddMat mat1 mat2
+		mat3: matrix/addition mat1 mat2
 		rcvMat2Image mat3 img3
 		canvas3/image: img3
 	]
@@ -74,7 +74,7 @@ view win: layout [
 		return
 		text 100 "Source" 
 		pad 156x0 text 100 "Random image"
-		pad 156x0 text "Result"
+		pad 156x0 text "Addition"
 		return
 		canvas1: base isize img1
 		canvas2: base isize img2

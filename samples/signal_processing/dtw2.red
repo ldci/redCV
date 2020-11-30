@@ -16,10 +16,8 @@ plot2: copy []
 img: rcvCreateImage 256x256
 img2: rcvCreateImage 256x256
 count: 32
-matsize: count * count
-dMatrix: make vector! reduce ['float! 64 matSize]
-cMatrix: make vector! reduce ['float! 64 matSize]
-
+dMatrix: matrix/init/value 3 64 as-pair count count 0.0
+cMatrix: matrix/init/value 3 64 as-pair count count 0.0 	
 
 generateSeries: does [
 	clear fDTW/text
@@ -58,22 +56,21 @@ calculateDTW: does [
 	
 	; distance map
 	img: rcvCreateImage as-pair (length? x) (length? y)
-	mat:  make vector! [integer! 32 0]
-	
-	foreach v dMatrix [append mat to-integer v]
-	mx:  rcvMaxMat mat
-	mat * (255 / mx)
+	mat: matrix/create 2 32 as-pair (length? x) (length? y) []
+	foreach v dMatrix/data [append mat/data to-integer v]
+	mx:  matrix/maxi mat
+	mat/data * (255 / mx)
 	rcvMat2Image mat img
 	canvas3/image: img 
 	
 	; cost map
 	
 	img2: rcvCreateImage as-pair (length? x) (length? x)
-	mat2:  make vector! [integer! 32 0]
-	foreach v cMatrix [append mat2 to-integer v]
-	mx:  rcvMaxMat mat2
+	mat2:  matrix/create 2 32 as-pair (length? x) (length? y) []
+	foreach v cMatrix/data [append mat2/data to-integer v]
+	mx:  matrix/maxi mat2
 	fc: mx / 255
-	mat2 / fc
+	mat2/data / fc
 	rcvMat2Image mat2 img2
 	canvas4/image: img2 	
 ]

@@ -23,16 +23,10 @@ img0: rcvCreateImage isize
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 imgcopy: rcvCreateImage isize
-binaryMat: rcvCreateMat 'integer! bitSize isize
-flowMat:  rcvCreateMat 'integer! bitSize isize
-lumMat: rcvCreateMat 'integer! bitSize isize
-gradientMat:  rcvCreateMat 'integer! bitSize isize
-distMat: rcvCreateMat 'float! 64 isize
-
+binaryMat: flowMat: lumMat: gradientMat: matrix/init 2 bitSize isize
 threshold: 1
 distance: 25.0
 gMax: 0
-lw: 1
 isFile: false
 chamfer*: copy []
 normalizer: 0
@@ -48,7 +42,6 @@ quitApp: does [
 		rcvReleaseMat flowMat
 		rcvReleaseMat lumMat
 		rcvReleaseMat gradientMat
-		rcvReleaseMat distMat
 	]
 	Quit
 ]
@@ -71,20 +64,17 @@ loadImage: does [
 		; we need a grayscale image
 		rcv2Gray/luminosity img0 img1
 		canvas1/image: img1
-		flowMat: rcvCreateMat 'integer! bitSize imgSize
-		distMat: rcvCreateMat 'float! 64 imgSize
+		
+		; create matrices
+		lumMat: matrix/init 2 bitSize imgSize 
+		gradientMat: matrix/init 2 bitSize imgSize ;--Gradient (Sobel-like) mat	
 		; GrayLevelScale (Luminance) mat
-		lumMat: rcvCreateMat 'integer! bitSize imgSize 
 		rcvImage2Mat img1 lumMat
 		canvas1/image: img1
-		; Gradient (Sobel-like) mat		
-		gradientMat: rcvCreateMat 'integer! bitSize imgSize 
 		; chamfer default
 		chamfer*: first rcvChamferDistance chamfer5
 		normalizer: second rcvChamferDistance chamfer5
 		fSize/text: form imgSize
-		lw: 1
-		if imgSize > 1024x768 [lw: 5]
 		win/text: rejoin [ "Gradient and Flow: " to-string tmp]
 		sl0/data: 50%
 		sl1/data: 0.1%
@@ -99,26 +89,26 @@ loadImage: does [
 
 
 computeFlow: does [	
-	; binary thresholding
-	gMax: rcvMakeGradient lumMat gradientMat imgSize	
-	; for binary gradient [0/1]	
-	binaryMat: rcvCreateMat 'integer! bitSize imgSize 
-	rcvMakeBinaryGradient gradientMat binaryMat gMax threshold imgSize
-	; Chamfer distance map
-	distMat: rcvChamferCreateOutput imgSize;
-	rcvChamferInitMap binaryMat distMat
-	rcvChamferCompute distMat chamfer* imgSize 
-	rcvChamferNormalize distMat normalizer
+	;--we need 2 matrices
+	binaryMat: matrix/init 2 bitSize imgSize 	;--for binary gradient [0/1]	
+	flowMat: matrix/init 2 bitSize imgSize		;--for flow in image
 	
-	; for flow in image
-	flowMat: rcvCreateMat 'integer! bitSize imgSize 
+	;--binary thresholding
+	gMax: rcvMakeGradient lumMat gradientMat imgSize	
+	rcvMakeBinaryGradient gradientMat binaryMat gMax threshold imgSize
+	
+	;--Chamfer distance map: needs vectors
+	distVector: rcvChamferCreateOutput imgSize
+	rcvChamferInitMap binaryMat/data distVector
+	rcvChamferCompute distVector chamfer* imgSize 
+	rcvChamferNormalize distVector normalizer
 	
 	;distance map to binarized gradient
-	maxf: rcvFlowMat distMat flowMat distance
+	maxf: rcvFlowMat distVector flowMat/data distance
 	if cb/data [rcvnormalizeFlow flowMat maxf]
 	rcvMat2Image flowMat img1
 	
-	; flow and gradient
+	;--flow and binary gradient matrices in a single image
 	rcvGradient&Flow flowMat binaryMat img2	
 	canvas1/image: img1
 	canvas2/image: img2

@@ -9,8 +9,9 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/tools/rcvTools.red
-#include %../../libs/imgproc/rcvImgProc.red
-
+#include %../../libs/imgproc/rcvImgEffect.red
+#include %../../libs/imgproc/rcvGaussian.red
+#include %../../libs/imgproc/rcvConvolutionImg.red
 
 margins: 10x10
 src: rcvCreateImage 512x512
@@ -54,9 +55,9 @@ showResult: func [mode [integer!]] [
 view win: layout [
 		title "Pyramidal Sizing"
 		button 60 "Load" 		[loadImage]		    					    								
-		button 80 "Pyr Down"	[if isFile [dst: rcvPyrDown src showResult 1]]
+		button 80 "Pyr Down"	[if isFile [dst: rcvPyrDown src 2 showResult 1]]
 		button 70 "Source" 		[if isFile [dst: copy src showResult 0]]			
-		button 80 "Pyr Up"	   	[if isFile [dst: rcvPyrUp src showResult 2]]								    
+		button 80 "Pyr Up"	   	[if isFile [dst: rcvPyrUp src 2 showResult 2]]								    
 		f: base 80x20 white	center					
 		button 60 "Quit" 		[rcvReleaseImage src rcvReleaseImage dst Quit]
 		return

@@ -8,18 +8,23 @@ Red [
 
 ; required libs
 #include %../../libs/core/rcvCore.red
-#include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
-#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvConvolutionImg.red
+#include %../../libs/imgproc/rcvGaussian.red
+#include %../../libs/imgproc/rcvImgEffect.red
+
 
 margins: 10x10
 iSize: 	512x512
 img1: 	rcvCreateImage iSize
 dst: 	rcvCreateImage iSize
-centerXY: iSize / 2
+
 scale: 0.625
+centerXY: iSize / 2
 translation: (iSize * scale) / 2 - 8
-rot: 0.0
+;scale: 1.0
+;translation: 90x90
+;centerXY: 160x160
+;rot: 0.0
 
 
 drawBlk: []
@@ -35,7 +40,6 @@ loadImage: does [
 		dst: rcvResizeImage img1 iSize ; force image in 512x512
 		rot: 0.0
 		drawBlk: rcvRotateImage scale translation rot centerXY dst
-		
 		canvas/draw: drawBlk
 	]
 ]

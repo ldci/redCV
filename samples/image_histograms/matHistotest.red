@@ -15,21 +15,14 @@ Red [
 msize: 256x256
 img: rcvCreateImage msize
 
-mat: rcvCreateMat 'integer! 32 img/size
-histo1: make vector! 256
-histo2: make vector! 256
-
-rcvRandomMat mat FFh
-
+mat: matrix/init/value/rand 2 8 msize 255
 rcvMat2Image mat img
-;histo1: rcvHistogram mat
-histo1: rcvHistoMat mat 
-tmp: copy histo1
+
+vHisto1: rcvHistogram mat 
+tmp: copy vHisto1
 sort tmp
 maxi: last tmp
-print [length? histo1 " " length? histo2 " " maxi] 
-rcvConvertMatScale/std histo1 histo2  maxi 255 ; change scale
-
+mHisto2: rcvConvertMatIntScale mat maxi 255
 img2: rcvCreateImage msize
 
 

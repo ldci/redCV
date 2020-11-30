@@ -13,8 +13,7 @@ Red [
 
 
 iSize: 512x512
-mat:  rcvCreateMat 'integer! 32 iSize
-bMat: rcvCreateMat 'integer! 32 iSize
+mat:  matrix/init/value 2 32 iSize 0
 img: rcvCreateImage iSize
 plot:  copy [fill-pen white box 155x155 355x355]
 plot2: copy [line-width 1 pen green line]
@@ -23,13 +22,15 @@ canvas: none
 
 
 processImage: does [
-	img: to-image canvas
+	;img: to-image canvas
+	rcvZeroImage img
+    canvas/image: draw img canvas/draw; reduce [plot]
 	rcvImage2Mat img mat 	 
-	rcvMakeBinaryMat mat bmat
-	cg: rcvGetMatCentroid bmat img/size 
+	bmat: rcvMakeBinaryMat mat
+	cg: rcvGetMatCentroid bmat 
 	;append append append append append plot 'fill-pen 'green 'circle (cg) 3.0
 	border: []
-	rcvMatGetBorder bmat iSize fgVal border
+	rcvMatGetBorder bmat 1 border
 	plot2: copy [line-width 1 pen green line]
 	angles: copy []
 	foreach p border [
@@ -77,15 +78,15 @@ view win: layout [
 	
 	r1: radio "Square" [canvas/image: none 
 						canvas2/image: none
-						plot: compose [fill-pen white box 155x155 355x355]
-						plot2: copy [pen green] 
+						plot: 	copy [fill-pen white box 155x155 355x355]
+						plot2: 	copy [pen green] 
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]
 						processImage
 						]
 	r2: radio "Circle" [canvas/image: none 
 						canvas2/image: none
-						plot: compose [fill-pen white circle 255x255 120] 
+						plot: copy [fill-pen white circle 255x255 120] 
 						plot2: copy [pen green]
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]
@@ -93,7 +94,7 @@ view win: layout [
 						]
 	r3: radio "Triangle" [canvas/image: none 
 						canvas2/image: none
-						plot: compose [pen white fill-pen white triangle 256x128 128x300 384x400] 
+						plot: copy [pen white fill-pen white triangle 256x128 128x300 384x400] 
 						plot2: copy [pen green]
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]
@@ -101,7 +102,7 @@ view win: layout [
 						]
 	r4: radio "Polygon" [canvas/image: none 
 						canvas2/image: none
-						plot: compose [pen white fill-pen white polygon 256x100 384x300 128x400 128x300 256x10] 
+						plot: copy [pen white fill-pen white polygon 256x100 384x300 128x400 128x300 256x10] 
 						plot2: copy [pen green]
 						canvas/draw: reduce [plot]
 						canvas2/draw: reduce [plot2]

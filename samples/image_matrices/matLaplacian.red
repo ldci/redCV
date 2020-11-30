@@ -30,15 +30,15 @@ loadImage: does [
 		img1: rcvLoadImage tmp
 		img2: rcvCreateImage img1/size
 		img3: rcvCreateImage img1/size
-		mat1: rcvCreateMat 'integer! bitSize img1/size
-		mat2: rcvCreateMat 'integer! bitSize img1/size
-		mat3: rcvCreateMat 'integer! bitSize img1/size
 		canvas1/image: img1
-		rcvImage2Mat img1 mat1 										; Converts to  grayscale image and to 1 Channel matrix [0..255]
-		rcvConvolveMat mat1 mat2 img1/size mask 1.0 0.0				; Laplacian convolution
-		rcvConvolveNormalizedMat mat1 mat3 img1/size mask 1.0 0.0	; Laplacian convolution
-		rcvMat2Image mat2 img2										; from matrix to red image
-		rcvMat2Image mat3 img3										; from matrix to red image
+		mat1: matrix/init 2 bitSize img1/size
+		mat2: matrix/init 2 bitSize img1/size
+		mat3: matrix/init 2 bitSize img1/size
+		rcvImage2Mat img1 mat1			; Converts to  grayscale image and to 1 Channel matrix [0..255]
+		rcvConvolveMat mat1 mat2 mask 1.0 0.0	; Laplacian convolution
+		rcvConvolveNormalizedMat mat1 mat3 mask 1.0 0.0	; Laplacian convolution
+		rcvMat2Image mat2 img2					; from matrix to red image
+	 	rcvMat2Image mat3 img3				; from matrix to red image
 		canvas2/image: img2
 		canvas3/image: img3
 		rcvReleaseMat mat1

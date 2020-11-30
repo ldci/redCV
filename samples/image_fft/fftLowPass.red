@@ -14,21 +14,21 @@ Red [
 ;working with fixed size for simplicity and fast computation
 ; we need 2^N values 
 isize: 	128x128 ; 2^7
-isize2: 256x256 ; 28
-radius: 1.0
-fscale: 1
+isize2: 256x256 ; 2^8
+radius: 0.0
+
 
 img0: rcvCreateImage isize
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 img3: rcvCreateImage isize
 
-;we need some vectors
-matInt: rcvCreateMat 'integer! 	32 isize	;integer
-matRe: 	rcvCreateMat 'float! 	64 isize	;real
-matIm: 	rcvCreateMat 'float! 	64 isize	;imaginary
-matAm:  rcvCreateMat 'float! 	64 isize	;magnitude
-matLog: rcvCreateMat 'float! 	64 isize	;log scale
+;we need some matrices
+matInt: matrix/init 2 32 isize	;integer
+matRe: 	matrix/init 3 64 isize	;real
+matIm: 	matrix/init 3 64 isize	;imaginary
+matAm:  matrix/init 3 64 isize	;magnitude
+matLog: matrix/init 3 64 isize	;log scale
 	
 isFile: false
 
@@ -47,53 +47,73 @@ loadImage: does [
 		canvas0/image: img0
 		canvas1/image: img1
 		sb/text: ""
-		fft
+		radius: 0.0
+		sl/data: 0%
+		filter
 		isFile: true
 	]
 ]
 
-fft: does [
+
+filter: does [
 	t1: now/time/precise
-	rcvImage2Mat img1 matInt				; grayscale image to mat
-	rcvMatInt2Float matInt matRe 255.0		; integer mat to float mat
-	arrayR: rcvMat2Array matRe isize		; real array for faster FFT
-	arrayI: rcvMat2Array matIm isize		; imaginary for faster FFT
-	rcvFFT2D arrayR arrayI -1 fscale		; FFT
-	matR: rcvArray2Mat arrayR				; real vector
-	matI: rcvArray2Mat arrayI				; imaginary vector
-	fR: rcvFFTFilter matR radius 2			; Low-Pass Filter
-	fI: rcvFFTFilter matI radius 2			; Low-Pass Filter
-	arrayR: rcvMat2Array fR isize			; for the reverse FFT
-	arrayI: rcvMat2Array fI isize			; for the reverse FFT
-	mat: rcvFFTAmplitude fR fI				; FFT amplitude
-	arrayS: rcvMat2Array mat isize			; we need an array	for shift	
-	mat: rcvFFT2DShift arrayS isize			; centered mat
-	matAm: rcvTransposeArray mat			; rotated mat
-	rcvLogMatFloat matAm matLog				; scale amplitude  by log is better
-	rcvMatFloat2Int matLog matInt 255.0  	; to integer	
-	rcvMat2Image matInt img2				; red image
-	canvas2/image: img2						; show result
-	rcvFFT2D arrayR arrayI 1 fscale			; inverse FFT2D
-	matR: rcvArray2Mat arrayR				; array to vector matrice
-	matI: rcvArray2Mat arrayI				; array to vector matrice
-	mat:  rcvAddMat matR matI				; Real + Imaginary parts
-	rcvLogMatFloat mat matLog				; scale amplitude  by log is better
-	rcvMatFloat2Int matLog matInt 255.0  	; to integer matrix
-	rcvMat2Image matInt img3				; to red image
-	canvas3/image: img3						; show
+	matIm: 	matrix/init 3 64 isize			; imaginary matrix
+	rcvImage2Mat img1 matInt				; grayscale image to matrix
+	matRe: rcvMatInt2Float matInt 64 1.0	; real matrix
+	
+	;--we need 2 arrays for FFT
+	arrayR: rcvMat2Array matRe 				; array of real
+	arrayI: rcvMat2Array matIm 				; array of imaginary
+	
+	;--Forward FFT
+	rcvFFT2D arrayR arrayI 1 1						
+	
+	;--Low-Pass Filter on vectors
+	fR: rcvFFTFilter rcvArray2Vector arrayR radius 2			
+	fI: rcvFFTFilter rcvArray2Vector arrayI radius 2			
+	matRe/data: fR							
+	matIm/data: fI							
+	arrayR: rcvMat2Array matRe 				; for the reverse FFT
+	arrayI: rcvMat2Array matIm 				; for the reverse FFT
+	
+	;--Forward FFT amplitude
+	matAm/data: rcvFFTAmplitude fR fI
+	;--Quadrants processing		
+	matAm/data: rcvTransposeArray rcvFFT2DShift rcvMat2Array matAm iSize
+	
+	;--scale amplitude  by log is better for FFT
+	matLog: rcvLogMatFloat matAm 1.0
+	matInt: rcvMatFloat2Int matLog 32 255.0	
+	
+	;--red image
+	rcvMat2Image matInt img2				
+	canvas2/image: img2
+	
+	;--Backward FFT
+	rcvFFT2D arrayR arrayI -1 0					
+	matAm/data: rcvFFTAmplitude rcvArray2Vector arrayR rcvArray2Vector arrayI	
+	
+	;--scale 					
+	matLog: rcvLogMatFloat matAm 255.0		
+	matInt: rcvMatFloat2Int matLog 32 255.0	
+	
+	;--red image
+	rcvMat2Image matInt img3				
+	canvas3/image: img3			
 	t2: now/time/precise
 	sb/text: rejoin ["Processed in " form to-integer (third t2 - t1) * 1000 " ms"]
 ]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
 		title "FFT-2D on Image: Low-Pass Filtering"
 		button "Load" [loadImage]
 		text 100 " Radius" 
-		sl: slider 200 [radius: 1.0 + (face/data * 255.0)
-						f/text: form to-integer radius if isFile [fft]]
+		sl: slider 200 [radius: to-float (face/data * 48.0)
+						f/text: form round/to radius 0.01 if isFile [filter]]
 		f: field 50
-		pad 540x0
+		pad 535x0
 		button 60 "Quit" [	rcvReleaseImage img0
 							rcvReleaseImage img1 
 							rcvReleaseImage img2

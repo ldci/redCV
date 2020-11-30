@@ -42,7 +42,7 @@ loadImage: does [
 		isFile: true
 		param: 1
 		iSize: cImg/size
-		rcvSobel cImg dst iSize param op
+		rcvSobel cImg dst param op
 		r1/data: true
 		r2/data: false
 		r3/data: false
@@ -66,19 +66,19 @@ view win: layout [
 		return
 		cb: check "Grayscale"	[either cb/data [cImg: rcvCloneImage gray]
 					   			[cImg: rcvCloneImage img1]
-					   			if isFile [rcvSobel cImg dst iSize param op]
+					   			if isFile [rcvSobel cImg dst param op]
 								]
 		check "Inverse Kernel"		[either face/data [op: 2] [op: 1]
-									if isFile [rcvSobel cImg dst iSize param op]
+									if isFile [rcvSobel cImg dst param op]
 									]
 		return
 		text 130x20 "Sobel Direction"
-		r1: radio  "Horizontal" [param: 1 if isFile [rcvSobel cImg dst iSize param op]]
-		r2: radio  "Vertical" 	[param: 2 if isFile [rcvSobel cImg dst iSize param op]]		
-		r3:	radio  50 "X+Y" 	[param: 3 if isFile [rcvSobel cImg dst iSize param op]]
-		r4:	radio "Magnitude" 	[param: 4 if isFile [rcvSobel cImg dst iSize param op]]
-		r5: radio 60 "Angles"	[param: 5 if isFile [rcvSobel cImg dst iSize param op]]
-		r6: radio "Product"		[param: 6 if isFile [rcvSobel cImg dst iSize param op]]
+		r1: radio  "Horizontal" [param: 1 if isFile [rcvSobel cImg dst param op]]
+		r2: radio  "Vertical" 	[param: 2 if isFile [rcvSobel cImg dst param op]]		
+		r3:	radio  50 "X+Y" 	[param: 3 if isFile [rcvSobel cImg dst param op]]
+		r4:	radio "Magnitude" 	[param: 4 if isFile [rcvSobel cImg dst param op]]
+		r5: radio 60 "Angles"	[param: 5 if isFile [rcvSobel cImg dst param op]]
+		r6: radio "Product"		[param: 6 if isFile [rcvSobel cImg dst param op]]
 		return
 		bb: base 128x128 img1
 		canvas: base defSize dst	

@@ -41,7 +41,7 @@ loadImage: does [
 		isFile: true
 		param: 1
 		iSize: cImg/size
-		rcvSobel cImg dst iSize param op
+		rcvSobel cImg dst param op
 		r1/data: true
 		r2/data: false
 		r3/data: false
@@ -63,13 +63,13 @@ view win: layout [
 		return
 		cb: check "Grayscale"	[either cb/data [cImg: rcvCloneImage gray]
 					   			[cImg: rcvCloneImage img1]
-					   			if isFile [rcvSobel cImg dst iSize param op]
+					   			if isFile [rcvSobel cImg dst param op]
 								]
 		return
 		text 100x20 "Sobel Direction"
-		r1: radio  "Y 1" 		[param: 1 if isFile [rcvSobel cImg dst iSize param op]]
-		r2: radio  "Y 2" 		[param: 2 if isFile [rcvSobel cImg dst iSize param op]]		
-		r3:	radio  "Y 1+ Y 2"	[param: 3 if isFile [rcvSobel cImg dst iSize param op]]
+		r1: radio  "Y 1" 		[param: 1 if isFile [rcvSobel cImg dst param op]]
+		r2: radio  "Y 2" 		[param: 2 if isFile [rcvSobel cImg dst param op]]		
+		r3:	radio  "Y 1+ Y 2"	[param: 3 if isFile [rcvSobel cImg dst param op]]
 		return
 		canvas: base defSize dst	
 		do [r1/data: true]

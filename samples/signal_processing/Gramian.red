@@ -72,7 +72,7 @@ polarizeSignal: function [signal [vector!] return: [block!]
 ]
 
 
-makeGramianMat: function [signal [block!] return: [vector!]][
+makeGramianMat: function [signal [block!] return: [object!]][
 	lg: length? signal
 	blk: copy []
 	i: 1
@@ -86,7 +86,7 @@ makeGramianMat: function [signal [block!] return: [vector!]][
 		]
 		i: i + 1
 	]
-	make vector! reduce blk
+	matrix/create 2 32 as-pair lg lg blk
 ]
 
 processSignal: does [

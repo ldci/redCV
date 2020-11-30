@@ -73,6 +73,20 @@ rcvRound: routine [
     either (f - floor f) > 0.5 [ceil f] [floor f] 
 ]
 
+rcvAbsInt: routine [
+	n		[integer!]
+	return:	[integer!]
+][
+	either n >= 0 [n] [0 - n]
+]
+
+rcvAbsFloat: routine [
+	n		[float!]
+	return:	[float!]
+][
+	either n >= 0.0 [n] [0.0 - n]
+]
+
 
 ;Hypot is a mathematical function defined to calculate the length of the hypotenuse of a right-angle triangle. 
 ;It was designed to avoid errors arising due to limited-precision calculations performed on computers.
@@ -81,9 +95,7 @@ rcvHypot: routine [
 	b		[float!]
 	return: [float!]
 	/local
-	x
-	y
-	t
+		x y t [float!]
 ][
 	if a < 0.0 [a: 0.0 - a] ; absolute value
 	if b < 0.0 [b: 0.0 - b] ; absolute value
@@ -99,6 +111,7 @@ rcvExp: routine [
 	value	[float!]
 	return: [float!]
 ][
+	;--use Euler's number e
 	pow 2.718281828459045235360287471 value
 ]
 
@@ -108,7 +121,7 @@ rcvLog-2: routine [
 	value	[float!]
 	return: [float!]
 ][
-	(log-2 value) / 0.6931471805599453
+	(log-e value) / 0.6931471805599453
 ]
 
 rcvSquish: routine [
@@ -120,9 +133,16 @@ rcvSquish: routine [
 
 randf: routine [
 "returns a decimal value beween 0 and 1"
-	m [float!]
+	m 		[float!]
 	return: [float!]
 ][
 	(m * as float! _random/rand) / 2147483647.0 - 1.0
+]
+
+randf2: function [
+"returns a decimal value beween 0 and 1"
+][
+	random/seed now/time/precise
+	random 1.0
 ]
 

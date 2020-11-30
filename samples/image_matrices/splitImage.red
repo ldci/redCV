@@ -10,8 +10,8 @@ Red [
 #include %../../libs/matrix/rcvMatrix.red
 
 isize: 256x256
-bitSize: 32
-img1: rcvCreateImage isize
+bitSize: 8
+img1:  rcvCreateImage isize
 imgC1: rcvCreateImage img1/size					; create image for rgb
 imgC2: rcvCreateImage img1/size
 imgC3: rcvCreateImage img1/size
@@ -29,14 +29,14 @@ loadImage: does [
 	tmp: request-file
 	if not none? tmp [
 		img1: rcvLoadImage tmp
-		imgC1: rcvCreateImage img1/size					; create image for rgb
+		imgC1: rcvCreateImage img1/size				;--create image for rgb
 		imgC2: rcvCreateImage img1/size
 		imgC3: rcvCreateImage img1/size
-		imgD:  rcvCreateImage img1/size					; and merged image
-		mat0: rcvCreateMat 'integer! bitSize img1/size	; create all matrices we need for argb
-		mat1: rcvCreateMat 'integer! bitSize img1/size
-		mat2: rcvCreateMat 'integer! bitSize img1/size
-		mat3: rcvCreateMat 'integer! bitSize img1/size
+		imgD:  rcvCreateImage img1/size					
+		mat0: matrix/init 2 bitSize img1/size 		;--create all matrices we need for argb
+		mat1: matrix/init 2 bitSize img1/size
+		mat2: matrix/init 2 bitSize img1/size
+		mat3: matrix/init 2 bitSize img1/size
 		canvas1/image: img1
 		isFile: true
 	]
@@ -45,17 +45,21 @@ loadImage: does [
 ; splits image into 4 matrices
 split: does [
 	if isFile [
-		rcvSplit2Mat img1 mat0 mat1 mat2 mat3
-		rcvMat2Image mat1 imgC1 
+		b: rcvSplit2Mat img1 bitSize
+		mat0: b/1
+		mat1: b/2
+		mat2: b/3
+		mat3: b/4
+		rcvMat2Image mat1 imgC1
 		rcvMat2Image mat2 imgC2 
-		rcvMat2Image mat3 imgC3 
+		rcvMat2Image mat3 imgC3  
 		canvas2/image: imgC1
 		canvas3/image: imgC2
 		canvas4/image: imgC3
 	]
 ]
 
-;merges image from 4 matrices
+;merges image from 4 matrices whatever the bitSize
 merge: does [
 	if isFile [
 		rcvMerge2Image mat0 mat1 mat2 mat3 imgD
@@ -89,9 +93,9 @@ view win: layout [
 		button 60 "Quit" 	[quitApp]
 		return
 		text 100 "Source" 
-		pad 156x0 text 100 "Channel 1 (R)"
-		pad 156x0 text 100 "Channel 2 (G)"
-		pad 156x0 text 100 "Channel 3 (B)"
+		pad 156x0 text 100 "Red Channel"
+		pad 156x0 text 100 "Green Channel"
+		pad 156x0 text 100 "Blue Channel"
 		pad 156x0 text 100 "Merged image"
 		return
 		canvas1: base isize img1

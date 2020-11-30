@@ -46,7 +46,7 @@ getHistograms: does [
 		blk: copy []
 		repeat j nBins [
 			pos: (i - 1 * nBins + j - 1) + 1
-			append blk matHog/:pos
+			append blk matHog/data/:pos
 		]
 		append/only blkH blk
 	]
@@ -105,11 +105,8 @@ process: does [
     cellY: img1/size/y / nDivs
     f2/text: form as-pair cellX cellY
 	sb2/text: rejoin ["HOG matrix size " form nHog]
-	matHog: rcvHOG img1 gx gy nBins nDivs
-	matInt: make vector! length? matHog
-	rcvMatFloat2Int matHog matInt 200.0
-	;matRho: ((gx * gx) + (gy * gy))
-	;matTheta:  atan2 gy gx
+	matHog: rcvHOG img1 nBins nDivs				;--calculate histograms
+	matInt: rcvMatFloat2Int matHog 32 200.0		;-- to integer matrix
 	getHistograms
 	drawHOG
 ]

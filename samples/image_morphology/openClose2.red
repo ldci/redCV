@@ -7,6 +7,7 @@ Red [
 
 #include %../../libs/core/rcvCore.red
 #include %../../libs/imgproc/rcvMorphology.red
+#include %../../libs/matrix/rcvMatrix.red
 ; this version directly uses rcvOpen and rcvClose
 margins: 10x10
 img1: rcvCreateImage 512x512

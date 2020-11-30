@@ -49,8 +49,8 @@ getHistograms: does [
 		sum: 0
 		repeat j nBins [
 			pos: (i - 1 * nBins + j - 1) + 1
-			append blk matInt/:pos
-			sum: sum + matInt/:pos
+			append blk matInt/data/:pos
+			sum: sum + matInt/data/:pos
 		]
 		append/only blkH blk
 	]
@@ -103,17 +103,14 @@ drawHistograms: does [
 
 process: does [
 	if isFile [
-		gx: 	make vector! []
-		gy: 	make vector! []
 		if error? try [nDivs: to-integer f1/text] [nDivs: 2]
 		if error? try [nBins: to-integer f3/text] [nBins: 16]
+		nHog: nDivs * nDivs * nBins
 		drawGrid
     	f2/text: form as-pair cellX cellY
 		sb2/text: rejoin ["HOG Matrix Size: " form nHog]
-		
-		matHog: rcvHOG img1 gx gy nBins nDivs
-		matInt: make vector! nHog 
-		rcvMatFloat2Int matHog matInt 150.0
+		matHog: rcvHOG img1 nBins nDivs
+		matInt: rcvMatFloat2Int matHog 32 150.0
 		getHistograms 
 		drawHistograms
 	]

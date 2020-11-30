@@ -11,8 +11,6 @@ Red [
 	Needs:	 View
 ]
 
-#include %../../../libs/tools/rcvTools.red
-#include %../../../libs/matrix/rcvMatrix.red
 #include %../../../libs/math/rcvDistance.red
 #include %../../../libs/math/rcvCluster.red
 
@@ -55,20 +53,22 @@ genPoints: routine [
     	unit	[integer!]
 		ang		[float!] 
 		r		[float!]
+		s		[series!]
 		
 ][
 	;Generate random data points
 	bvalue: block/rs-head array
 	len:  block/rs-length? array
 	vectBlk: as red-vector! bvalue
-	unit: rcvGetMatBitSize vectBlk
+	s: GET_BUFFER(vectBlk)
+	unit: GET_UNIT(s)
 	;note: this is not a really uniform 2-d distribution
 	i: 0
     while [i < len][
     	vectBlk: as red-vector! bvalue	;3 values in vectBlk
     	vvalue: vector/rs-head vectBlk
-    	ang: randf 2.0 * pi
-		r: randf radius
+    	ang: (2.0 * pi * as float! _random/rand) / 2147483647.0 - 1.0 
+		r: (radius * as float! _random/rand) / 2147483647.0 - 1.0
 		j: 0
 		while [j < 3] [
 			p: as float-ptr! vvalue
@@ -262,12 +262,14 @@ kMeans: does [
 	rcvKMCompute points centroid			;Lloyd K-means clustering
 	showKMeans points centroid 				;draw clustering
 	t2: now/time/precise					;elapsed time
-	t: rcvElapsed t1 t2
+	t: t2 - t1					
+	t:  round (third t * 1000) 0.01
 	f3/text: rejoin ["Rendered in: " t " ms"]
 	t1: now/time/precise 					;get time
 	kMap
 	t2: now/time/precise					;elapsed time
-	t: rcvElapsed t1 t2
+	t: t2 - t1					
+	t:  round (third t * 1000) 0.01
 	f4/text: rejoin ["Rendered in: " t " ms"]
 ]
 

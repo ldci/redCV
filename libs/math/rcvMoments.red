@@ -17,6 +17,7 @@ Red [
 
 
 ; requires rcvMatrix.red
+;#include %../matrix/rcvMatrix.red
 
 ;Returns spatial and central moment of the matrix
 
@@ -24,12 +25,12 @@ Red [
 
 rcvGetMatSpatialMoment: routine [
 "Returns the spatial moment of the mat"
-	mat  		[vector!]
-	mSize		[pair!]
+	mx  		[object!]
     p			[float!]	;p - the order of the moment
     q			[float!]	;q - the repetition of the moment
     return:		[float!]
     /local 	
+    vec			[red-vector!]
     mvalue		[byte-ptr!] 		
     moment		[float!]
     xf 			[float!]
@@ -41,10 +42,11 @@ rcvGetMatSpatialMoment: routine [
     width       [integer!]
     height      [integer!]
 ][
-	width: 	mSize/x
-	height: mSize/y
-	mvalue: vector/rs-head mat
-    unit: rcvGetMatBitSize mat
+	width: 	mat/get-cols mx
+	height: mat/get-rows mx
+	vec: mat/get-data mx
+	unit: mat/get-unit mx
+	mvalue: vector/rs-head vec
     x: 0
     y: 0
     xf: 0.0
@@ -65,14 +67,15 @@ rcvGetMatSpatialMoment: routine [
     moment
 ]
 
+;--a revoir 
 rcvGetMatCentralMoment: routine [
 "Returns the central moment of the mat"
-	mat  		[vector!]
-	mSize		[pair!]
+	mx  		[object!]
     p			[float!]	;p - the order of the moment
     q			[float!]	;q - the repetition of the moment
     return:		[float!]
     /local 
+    vec			[red-vector!]
     centroid	[red-pair!]	
     moment		[float!]
     x			[integer!] 
@@ -85,15 +88,16 @@ rcvGetMatCentralMoment: routine [
     width       [integer!]
     height		[integer!]
 ][
-	width: 	mSize/x
-	height: mSize/y
-	mvalue: vector/rs-head mat
-    unit: rcvGetMatBitSize mat
+	width: 	mat/get-cols mx
+	height: mat/get-rows mx
+	unit: 	mat/get-unit mx
+	vec: 	mat/get-data mx
+	mvalue: vector/rs-head vec
     y: 0
     xf: 0.0
     xf: 0.0
     moment: 0.0
-    centroid: rcvGetMatCentroid mat mSize
+    centroid: rcvGetMatCentroid mx
     while [y < height] [
     	x: 0
        	while [x < width][
@@ -113,13 +117,12 @@ rcvGetMatCentralMoment: routine [
 
 rcvGetNormalizedCentralMoment: function [
 "Return the scale invariant moment of the image"
-	mat  			[vector!]
-	matSize 		[pair!]
+	mx  			[object!]
     p				[float!]
     q				[float!]
 ] [
-	moment1: rcvGetMatCentralMoment mat matSize p q 
-	moment2: rcvGetMatCentralMoment mat matSize 0.0 0.0
+	moment1: rcvGetMatCentralMoment mx  p q 
+	moment2: rcvGetMatCentralMoment mx  0.0 0.0
 	exponent: p + q / 2.0 + 1.0  
 	m00: power moment2 exponent
 	moment1 / m00
@@ -128,17 +131,17 @@ rcvGetNormalizedCentralMoment: function [
 
 rcvGetMatHuMoments: function [
 "Returns 7 Hu moments of the image"
-	mat  			[vector!]
-	matSize 		[pair!]
+	mat  			[object!]
+	return:			[block!]
 ][
 	;where ηi,j are normalized central moments of 2-nd and 3-rd orders.
-	n20: rcvGetNormalizedCentralMoment mat matSize 2.0 0.0
-	n02: rcvGetNormalizedCentralMoment mat matSize 0.0 2.0
-	n11: rcvGetNormalizedCentralMoment mat matSize 1.0 1.0
-	n12: rcvGetNormalizedCentralMoment mat matSize 1.0 2.0
-	n21: rcvGetNormalizedCentralMoment mat matSize 2.0 1.0
-	n30: rcvGetNormalizedCentralMoment mat matSize 3.0 0.0
-	n03: rcvGetNormalizedCentralMoment mat matSize 0.0 3.0
+	n20: rcvGetNormalizedCentralMoment mx 2.0 0.0
+	n02: rcvGetNormalizedCentralMoment mx 0.0 2.0
+	n11: rcvGetNormalizedCentralMoment mx 1.0 1.0
+	n12: rcvGetNormalizedCentralMoment mx 1.0 2.0
+	n21: rcvGetNormalizedCentralMoment mx 2.0 1.0
+	n30: rcvGetNormalizedCentralMoment mx 3.0 0.0
+	n03: rcvGetNormalizedCentralMoment mx 0.0 3.0
 
 	{from OpenCV
 	h1=η20+η02

@@ -17,6 +17,7 @@ dst:  rcvCreateImage img1/size
 shape: 1
 knlSize: 3x3
 knl: rcvCreateStructuringElement/cross knlSize
+
 it: 0
 		 
 loadImage: does [
@@ -69,7 +70,7 @@ view win: layout [
 			select 1	
 			on-change [knlSize: to pair! face/text]	
 		sl: slider 100 [
-			it: it: it + 1
+			it: it + 1
 			iter/text: form it
 			rcvMMean clone dst knlSize knl 
 			rcvCopyImage dst clone

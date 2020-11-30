@@ -14,7 +14,7 @@ bitSize: 32
 
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
-mat:  rcvCreateMat 'integer! bitSize img1/size
+mat:  matrix/init 2 bitSize isize
 
 loadImage: does [
 	canvas1/image/rgb: black
@@ -29,11 +29,11 @@ loadImage: does [
 ]
 
 convert: does [
-	mat:  rcvCreateMat 'integer! bitSize img1/size
 	f/text: rejoin [form bitSize "-bit"]
-	rcvImage2Mat img1 mat 		; Converts image to 1 Channel matrix [0..255] 
-	rcvMat2Image mat img2 		; Converts matrix to red image
-	canvas2/image: img2			; Shows converted image
+	mat:  matrix/init 2 bitSize img1/size
+	rcvImage2Mat img1 mat	; Converts image to 1 Channel matrix [0..255] 
+	rcvMat2Image mat img2	; Converts matrix to red image
+	canvas2/image: img2		; Shows converted image
 ]
 
 ; ***************** Test Program ****************************

@@ -8,9 +8,9 @@ Red [
 
 ; required libs
 #include %../../libs/core/rcvCore.red
-#include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
-#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvConvolutionImg.red
+#include %../../libs/imgproc/rcvGaussian.red
+#include %../../libs/imgproc/rcvImgEffect.red
 
 margins: 10x10
 iSize: 	512x512
@@ -33,7 +33,7 @@ loadImage: does [
 		img1: rcvLoadImage tmp
 		dst: rcvResizeImage img1 iSize ; force image in 512x512
 		rot: 0.0
-		drawBlk: rcvTranslateImage 0.50 factor dst
+		drawBlk: rcvTranslateImage 0.5 factor dst
 		canvas/draw: drawBlk
 	]
 ]

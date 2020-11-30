@@ -8,7 +8,6 @@ Red [
 ;required libs
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
 #include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
@@ -28,7 +27,7 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
-		mat: rcvCreateMat 'integer! 32 img1/size
+		mat: matrix/init 2 32 img1/size	;--32-bit matrix
 		rcvImage2Mat img1 mat ; -> Grayscale image
 		rcvMat2Image mat img1
 		canvas1/image: img1
@@ -42,9 +41,9 @@ loadImage: does [
 
 processMat: does [
 	if isFile[
-		rcvImage2Mat img1 mat
-		rcvContrastAffine mat p
-		rcvMat2Image mat img2
+		rcvImage2Mat img1 mat		;--image to mat
+		rcvContrastAffine mat p		;--process mat
+		rcvMat2Image mat img2		;--mat to image
 		canvas2/image: img2
 	]
 ]

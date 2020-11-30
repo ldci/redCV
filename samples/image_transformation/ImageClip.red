@@ -7,9 +7,9 @@ Red [
 
 ; required libs
 #include %../../libs/core/rcvCore.red
-#include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
-#include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvConvolutionImg.red
+#include %../../libs/imgproc/rcvGaussian.red
+#include %../../libs/imgproc/rcvImgEffect.red
 
 margins: 10x10
 winBorder: 10x50
@@ -42,7 +42,7 @@ loadImage: does [
 
 ; ***************** Test Program ****************************
 view/tight [
-		title "Clip Tests"
+		title "Clip Test"
 		style rect: base 255.255.255.240 202x202 loose draw []
 		origin margins space margins
 		button 90 "Load Image"		[loadImage]

@@ -40,7 +40,7 @@ loadImage: does [
 		dst:  rcvCloneImage cImg
 		bb/image: img1
 		dirc: 3
-		rcvKirsch cImg dst iSize dirc op
+		rcvKirsch cImg dst dirc op
 		canvas/image: dst
 		r1/data: false
 		r2/data: false
@@ -70,7 +70,7 @@ view win: layout [
 					either cb/data  [cImg: rcvCloneImage gray]
 					[cImg: rcvCloneImage img1]
 					dst:  rcvCloneImage cImg
-					if isFile [rcvKirsch cImg dst iSize dirc op]
+					if isFile [rcvKirsch cImg dst dirc op]
 					canvas/image: dst
 					r1/data: false
 					r2/data: false
@@ -79,15 +79,15 @@ view win: layout [
 					r5/data: false
 		]
 		cb1: check "Inverse Kernel"	[either face/data [op: 2] [op: 1]
-											if isFile [rcvKirsch cImg dst iSize dirc op]]
+											if isFile [rcvKirsch cImg dst dirc op]]
 		return
 		
 		text middle 100x20 "Kirsch Detection"
-		r1: radio "Horizontal" 	[dirc: 1 if isFile [rcvKirsch cImg dst iSize dirc op]]
-		r2: radio "Vertical" 	[dirc: 2 if isFile [rcvKirsch cImg dst iSize dirc op]]	
-		r3:	radio 50 "Both" 	[dirc: 3 if isFile [rcvKirsch cImg dst iSize dirc op]]
-		r4:	radio "Magnitude" 	[dirc: 4 if isFile [rcvKirsch cImg dst iSize dirc op]]
-		r5:	radio 60 "Angle" 	[dirc: 5 if isFile [rcvKirsch cImg dst iSize dirc op]]
+		r1: radio "Horizontal" 	[dirc: 1 if isFile [rcvKirsch cImg dst  dirc op]]
+		r2: radio "Vertical" 	[dirc: 2 if isFile [rcvKirsch cImg dst  dirc op]]	
+		r3:	radio 50 "Both" 	[dirc: 3 if isFile [rcvKirsch cImg dst  dirc op]]
+		r4:	radio "Magnitude" 	[dirc: 4 if isFile [rcvKirsch cImg dst  dirc op]]
+		r5:	radio 60 "Angle" 	[dirc: 5 if isFile [rcvKirsch cImg dst  dirc op]]
 		return
 		canvas: base defSize dst	
 		do [r3/data: true]

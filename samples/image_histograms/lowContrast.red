@@ -8,7 +8,6 @@ Red [
 ;required libs
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
 
 margins: 5x5
 msize: 256x256
@@ -26,7 +25,7 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
-		mat: rcvCreateMat 'integer! 32 img1/size
+		mat: matrix/init 2 32 img1/size	;--32-bit matrix
 		rcvImage2Mat img1 mat ; -> Grayscale image
 		rcvMat2Image mat img1
 		rcvMat2Image mat img2
@@ -45,7 +44,7 @@ view win: layout [
 						v/data: form f 
 						if isFile [
 							rcvImage2Mat img1 mat 
-							mat / f 
+							mat/data / f 
 							rcvMat2Image mat img2
 							canvas2/image: img2
 						]

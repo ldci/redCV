@@ -8,7 +8,6 @@ Red [
 ;required libs
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
 #include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
@@ -16,13 +15,13 @@ msize: 256x256
 img1: make image! reduce [msize black]
 img2: make image! reduce [msize black]
 img3: make image! reduce [msize black]
-mat: rcvCreateMat 'integer! 8 img1/size
+mat: matrix/init 2 32 img1/size	;--32-bit matrix
 grayLevels: 128
 
 processMat: does [
 	rcvImage2Mat img1 mat
 	rcvHistogramEqualization mat grayLevels
-	mat * 255
+	mat/data * 25
 	rcvMat2Image mat img3
 	canvas3/image: img3
 ]
@@ -37,7 +36,7 @@ loadImage: does [
 		img2: rcvCreateImage  img1/size
 		img3: rcvCreateImage  img1/size
 		img4: rcvCreateImage  img1/size
-		mat: rcvCreateMat 'integer! 32 img1/size
+		mat: matrix/init 2 32 img1/size	;--32-bit matrix
 		rcvImage2Mat img1 mat ; -> Grayscale image
 		rcvMat2Image mat img2
 		canvas1/image: img1
@@ -49,7 +48,7 @@ view win: layout [
 		title "Histogram Equalization"
 		origin margins space margins
 		button 100 "Load Image" 	[loadImage processMat]
-		sl: slider 512 				[grayLevels: to integer! sl/data * 255 
+		sl: slider 512 				[grayLevels: to integer! sl/data * 255
 									glTxt/data: form grayLevels processMat
 		]
 		glTxt: field 40 "32" 

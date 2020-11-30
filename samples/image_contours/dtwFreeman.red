@@ -14,17 +14,19 @@ Red [
 bitSize: 32
 matSize: 256x256
 matSize1: 256x256
-matSize&: 256x256
+matSize2: 256x256
+
 
 img1: rcvCreateImage 256x256
 img2: rcvCreateImage 256x256
 
-mat1:  		rcvCreateMat 'integer! bitSize matSize
-bmat1:  	rcvCreateMat 'integer! bitSize matSize
-mat2:  		rcvCreateMat 'integer! bitSize matSize
-bmat2:  	rcvCreateMat 'integer! bitSize matSize
-visited1: 	rcvCreateMat 'integer! bitSize matSize
-visited2: 	rcvCreateMat 'integer! bitSize matSize
+mat1:  		matrix/init/value 2 bitSize matSize 0
+bmat1:  	matrix/init/value 2 bitSize matSize 0
+mat2:  		matrix/init/value 2 bitSize matSize 0
+bmat2:  	matrix/init/value 2 bitSize matSize 0
+visited1: 	matrix/init/value 2 bitSize matSize 0
+visited2: 	matrix/init/value 2 bitSize matSize 0
+
 border1: copy []
 border2: copy []
 isLoad1: false
@@ -47,17 +49,15 @@ loadImage1: does [
 	isLoad1: false
 	tmp: request-file
 	if not none? tmp [
-		img1: 	rcvLoadImage tmp
-		img11: 	rcvCreateImage img1/size
-		clone1: rcvCreateImage img1/size
-		matSize1: img1/size
-		mat1:  	rcvCreateMat 'integer! bitSize matSize1
-		bmat1:  rcvCreateMat 'integer! bitSize matSize1
-		;visited1: rcvCreateMat 'integer! bitSize matSize1
-		;rcvThreshold/binary img1 img11 127 255
+		img1: 		rcvLoadImage tmp
+		img11: 		rcvCreateImage img1/size
+		clone1: 	rcvCreateImage img1/size
+		matSize1: 	img1/size
+		mat1:  		matrix/init/value 2 bitSize matSize1 0
+		visited1: 	matrix/init/value 2 bitSize matSize1 0
 		rcv2WB img1 img11 
 		rcvImage2Mat img11 mat1 		; process image to a bytes matrix [0..255] 
-		rcvMakeBinaryMat mat1 bmat1	; processImages to a binary matrix [0..1]
+		bmat1: rcvMakeBinaryMat mat1 	; processImages to a binary matrix [0..1]
 		canvas1/image: img11
 		f1/text: form img1/size
 		isLoad1: true
@@ -76,17 +76,15 @@ loadImage2: does [
 	isLoad2: false
 	tmp: request-file
 	if not none? tmp [
-		img2: rcvLoadImage tmp
-		img21: rcvCreateImage img2/size
-		clone2: rcvCreateImage img2/size
-		matSize2: img2/size
-		mat2:  rcvCreateMat 'integer! bitSize matSize2
-		bmat2:  rcvCreateMat 'integer! bitSize matSize2 
-		;visited2: rcvCreateMat 'integer! bitSize matSize2
+		img2: 		rcvLoadImage tmp
+		img21: 		rcvCreateImage img2/size
+		clone2: 	rcvCreateImage img2/size
+		matSize2: 	img2/size
+		mat2:  		matrix/init/value 2 bitSize matSize2 0
+		visited2: 	matrix/init/value 2 bitSize matSize2 0
 		rcv2WB img2 img21
-		;rcvThreshold/binary img2 img21 127 255
-		rcvImage2Mat img21 mat2 	; process image to a bytes matrix [0..255] 
-		rcvMakeBinaryMat mat2 bmat2	; processImages to a binary matrix [0..1]
+		rcvImage2Mat img21 mat2 		; process image to a bytes matrix [0..255] 
+		bmat2: rcvMakeBinaryMat mat2 	; processImages to a binary matrix [0..1]
 		canvas2/image: img21
 		f2/text: form img2/size
 		isLoad2: true
@@ -98,9 +96,8 @@ getCodeChain1: does [
 	clear cc4/text
 	s: copy ""
 	border1: copy []
-	visited1: rcvCreateMat 'integer! bitSize matSize1
-	rcvMatGetBorder bmat1 matSize1 fgVal border1
-	foreach p border1 [rcvSetInt2D visited1 matSize1 p 255]
+	rcvMatGetBorder bmat1 fgVal border1
+	foreach p border1 [rcvSetContourValue visited1 p 255]
 	
 	rcvCopyImage img11 clone1
 	plot1: compose [line-width 1 pen green]
@@ -111,8 +108,8 @@ getCodeChain1: does [
 	p: first border1
 	i: 1
 	while [i < count] [
-		d: rcvMatGetChainCode visited1 matSize1 p 255
-		rcvSetInt2D visited1 matSize1 p 0 ; pixel is visited
+		d: rcvMatGetChainCode visited1 p 255
+		rcvSetContourValue visited1 p 0 ; pixel is visited
 		if d >= 0 [append s form d]; only external pixels -1: internal
 			switch d [
 				0	[p/x: p/x + 1 ]				; east
@@ -136,9 +133,9 @@ getCodeChain2: does [
 	clear cc4/text
 	s: copy ""
 	border2: copy []
-	visited2: rcvCreateMat 'integer! bitSize matSize2
-	rcvMatGetBorder bmat2 matSize2 fgVal border2
-	foreach p border2 [rcvSetInt2D visited2 matSize2 p 255]
+	visited2: matrix/init/value 2 bitSize matSize2 0
+	rcvMatGetBorder bmat2 fgVal border2
+	foreach p border2 [rcvSetContourValue visited2 p 255]
 	rcvCopyImage img21 clone2
 	plot2: compose [line-width 1 pen red]
 	foreach p border2 [append append append plot2 'box (p) (p + 1)]
@@ -147,8 +144,8 @@ getCodeChain2: does [
 	p: first border2
 	i: 1
 	while [i < count] [
-		d: rcvMatGetChainCode visited2 matSize2 p 255
-		rcvSetInt2D visited2 matSize2 p 0 ; pixel is visited
+		d: rcvMatGetChainCode visited2  p 255
+		rcvSetContourValue visited2 p 0 ; pixel is visited
 		if d >= 0 [append s form d]; only external pixels -1: internal
 			switch d [
 				0	[p/x: p/x + 1 ]				; east
@@ -176,10 +173,10 @@ calculateDTW: does [
 	getCodeChain2
 	clear cc3/text
 	clear cc4/text
+	matsize: as-pair (length? x) (length? y)
 	
-	matsize: (length? x) * (length? y)
-	dMatrix: make vector! reduce ['float! 64 matSize]
-	cMatrix: make vector! reduce ['float! 64 matSize]
+	dMatrix: matrix/init 3 64 matsize
+	cMatrix: matrix/init 3 64 matsize
 	xPath: copy []
 	rcvDTWDistances x y	dMatrix
 	rcvDTWCosts x y dMatrix cMatrix
@@ -189,23 +186,23 @@ calculateDTW: does [
 	append fDTW/text form dtw
 	
 	; distance map
-	img: rcvCreateImage as-pair (length? x) (length? y)
-	mat:  make vector! [integer! 32 0]
-	foreach v dMatrix [append mat to-integer v]
-	mx:  rcvMaxMat mat
-	mat * (255 / mx)
+	img: rcvCreateImage matsize
+	mat: matrix/create 2 32 matsize []
+	foreach v dMatrix/data [append mat/data to-integer v]
+	mx:  matrix/maxi mat
+	mat/data * (255 / mx)
 	rcvMat2Image mat img
 	canvas3/image: img 
-	cc3/text: copy form mat
+	cc3/text: copy form mat/data
 	
 	;optimum warping path
 	
-	img: rcvCreateImage as-pair (length? x) + 1 (length? y) + 1
-	{mat:  make vector! [integer! 32 0]
-	foreach v cMatrix [append mat to-integer v]
-	mx:  rcvMaxMat mat
-	fc:  complement (mx / 255)
-	mat / fc
+	img: rcvCreateImage matsize + 1x1
+	{mat:  matrix/create 2 32 matsize []
+	foreach v cMatrix/data [append mat/data to-integer v]
+	mx:  matrix/maxi mat
+	fc:  complement to-integer (mx / 255)
+	mat/data / fc
 	rcvMat2Image mat img}
 	
 	plot: compose [line-width 2 pen white line]

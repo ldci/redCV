@@ -10,6 +10,8 @@ Red [
 	}
 ]
 
+#include %../matrix/rcvMatrix.red
+
 ;***************** STATISTICAL ROUTINES ON IMAGE ***********************
 rcvCount: routine [
 "Returns the number of non zero values in image"
@@ -451,25 +453,25 @@ rcvSortImagebyY: routine [
 
 rcvCountMat: routine [
 "Returns number of non zero values in matrix"
-	mat 	[vector!] 
+	mObj 	[object!] 
 	return: [integer!]
 	/local
+	vec		[red-vector!]
 	svalue 	[byte-ptr!]
 	tail	[byte-ptr!]
-	s		[series!]
 	f		[float!]
 	int 	[integer!] 
 	unit	[integer!]  
 	n		[integer!] 
 	
 ] [
-    svalue: vector/rs-head mat ; get pointer address of the matrice
-    tail: vector/rs-tail mat
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
+	vec: mat/get-data mObj
+	unit: mat/get-unit mObj
+    svalue: vector/rs-head vec ; get pointer address of the matrice
+    tail: vector/rs-tail vec
 	n: 0
 	;integer matrix
-	if unit <= 4 [
+	if  any [vec/type = TYPE_INTEGER vec/type = TYPE_CHAR][
 		while [svalue < tail][
 			int: vector/get-value-int as int-ptr! svalue unit
 			if (int > 0) [n: n + 1] 
@@ -477,36 +479,36 @@ rcvCountMat: routine [
 		]
 	]
 	;float matrix
-	if unit > 4 [
+	if vec/type = TYPE_FLOAT [
 		while [svalue < tail][
 			f: vector/get-value-float svalue unit
-			if (int > 0) [n: n + 1] 
+			if (f > 0.0) [n: n + 1] 
 			svalue: svalue + unit 
 		]
 	]
 	n
 ]
 
+
+;--we can also use matrix/sigma mObj (a little bit slower)  
 rcvSumMat: routine [
 "Returns sum value of matrix as a float"
-	mat 	[vector!] 
+	mObj 	[object!] 
 	return: [float!]
 	/local
-	svalue 	[byte-ptr!]
-	tail	[byte-ptr!]
-	s		[series!]
-	f		[float!]
-	sum 	[float!] 
-	int		[integer!]   
-	unit	[integer!]
+	vec			[red-vector!]
+	svalue 		[byte-ptr!]
+	tail		[byte-ptr!]
+	f sum		[float!] 
+	int unit	[integer!]  
 ] [
-    svalue: vector/rs-head mat ; get pointer address of the matrice
-    tail: vector/rs-tail mat
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
+	vec: mat/get-data mObj
+	unit: mat/get-unit mObj
+    svalue: vector/rs-head vec ; get pointer address of the matrice
+    tail: vector/rs-tail vec
 	sum: 0.0
 	;integer matrix
-	if unit <= 4 [
+	if  any [vec/type = TYPE_INTEGER vec/type = TYPE_CHAR] [
 		while [svalue < tail][
 			int: vector/get-value-int as int-ptr! svalue unit
 			sum: sum + as float! int
@@ -514,7 +516,7 @@ rcvSumMat: routine [
 		]
 	]
 	;float matrix
-	if unit > 4 [
+	if vec/type = TYPE_FLOAT [
 		while [svalue < tail][
 			f: vector/get-value-float svalue unit
 			sum: sum + f
@@ -524,120 +526,109 @@ rcvSumMat: routine [
 	sum
 ]
 
+;--we can also use matrix/mean mObj
 rcvMeanMat: routine [
 "Returns mean value of matrix as a float"
-	mat 	[vector!] 
-	return: [float!]
+	mObj 		[object!] 
+	return: 	[float!]
 	/local
-	int svalue  tail unit
-	s sum f
-	n
+	vec			[red-vector!]
+	svalue 		[byte-ptr!]
+	tail		[byte-ptr!]
+	int unit n	[integer!] 
+	sum f		[float!]
 ] [
-    svalue: vector/rs-head mat ; get pointer address of the matrice
-    tail: vector/rs-tail mat
-    n: vector/rs-length? mat
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
+	vec: mat/get-data mObj
+	unit: mat/get-unit mObj
+    svalue: vector/rs-head vec ; get pointer address of the matrice
+    tail: vector/rs-tail vec
+    n: vector/rs-length? vec
 	sum: 0.0
 	;integer matrix
-	if unit <= 4 [
+	if  any [vec/type = TYPE_INTEGER vec/type = TYPE_CHAR][
 		while [svalue < tail][
 			int: vector/get-value-int as int-ptr! svalue unit
-			sum: sum + as float! int
+			sum: sum + (as float! int)
 			svalue: svalue + unit 
 		]
 	]
 	;float matrix
-	if unit > 4 [
+	if vec/type = TYPE_FLOAT [
 		while [svalue < tail][
 			f: vector/get-value-float svalue unit
 			sum: sum + f
 			svalue: svalue + unit 
 		]
 	]
-	sum / n
+	sum / (as float! n)			
 ]
 
 rcvStdMat: routine [
 "Returns standard deviation value of matrix as a float"
-	mat 	[vector!] 
+	mObj 	[object!] 
 	return: [float!]
 	/local
-	svalue 	[byte-ptr!] 
-	tail 	[byte-ptr!]
-	s		[series!]
-	n		[integer!]
-	int		[integer!]
-	unit	[integer!]
-	sum 	[integer!]
-	sum2	[integer!]
-	e 		[integer!]
-	m		[integer!]
-	mf		[float!]
-	f 		[float!]
-	ef		[float!]
-	sumf 	[float!]
-	sumf2	[float!]
-	
-] [
-    svalue: vector/rs-head mat ; get pointer address of the matrice
-    tail: vector/rs-tail mat
-    n: vector/rs-length? mat
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
-	sum: 0 
-	sum2: 0
+	vec				[red-vector!]
+	svalue tail 	[byte-ptr!]
+	n int unit		[integer!]
+	sum sum2 e m f 	[float!]
+	ef				[float!]
+][
+	vec:  mat/get-data mObj
+	unit: mat/get-unit mObj
+    svalue: vector/rs-head vec ; get pointer address of the matrice
+    tail: vector/rs-tail vec
+    n: vector/rs-length? vec
+	sum: 0.0 
+	sum2: 0.0
 	; integer matrix
-	if unit <= 4 [
+	if  any [vec/type = TYPE_INTEGER vec/type = TYPE_CHAR][
 		; mean
 		while [svalue < tail][
 			int: vector/get-value-int as int-ptr! svalue unit
-			sum: sum + int
+			sum: sum + (as float! int)
 			svalue: svalue + unit 
 		]
-		m: sum / n
-		svalue: vector/rs-head mat 
+		m: sum / (as float! n)
+		svalue: vector/rs-head vec 
 		while [svalue < tail][
 			int: vector/get-value-int as int-ptr! svalue unit
-			e: int - m
+			e: (as float! int) - m
 			sum2: sum + (e * e)
 			svalue: svalue + unit 
 		]
-		f: sqrt as float! (sum2 / (n - 1))	
+		n: n - 1
+		f: sqrt (sum2 / (as float! n))	
 	]
 	;float matrix
-	sumf: 0.0 
-	sumf2: 0.0
-	if unit > 4 [
+	if vec/type = TYPE_FLOAT [
 		; mean
 		while [svalue < tail][
 			f: vector/get-value-float svalue unit
-			sumf: sumf + f
+			sum: sum + f
 			svalue: svalue + unit 
 		]
-		mf: sumf / n
-		svalue: vector/rs-head mat 
+		m: sum / (as float! n)
+		svalue: vector/rs-head vec 
 		while [svalue < tail][
 			f: vector/get-value-float svalue unit
-			ef: f - mf
-			sumf2: sumf + (ef * ef)
+			ef: f - m
+			sum2: sum + (ef * ef)
 			svalue: svalue + unit 
 		]
-		f: sqrt  (sumf2 / (n - 1))
+		n: n - 1
+		f: sqrt (sum2 / (as float! n))	
 	]
 	f
 ]
 
-
 rcvMaxLocMat: routine [
 "Finds global maximum location in matrix"
-	mat 		[vector!] 
-	matSize 	[pair!] 
+	mObj 		[object!]  
 	return: 	[pair!]
 	/local 
+	vec			[red-vector!]
 	svalue 		[byte-ptr!] 
-	tail		[byte-ptr!]
-	s			[series!]
 	int 		[integer!]
 	unit		[integer!]
 	x 			[integer!]
@@ -646,20 +637,20 @@ rcvMaxLocMat: routine [
 	locmax		[red-pair!]
 		
 ] [
-	svalue: vector/rs-head mat ; get pointer address of the matrice
-    tail: vector/rs-tail mat
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
+	vec:  mat/get-data mObj
+	unit: mat/get-unit mObj
+	svalue: vector/rs-head vec ; get pointer address of the matrice
     maxi: 0
     locmax: pair/make-at stack/push* 0 0
-    y: 0
-    while [y < matSize/y] [	
-    	x: 0
-       	while [x < matSize/x][
-       		either unit <= 4 [int: vector/get-value-int as int-ptr! svalue unit]
-       			[int: as integer! vector/get-value-float svalue unit]
+    y: 1
+    while [y <= mat/get-rows mObj] [	
+    	x: 1
+       	while [x <= mat/get-cols mObj][
+       		either vec/type = TYPE_FLOAT [
+       			int: as integer! vector/get-value-float svalue unit]
+       			[int: vector/get-value-int as int-ptr! svalue unit]
     		if int > maxi [maxi: int locmax/x: x locmax/y: y]
-       		svalue: svalue + 1 
+       		svalue: svalue + unit 
         	x: x + 1
        ]
        y: y + 1
@@ -667,33 +658,34 @@ rcvMaxLocMat: routine [
     as red-pair! stack/set-last as cell! locmax 
 ]
 
-
 rcvMinLocMat: routine [
 "Finds global minimum location in matrix"
-	mat 	[vector!] 
-	matSize [pair!] 
-	return: [pair!]
+	mObj 		[object!] 
+	return: 	[pair!]
 	/local 
-	int svalue s unit
-	w h x y
-	mini locmin
+	vec			[red-vector!]
+	svalue 		[byte-ptr!] 
+	int 		[integer!]
+	unit		[integer!]
+	x y			[integer!]
+	mini 		[integer!]
+	locmin		[red-pair!]
 		
 ] [
-	svalue: vector/rs-head mat ; get pointer address of the matrice
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
-	w: matSize/x
-    h: matSize/y
-    mini: 32767
+	vec:  mat/get-data mObj
+	unit: mat/get-unit mObj
+	svalue: vector/rs-head vec ; get pointer address of the matrice
+    mini: 2147483647
     locmin: pair/make-at stack/push* 0 0
-    y: 0
-    while [y < h] [	
-    	x: 0
-       	while [x < w][
-    		either unit <= 4 [int: vector/get-value-int as int-ptr! svalue unit]
-       						 [int: as integer! vector/get-value-float svalue unit]
+    y: 1
+    while [y <= mat/get-rows mObj] [	
+    	x: 1
+       	while [x <= mat/get-cols mObj][
+    		either vec/type = TYPE_FLOAT [
+       			int: as integer! vector/get-value-float svalue unit]
+       			[int: vector/get-value-int as int-ptr! svalue unit]
     		if int < mini [mini: int locmin/x: x locmin/y: y]
-       		svalue: svalue + 1 
+       		svalue: svalue + unit 
         	x: x + 1
        ]
        y: y + 1
@@ -701,155 +693,7 @@ rcvMinLocMat: routine [
     as red-pair! stack/set-last as cell! locmin
 ]
 
-
-;************** STATISTICAL FUNCTIONS (images or matrices) *********************
-
-rcvCountNonZero: function [
-"Returns number of non zero values in image or matrix"
-	arr [image! vector!]
-][
-	t: type? arr
-	if t = image! 	[n: rcvCount arr]
-	if t = vector!  [n: rcvCountMat arr]
-	n
-]
-
-rcvSum: function [
-"Returns sum value of image or matrix as a block"
-	arr [image! vector!] 
-	/argb
-][
-	t: type? arr
-	if t = image! 	[	v: rcvMeanImg arr
-						a: v >>> 24
-    					r: v and 00FF0000h >> 16 
-    					g: v and FF00h >> 8 
-    					b: v and FFh
-    					sz: arr/size/x * arr/size/y
-    					sa: a * sz
-    					sr: r * sz
-    					sg: g * sz
-    					sb: b * sz
-    					either argb [blk: reduce [sa sr sg sb]] [blk: reduce [sr sg sb]]
-					]
-	if t = vector!  [sum: rcvSumMat arr blk: reduce [sum]]
-	blk
-]
-
-rcvMean: function [
-"Returns mean value of image or matrix as a tuple"
-	arr [image! vector!] 
-	/argb
-][
-	t: type? arr
-	if t = vector!  [m: rcvMeanMat arr tp: make tuple! reduce [m]]
-	if t = image! 	[v: rcvMeanImg arr
-					a: v >>> 24
-    				r: v and 00FF0000h >> 16 
-    				g: v and FF00h >> 8 
-    				b: v and FFh
-   					either argb [tp: make tuple! reduce [a r g b]] [tp: make tuple! reduce [r g b]]
-	]
-	tp
-]
-
-rcvSTD: function [
-"Returns standard deviation value of image or matrix as a tuple"
-	arr [image! vector!] 
-	/argb
-][
-t: type? arr
-	if t = vector!  [m: rcvStdMat arr tp: make tuple! reduce [m]]
-	if t = image! 	[v: rcvStdImg arr
-    				a: v >>> 24
-    				r: v and 00FF0000h >> 16 
-    				g: v and FF00h >> 8 
-    				b: v and FFh
-   					either argb [tp: make tuple! reduce [a r g b]] 
-   					            [tp: make tuple! reduce [r g b]]
-	]
-	tp
-]	
-
-
-rcvMedian: function [
-"Returns median value of image or matrix as a tuple"
-	arr [image! vector!] 
-][
-t: type? arr
-	if t = vector!  [mat: copy arr
-					 sort mat
-					 n: to integer! length? mat
-					 pos: to integer! ((n + 1) / 2)
-					 either odd? n  [pxl: make tuple! reduce [mat/(pos)]] 
-					 				[m1: mat/(pos) m2: mat/(pos + 1) pxl: make tuple! reduce [(m1 + m2) / 2]]
-	]
-	if t = image! 	[img: make image! arr/size
-					 img/rgb: copy sort arr/rgb 
-					 n: length? img
-					 pos: to integer! ((n + 1) / 2)
-					 either odd? n [pxl: img/(pos)] [m1: img/(pos) m2: img/(pos + 1) pxl: (m1 + m2) / 2]
-	]
-	pxl
-]	
-
-rcvMinValue: function [
-"Minimal value in image or matrix as a tuple"
-	arr [image! vector!]
-][
-t: type? arr
-	if t = vector!  [mat: copy arr
-					 sort mat
-					 pxl: make tuple! reduce [mat/1]
-	]
-	if t = image! 	[img: make image! arr/size
-					 img/rgb: copy sort arr/rgb 
-					 pxl: img/1
-	]
-	pxl
-]	
-
-
-rcvMaxValue: function [
-"Maximal value in image or matrix as a tuple"
-	arr [image! vector!] 
-][
-	t: type? arr
-	if t = vector!  [mat: copy arr
-					 sort mat
-					 pxl: make tuple! reduce [last mat]
-	]
-	if t = image! 	[img: make image! arr/size
-					 img/rgb: copy sort arr/rgb 
-					 pxl: last img
-	]
-	pxl
-]	
-
-
-rcvMinLoc: function [
-"Finds global minimum location in array"
-	arr 	[image! vector!] 
-	arrSize [pair!]
-][
-	t: type? arr
-	if t = vector! 	[ret: rcvMinLocMat arr arrSize]
-	if t = image! 	[ret: rcvMinLocImg arr]
-	ret
-]
-
-
-rcvMaxLoc: function [
-"Finds global maximum location in array"
-	arr 	[image! vector!] 
-	arrSize [pair!]
-][
-	t: type? arr
-	if t = vector! 	[ret: rcvMaxLocMat arr arrSize]
-	if t = image! 	[ret: rcvMaxLocImg arr]
-	ret
-]
-
+;************** STATISTICAL FUNCTIONS (images) *********************
 
 rcvRangeImage: function [
 "Range value in Image as a tuple"
@@ -892,5 +736,150 @@ rcvYSortImage: function [
 	b: make vector! src/size/y
 	rcvSortImagebyY src dst b flag
 ]
+
+;************** STATISTICAL FUNCTIONS (images or matrices) *********************
+
+rcvCountNonZero: function [
+"Returns number of non zero values in image or matrix"
+	arr [image! object!]
+][
+	t: type? arr
+	if t = image! 	[n: rcvCount arr]
+	if t = object!  [n: rcvCountMat arr]
+	n
+]
+
+rcvSum: function [
+"Returns sum value of image or matrix as a block"
+	arr [image! object!] 
+	/argb
+][
+	t: type? arr
+	if t = image! 	[	v: rcvMeanImg arr
+						a: v >>> 24
+    					r: v and 00FF0000h >> 16 
+    					g: v and FF00h >> 8 
+    					b: v and FFh
+    					sz: arr/size/x * arr/size/y
+    					sa: a * sz
+    					sr: r * sz
+    					sg: g * sz
+    					sb: b * sz
+    					either argb [blk: reduce [sa sr sg sb]] [blk: reduce [sr sg sb]]
+					]
+	if t = object!  [summ: rcvSumMat arr blk: reduce [summ]]
+	blk
+]
+
+rcvMean: function [
+"Returns mean value of image or matrix as a tuple"
+	arr [image! object!] 
+	/argb
+][
+	t: type? arr
+	if t = object!  [m: rcvMeanMat arr tp: make tuple! reduce [m]]
+	if t = image! 	[v: rcvMeanImg arr
+					a: v >>> 24
+    				r: v and 00FF0000h >> 16 
+    				g: v and FF00h >> 8 
+    				b: v and FFh
+   					either argb [tp: make tuple! reduce [a r g b]] [tp: make tuple! reduce [r g b]]
+	]
+	tp
+]
+
+rcvSTD: function [
+"Returns standard deviation value of image or matrix as a tuple"
+	arr [image! object!] 
+	/argb
+][
+t: type? arr
+	if t = object!  [m: rcvStdMat arr tp: make tuple! reduce [m]]
+	if t = image! 	[v: rcvStdImg arr
+    				a: v >>> 24
+    				r: v and 00FF0000h >> 16 
+    				g: v and FF00h >> 8 
+    				b: v and FFh
+   					either argb [tp: make tuple! reduce [a r g b]] 
+   					            [tp: make tuple! reduce [r g b]]
+	]
+	tp
+]	
+
+
+rcvMedian: function [
+"Returns median value of image (tuple)  or matrix (value)"
+	arr [image! object!] 
+][
+t: type? arr
+	if t = object!  [_arr: copy arr/data
+					 sort _arr
+					 n: to integer! length? _arr
+					 pos: to integer! ((n + 1) / 2)
+					 either odd? n  [pxl: _arr/:pos] 
+					 				[m1: _arr/:pos m2: _arr/(pos + 1) pxl: (m1 + m2) / 2]
+	]
+	if t = image! 	[img: make image! arr/size
+					 img/rgb: copy sort arr/rgb 
+					 n: length? img
+					 pos: to integer! ((n + 1) / 2)
+					 either odd? n [pxl: img/(pos)] [m1: img/(pos) m2: img/(pos + 1) pxl: (m1 + m2) / 2]
+	]
+	pxl
+]	
+
+
+
+
+rcvMinValue: function [
+"Minimal value in image or matrix as a tuple"
+	arr [image! object!]
+][
+t: type? arr
+	if t = object!  [pxl: matrix/mini arr]
+	if t = image! 	[img: make image! arr/size
+					 img/rgb: copy sort arr/rgb 
+					 pxl: img/1
+	]
+	pxl
+]	
+
+
+
+rcvMaxValue: function [
+"Maximal value in image or matrix as a tuple"
+	arr [image! object!] 
+][
+	t: type? arr
+	if t = object!  [pxl: matrix/maxi arr]
+	if t = image! 	[img: make image! arr/size
+					 img/rgb: copy sort arr/rgb 
+					 pxl: last img
+	]
+	pxl
+]	
+
+rcvMinLoc: function [
+"Finds global minimum location in array"
+	arr 	[image! object!] 
+][
+	t: type? arr
+	if t = object! 	[ret: rcvMinLocMat arr]
+	if t = image! 	[ret: rcvMinLocImg arr]
+	ret
+]
+
+rcvMaxLoc: function [
+"Finds global maximum location in array"
+	arr 	[image! object!] 
+][
+	t: type? arr
+	if t = object! 	[ret: rcvMaxLocMat arr]
+	if t = image! 	[ret: rcvMaxLocImg arr]
+	ret
+]
+
+
+
 
 

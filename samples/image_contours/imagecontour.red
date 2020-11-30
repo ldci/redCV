@@ -17,8 +17,8 @@ bitSize: 32
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 img3: rcvCreateImage isize
-mat:  rcvCreateMat 'integer! bitSize img1/size
-bmat:  rcvCreateMat 'integer! bitSize img1/size
+mat:  matrix/init/value 2 bitSize iSize 0
+
 lPix: 0x0
 rPix: 0x0
 uPix: 0x0
@@ -52,11 +52,9 @@ loadImage: does [
 		w: img1/size/x
 		h: img1/size/y
 		canvas1/image: img1
-		matSize: img1/size
-		mat:  rcvCreateMat 'integer! bitSize matSize
-		bmat:  rcvCreateMat 'integer! bitSize matSize
+		matSize: 	img1/size
+		mat:		matrix/init/value 2 bitSize matSize 0
 		rcv2WB img1 img2 
-		;rcvMakeBinaryImage img1 img2 
 		dp/selected: 2
 		fgVal: 1 
 		bgVal: 0
@@ -68,18 +66,18 @@ loadImage: does [
 ]
 
 processImage: does [
-	visited: rcvCreateMat 'integer! bitSize matSize
+	visited: matrix/init/value 2 bitSize matSize 0
 	rcvImage2Mat img2 mat 		; process image to a bytes matrix [0..255] 
 	surface: rcvCountNonZero mat; get shape surface in pixels
 	if fgVal = 0 [surface: matSize/x * matSize/y  - surface]
-	rcvMakeBinaryMat mat bmat	; processImages to a binary matrix [0..1]
+	bmat: rcvMakeBinaryMat mat	; processImages to a binary matrix [0..1]
 	rcvMat2Image mat img2 		; processImages matrix to red image
 	rcvCopyImage img2 clone		;
 	
-	lPix: rcvMatleftPixel bmat matSize fgVal
-	rPix: rcvMatRightPixel bmat matSize fgVal
-	uPix: rcvMatUpPixel bmat matSize fgVal
-	dPix: rcvMatDownPixel bmat matSize fgVal
+	lPix: rcvMatleftPixel bmat fgVal
+	rPix: rcvMatRightPixel bmat fgVal
+	uPix: rcvMatUpPixel bmat fgVal
+	dPix: rcvMatDownPixel bmat fgVal
 	hForm: setHeight dPix uPix  
 	wform: setWidth rPix lPix
 	
@@ -96,7 +94,7 @@ processImage: does [
 	append f6/text " pixels"
 	
 	border: copy []
-	rcvMatGetBorder bmat matSize fgVal border
+	rcvMatGetBorder bmat fgVal border
 	
 	plot: compose [line-width 1 
 		pen green
@@ -112,7 +110,7 @@ processImage: does [
 ]
 
 getCodes: does [
-	foreach p border [rcvSetInt2D visited matSize p 255]
+	foreach p border [rcvSetContourValue visited p 255]
 	rcvMat2Image visited img3
 	canvas3/image: img3
 	count: length? border
@@ -122,8 +120,8 @@ getCodes: does [
 	clear r/text
 	perimeter: 0.0
 	while [i < count] [
-		d: rcvMatGetChainCode visited matSize p 255
-		rcvSetInt2D visited matSize p 0 ; pixel is visited
+		d: rcvMatGetChainCode visited p 255
+		rcvSetContourValue visited  p 0 ; pixel is visited
 		if d >= 0 [append s form d]; only external pixels -1: internal pixels
 		;get the next pixel to process
 		p: rcvGetContours p d

@@ -23,12 +23,12 @@ img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 img3: rcvCreateImage isize
 
-;we need some vectors
-matInt: rcvCreateMat 'integer! 	32 isize	;integer
-matRe: 	rcvCreateMat 'float! 	64 isize	;real
-matIm: 	rcvCreateMat 'float! 	64 isize	;imaginary
-matAm:  rcvCreateMat 'float! 	64 isize	;magnitude
-matLog: rcvCreateMat 'float! 	64 isize	;log scale
+;we need some matrices
+matInt: matrix/init 2 32 isize	;integer
+matRe: 	matrix/init 3 64 isize	;real
+matIm: 	matrix/init 3 64 isize	;imaginary
+matAm:  matrix/init 3 64 isize	;magnitude
+matLog: matrix/init 3 64 isize	;log scale
 
 fscale: 1
 isFile: false
@@ -52,53 +52,33 @@ loadImage: does [
 	]
 ]
 
+processImage: func [
+	imgS	[image!]
+	imgD 	[image!]
+][
+	matIm: 	matrix/init 3 64 isize			; imaginary matrix
+	rcvImage2Mat imgS matInt				; grayscale image to matrix
+	matRe: rcvMatInt2Float matInt 64 1.0	; integer mat to real matrix
+	arrayR: rcvMat2Array matRe 				; array of real
+	arrayI: rcvMat2Array matIm 				; array of imaginary
+	rcvFFT2D arrayR arrayI 1 1				; FFT 
+	vecR: rcvArray2Vector arrayR			; real vector
+	vecI: rcvArray2Vector arrayI			; imaginary vector
+	matAm/data: rcvFFTAmplitude vecR vecI	; FFT amplitude
+	arrayS: rcvMat2Array matAm				; we need an array	for shift	
+	vecC: rcvFFT2DShift arrayS isize		; centered array
+	matAm/data: rcvTransposeArray vecC		; rotated mat
+	matLog: rcvLogMatFloat matAm 255.0		; scale amplitude  by log is better for FFT
+	matInt: rcvMatFloat2Int matLog 32 255.0	; to integer matrix		
+	rcvMat2Image matInt imgD				; to red image
+]
+
 fft: does [
 	t1: now/time/precise
-	;array: rcvImg2Array img1 6
-	matIm * 0.0
-	rcvImage2Mat img1 matInt			; grayscale image to matrix
-	rcvMatInt2Float matInt matRe 255.0	; integer mat to 0..1 float matrix
-	arrayR: rcvMat2Array matRe isize	; array of real
-	arrayI: rcvMat2Array matIm isize	; array of imaginary
-	rcvFFT2D arrayR arrayI 1 fscale		; FFT 
-	matR: rcvArray2Mat arrayR			; real vector
-	matI: rcvArray2Mat arrayI			; imaginary vector
-	mat: rcvFFTAmplitude matR matI		; FFT amplitude
-	arrayS: rcvMat2Array mat isize		; we need an array	for shift	
-	arrayC: rcvFFT2DShift arrayS isize	; centered mat
-	matAm: rcvTransposeArray arrayC		; rotated mat
-	rcvLogMatFloat matAm matLog 		; scale amplitude  by log is better for FFT
-	rcvMatFloat2Int matLog matInt 255.0	; to integer matrix		
-	;rcvMatFloat2Int matAm matInt 255.0
-	
-	rcvMat2Image matInt img2			; to red image
-	canvas2/image: img2					; show FFT image
-	
-	{plot: copy [line-width 0.25 pen yellow line 0x0 128x128 
-		;pen off pen yellow line 128x0 0x128
-	]
-	canvas2/image: draw img2 plot}
-
-	
-	matIm * 0.0
-	rcvImage2Mat img2 matInt			; grayscale image to matrix
-	rcvMatInt2Float matInt matRe 255.0	; integer mat to float mat
-	arrayR: rcvMat2Array matRe isize
-	arrayI: rcvMat2Array matIm isize	; array of imaginary
-	
-	rcvFFT2D arrayR arrayI -1 0			; FFT2D without scaling
-	matR: rcvArray2Mat arrayR			; array to vector matrice
-	matI: rcvArray2Mat arrayI			; array to vector matrice
-	mat: rcvFFTAmplitude matR matI		; FFT amplitude
-	matTmp: rcvMat2Array mat isize		; we need an array	for shift	
-	mat: rcvFFT2DShift matTmp isize		; centered mat
-	matAm: rcvTransposeArray mat		; rotated mat
-	rcvLogMatFloat matAm matLog			; scale amplitude  by log is better
-	rcvMatFloat2Int matLog matInt 255.0 ; to integer matrix 
-	;rcvMatFloat2Int matAm matInt 255.0	
-	
-	rcvMat2Image matInt img3			; to red image: original image from inverse FFT			
-	canvas3/image: img3					; show result image
+	processImage img1 img2					;--From image to FFT image
+	canvas2/image: img2						;--show FFT image
+	processImage img2 img3					;--From FFT to image	
+	canvas3/image: img3						;--show result image
 	t2: now/time/precise
 	sb/text: rejoin ["Processed in " form to-integer (third t2 - t1) * 1000 " ms"]
 ]
@@ -107,11 +87,6 @@ fft: does [
 view win: layout [
 		title "FFT-2D on Image"
 		button "Load" [loadImage]
-		text "Scale" 
-		r1: radio "1/N" true 	[fscale: 1 if isFile [fft]]
-		r2: radio "1/sqrt(N)" 	[fscale: 2 if isFile [fft]]
-		r3: radio "No scale" 	[fscale: 0 if isFile [fft]]
-		pad 535x0
 		button 60 "Quit" [	rcvReleaseImage img
 							rcvReleaseImage img0
 							rcvReleaseImage img1 
@@ -126,7 +101,7 @@ view win: layout [
 		return
 		text "Grayscale Image" 256
 		text "FFT Transform" 512
-		text "FFT Inverse"
+		text "To Red Image"
 		return
 		canvas1: base isize2 img1
 		canvas2: base 512x512 img2

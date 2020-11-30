@@ -32,19 +32,18 @@ loadImage: does [
 		img2: rcvCreateImage img1/size
 		img3: rcvCreateImage img1/size
 		img4: rcvCreateImage img1/size
-		mat1: rcvCreateMat 'integer! bitSize img1/size
-		mat2: rcvCreateMat 'integer! bitSize img1/size
-		mat3: rcvCreateMat 'integer! bitSize img1/size
-		mat4: rcvCreateMat 'integer! bitSize img1/size
-		
+		mat1: matrix/init 2 bitSize img1/size
+		mat2: matrix/init 2 bitSize img1/size
+		mat3: matrix/init 2 bitSize img1/size
+		mat4: matrix/init 2 bitSize img1/size
+		rcvImage2Mat img1 mat1	; Converts to  grayscale image and to 1 Channel matrix [0..255]  
+		rcvRoberts mat1 mat2 1 	; Roberts convolution x
+		rcvRoberts mat1 mat3 2 	; Roberts convolution y
+		rcvRoberts mat1 mat4 3 	; Roberts convolution x and y
+		rcvMat2Image mat2 img2	; from matrix to red image
+		rcvMat2Image mat3 img3	; from matrix to red image
+		rcvMat2Image mat4 img4	; from matrix to red image
 		canvas1/image: img1
-		rcvImage2Mat img1 mat1 								; Converts to  grayscale image and to 1 Channel matrix [0..255]  
-		rcvRoberts mat1 mat2 img1/size 1 1					; Roberts convolution x
-		rcvRoberts mat1 mat3 img1/size 2 1					; Roberts convolution y
-		rcvRoberts mat1 mat4 img1/size 3 1					; Roberts convolution x and y
-		rcvMat2Image mat2 img2								; from matrix to red image
-		rcvMat2Image mat3 img3								; from matrix to red image
-		rcvMat2Image mat4 img4	
 		canvas2/image: img2
 		canvas3/image: img3
 		canvas4/image: img4

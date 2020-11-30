@@ -53,7 +53,7 @@ loadImage: does [
 
 process: does [
 	if isFile [
-		rcvMDIF cImg dst iSize param
+		rcvMDIF cImg dst param
 		canvas/image: dst
 	]
 ]

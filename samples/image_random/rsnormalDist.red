@@ -30,7 +30,7 @@ mean: routine [
 		sum: sum + f
 		head: head + 8
 	]	
-	sum / n
+	sum / (as float! n)
 ]
 
 stddev: routine [
@@ -53,7 +53,7 @@ stddev: routine [
 		sum: sum + (fv * fv)
 		head: head + 8
 	]	
-	sqrt (sum / n)
+	sqrt (sum / (as float! n))
 ]
 
 ;Normal random numbers generator - Marsaglia algorithm.
@@ -81,7 +81,7 @@ generate: routine [
 			y: r / r2 - 1.0
 			rsq: (x * x) + (y * y) 
 		]
-		f: sqrt ((-2.0 * log-2 rsq) / rsq)
+		f: sqrt ((-2.0 * log-e rsq) / rsq)
 		p: as float-ptr! head
 		p/value: (mean + x * f * std)
 		head: head + 8
@@ -141,8 +141,8 @@ printHistogram: routine [
 	while [j < nbins] [
 		idx: headB + (j * unit)
 		p: as int-ptr! idx
-		lbin: (low + j * delta) 
-		hbin: (low + j + 1 * delta)
+		lbin: (low + (as float! j) * delta) 
+		hbin: (low + (as float! (j + 1)) * delta)
 		printf["[%5.2f %5.2f] |" lbin hbin]
 		k: (width * p/value /  maxi)
 		while [k >= 0] [
@@ -150,7 +150,7 @@ printHistogram: routine [
 			k: k - 1
 		]
 		v: as float! p/value * 100
-		v: v / n
+		v: v / (as float! n)
 		printf["  %-.1f%%" v]
 		print lf
 		j: j + 1

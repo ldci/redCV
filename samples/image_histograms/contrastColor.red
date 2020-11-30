@@ -8,7 +8,7 @@ Red [
 ;required libs
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
+;#include %../../libs/tools/rcvTools.red
 #include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
@@ -18,6 +18,7 @@ img2: rcvCreateImage msize
 p: 0%
 isFile: false
 
+bitSize: 32
 loadImage: does [
 	isFile: false
 	canvas1/image: none
@@ -27,10 +28,6 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
-		mat0: rcvCreateMat 'integer! 32 img1/size
-		mat1: rcvCreateMat 'integer! 32 img1/size
-		mat2: rcvCreateMat 'integer! 32 img1/size
-		mat3: rcvCreateMat 'integer! 32 img1/size
 		canvas1/image: img1
 		isFile: true
 		p: 0%
@@ -41,7 +38,11 @@ loadImage: does [
 
 processMat: does [
 	if isFile [
-		rcvSplit2Mat img1 mat0 mat1 mat2 mat3			; split image
+		b: rcvSplit2Mat img1 bitSize		; split image
+		mat0: b/1
+		mat1: b/2
+		mat2: b/3
+		mat3: b/4
 		rcvContrastAffine mat1 p						; R channel
 		rcvContrastAffine mat2 p						; G channel
 		rcvContrastAffine mat3 p						; B channel

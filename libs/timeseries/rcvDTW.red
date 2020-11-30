@@ -3,12 +3,16 @@ Red [
 	Author:  "Francois Jouen"
 	File: 	 %rcvDTW.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2018 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2018-2020 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
 	}
 ]
+
+;#include %../matrix/matrix-as-obj/matrix-obj.red		;--for stand alone test
+;#include %../matrix/matrix-as-obj/routines-obj.red 	;--for stand alone test
+
 
 ;********************* DTW Dynamic Time Warping ****************************
 ; a basic DTW algorithm
@@ -28,21 +32,22 @@ rcvDTWMin: routine [
 	if all [z <= x z <= y] [r: z]
 	r
 ]
-
+;--all mat are float matrices
 rcvDTWDistance: routine [
 	x		[block!]
 	y		[block!]
-	dmat	[vector!]
+	dmat	[object!]
 	op		[integer!]
 	/local
-	xHead yHead	idxx idxy 	;[red-value!]
-	headD idxD				;[byte-ptr!]
-	p						;[float-ptr!]
-	vxi vyi 				;[red-integer!]
-	vxf vyf 				;[red-float!]
-	dist fvx fvy			;[float!]
-	xLength yLength 		;[integer!]
-	i j 					;[integer!]
+	vec						[red-vector!]
+	xHead yHead	idxx idxy 	[red-value!]
+	headD idxD				[byte-ptr!]
+	p						[float-ptr!]
+	vxi vyi 				[red-integer!]
+	vxf vyf 				[red-float!]
+	dist fvx fvy			[float!]
+	xLength yLength 		[integer!]
+	i j 					[integer!]
 ][
 	fvx: 0.0
 	fvy: 0.0
@@ -51,7 +56,8 @@ rcvDTWDistance: routine [
 	yHead: block/rs-head y
 	xLength:  block/rs-length? x
 	yLength:  block/rs-length? y
-	headD: vector/rs-head dMat
+	vec: mat/get-data dmat
+	headD: vector/rs-head vec
 	i: 0
 	while [i < yLength] [
 		j: 0
@@ -80,17 +86,20 @@ rcvDTWDistance: routine [
 rcvDTWRun: routine [
 	w 		[integer!] 
 	h 		[integer!] 
-	dMat 	[vector!] 
-	cMat 	[vector!]
+	dMat 	[object!] 
+	cMat 	[object!]
 	/local
-	headD headC idxD idxC  	; [byte-ptr!]
-	v u						; [float!]
-	v1 v2 v3				; [float!]
-	i j						; [integer!] 
-	p						; [float-ptr!]
+	vecD vecC				[red-vector!]
+	headD headC idxD idxC	[byte-ptr!]
+	v u						[float!]
+	v1 v2 v3				[float!]
+	i j						[integer!] 
+	p						[float-ptr!]
 ][
-	headD: vector/rs-head dMat
-	headC: vector/rs-head cMat
+	vecD: mat/get-data dMat
+	vecC: mat/get-data cMat
+	headD: vector/rs-head vecD
+	headC: vector/rs-head vecC
 	i: 0
 	while [i < h] [
 		j: 0
@@ -138,17 +147,19 @@ rcvDTWRun: routine [
 rcvDTWPath: routine [
 	x 		[block!] 
 	y 		[block!] 
-	cMat	[vector!] 
+	cMat	[object!] 
 	xPath 	[block!]
 	/local
-	i j w					; [integer!]
-	minD v1 v2 v3			; [float!]
-	headC idxC idx1 idx2	; [byte-ptr!]
+	vec						[red-vector!]
+	i j w					[integer!]
+	minD v1 v2 v3			[float!]
+	headC idxC idx1 idx2	[byte-ptr!]
 ][
 	i: (block/rs-length? y) - 1
 	j: (block/rs-length? x) - 1
 	w: block/rs-length? x 
-	headC: vector/rs-head cMat
+	vec: mat/get-data cMat
+	headC: vector/rs-head vec
 	block/rs-clear xPath
 	pair/make-in xPath j i
 	while [all [i > 0 j > 0]] [
@@ -174,10 +185,9 @@ rcvDTWPath: routine [
 	pair/make-in xPath 0 0
 ]
 
-
 ; ************************* Functions ***********************************
 
-rcvDTWDistances: function [x [block!] y [block!] dmat [vector!]
+rcvDTWDistances: function [x [block!] y [block!] dmat [object!]
 "Making a 2d matrix to compute distances between all pairs of x and y series"
 ][
 	t: type? first x
@@ -185,13 +195,13 @@ rcvDTWDistances: function [x [block!] y [block!] dmat [vector!]
 	if t = float! 	[rcvDTWDistance x y dmat 1]
 ]
 
-rcvDTWCosts: function [x [block!] y [block!] dMat [vector!] cMat [vector!]
+rcvDTWCosts: function [x [block!] y [block!] dMat [object!] cMat [object!]
 "Making a 2d matrix to compute minimal distance cost "
 ] [
 	rcvDTWRun length? x length? y dMat cMat
 ]
 
-rcvDTWGetPath: function [x [block!] y [block!] cMat [vector!] xPath [block!]
+rcvDTWGetPath: function [x [block!] y [block!] cMat [object!] xPath [block!]
 "Gets optimal warping path"
 ] [
 	clear xPath
@@ -199,21 +209,24 @@ rcvDTWGetPath: function [x [block!] y [block!] cMat [vector!] xPath [block!]
 	reverse xPath
 ]
 
-rcvDTWGetDTW: function [cMat [vector!] return: [number!]
+rcvDTWGetDTW: function [cMat [object!] return: [number!]
 "Returns DTW value"
 ][
-	last cMat
+	last cMat/data
 ]
 
 rcvDTWCompute: function [x [block!] y [block!] return: [number!]
 "Short-cut to get DTW value if you don't need distance and cost matrices"
 ][
-	dMat: make vector! reduce ['float! 64 (length? x) * (length? y)]
-	cMat: make vector! reduce ['float! 64 (length? x) * (length? y)]
+	dMat: matrix/init/value 3 64 as-pair (length? x) (length? y) 0.0
+	cMat: matrix/init/value 3 64 as-pair (length? x) (length? y) 0.0
 	t: type? first x
 	if t = integer! [rcvDTWDistance x y dmat 0]
 	if t = float! 	[rcvDTWDistance x y dmat 1]
 	rcvDTWRun (length? x) (length? y) dMat cMat
-	last cMat
+	last cMat/data
 ]
+
+
+
 

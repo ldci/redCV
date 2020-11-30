@@ -10,45 +10,37 @@ Red [
 	}
 ]
 
+;--used libraries
+;#include %../core/rcvCore.red ;--for stand alone test
+#include %../matrix/matrix-as-obj/matrix-obj.red
+#include %../matrix/matrix-as-obj/routines-obj.red
+
 ;********************* morphological operators routines ******************************
 
 rcvErode: routine [
 "Erodes image by using structuring element"
-    src  	[image!]
-    dst  	[image!]
-    kSize	[pair!]
-    kernel 	[block!] 
+    src  		[image!]
+    dst  		[image!]
+    kSize		[pair!]
+    kernel 		[block!] 
     /local
-        pix1 	[int-ptr!]
-        pixD 	[int-ptr!]
-        idx	 	[int-ptr!]
-        idxD	[int-ptr!]
-        kBase 	[red-value!]
-		kValue 	[red-value!] 
-		k		[red-integer!]
-        cols	[integer!]
-    	rows	[integer!]
-        handle1 [integer!]
-        handleD [integer!]
-        h 		[integer!]
-        w 		[integer!]
-        x 		[integer!]
-        y 		[integer!]
-        i 		[integer!]
-        j		[integer!]
-        mini	[integer!]
-        imx		[integer!] 
-        imy 	[integer!]
-       	radiusX	[integer!] 
-       	radiusY	[integer!]
+        pixS pixD idx idxD	[int-ptr!]
+        kBase kValue 		[red-value!] 
+		k					[red-integer!]
+        cols rows			[integer!]
+        handleS handleD 	[integer!]
+        h w x y 			[integer!]
+        i j	mini			[integer!]
+        imx imy 			[integer!]
+       	radiusX	radiusY		[integer!]
 ][
-    handle1: 0
+    handleS: 0
     handleD: 0
-    pix1: image/acquire-buffer src :handle1
+    pixS: image/acquire-buffer src :handleS
     pixD: image/acquire-buffer dst :handleD
     cols: kSize/x
     rows: kSize/y
-    idx:  pix1
+    idx:  pixS
     idxD: pixD
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
@@ -68,7 +60,7 @@ rcvErode: routine [
         		while [i < cols][
         			imx: (x + i - radiusX + w) % w
         			imy: (y + j - radiusY + h) % h
-        			idx: pix1 + (imy * w) + imx
+        			idx: pixS + (imy * w) + imx
         			k: as red-integer! kValue
         			if k/value = 1 [
         				if idx/value < mini [mini: idx/value]
@@ -84,7 +76,7 @@ rcvErode: routine [
        ]
        y: y + 1    
     ]
-    image/release-buffer src handle1 no
+    image/release-buffer src handleS no
     image/release-buffer dst handleD yes
 ]
 
@@ -95,34 +87,20 @@ rcvDilate: routine [
     kSize	[pair!]
     kernel 	[block!] 
     /local
-        pix1 	[int-ptr!]
-        pixD 	[int-ptr!]
-        idx	 	[int-ptr!]
-        idxD	[int-ptr!]
-        kBase	[red-value!] 
-		kValue	[red-value!]
-		k		[red-integer!]
-    	cols	[integer!]
-    	rows	[integer!] 
-        handle1 [integer!]
-        handleD [integer!]
-        h 		[integer!]
-        w 		[integer!]
-        x 		[integer!]
-        y 		[integer!]
-        i 		[integer!]
-        j		[integer!]
-        maxi	[integer!]
-      	imx 	[integer!]
-      	imy 	[integer!]
-       	radiusX	[integer!] 
-       	radiusY	[integer!]	
+        pixS pixD idx idxD	[int-ptr!]
+        kBase kValue		[red-value!]
+		k					[red-integer!]
+    	cols rows			[integer!] 
+        handleS handleD 	[integer!]
+        h w x y i j		 	[integer!]
+        maxi imx imy 		[integer!]
+       	radiusX radiusY		[integer!] 
 ][
-    handle1: 0
+    handleS: 0
     handleD: 0
-    pix1: image/acquire-buffer src :handle1
+    pixS: image/acquire-buffer src :handleS
     pixD: image/acquire-buffer dst :handleD
-    idx:  pix1
+    idx:  pixS
     idxD: pixD
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
@@ -144,7 +122,7 @@ rcvDilate: routine [
         		while [i < cols][
         			imx: (x + i - radiusX + w) % w
         			imy: (y + j - radiusY + h) % h
-        			idx: pix1 + (imy * w) + imx
+        			idx: pixS + (imy * w) + imx
         			k: as red-integer! kValue
         			if k/value = 1 [
         				if idx/value >= maxi [maxi: idx/value]
@@ -160,10 +138,9 @@ rcvDilate: routine [
        ]
        y: y + 1 
     ]
-    image/release-buffer src handle1 no
+    image/release-buffer src handleS no
     image/release-buffer dst handleD yes
 ]
-
 
 
 rcvMMean: routine [
@@ -173,40 +150,21 @@ rcvMMean: routine [
     kSize	[pair!]
     kernel 	[block!] 
     /local
-        pix1 	[int-ptr!]
-        pixD 	[int-ptr!]
-        idx	 	[int-ptr!]
-        idxD	[int-ptr!]
-        kBase	[red-value!] 
-		kValue	[red-value!]
-		k		[red-integer!]		 
-        cols	[integer!]
-    	rows	[integer!]
-        handle1	[integer!] 
-        handleD	[integer!] 
-        h 		[integer!]
-        w 		[integer!]
-        x 		[integer!]
-        y 		[integer!]
-        i		[integer!] 
-        j		[integer!]
-        r 		[integer!]
-        g 		[integer!]
-        b		[integer!]
-        sumr 	[integer!]
-        sumg 	[integer!]
-        sumb	[integer!]
-        count	[integer!]
-        imx 	[integer!]
-        imy 	[integer!]
-       	radiusX	[integer!] 
-       	radiusY	[integer!]
+        pixS pixD idx idxD 	[int-ptr!]
+        kBase kValue		[red-value!] 
+		k					[red-integer!]		 
+        cols rows			[integer!]
+        handleS	handleD 	[integer!] 
+        h w x y i j r g b	[integer!]
+        sumr sumg sumb		[integer!]
+        count imx imy		[integer!]
+       	radiusX	radiusY		[integer!] 
 ][
-    handle1: 0
+    handleS: 0
     handleD: 0
-    pix1: image/acquire-buffer src :handle1
+    pixS: image/acquire-buffer src :handleS
     pixD: image/acquire-buffer dst :handleD
-    idx:  pix1
+    idx:  pixS
     idxD: pixD
     w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
@@ -232,7 +190,7 @@ rcvMMean: routine [
         			; OK pixel (-1, -1) will correctly become pixel (w-1, h-1)
         			imx: (x + i - radiusX + w) % w
         			imy: (y + j - radiusY + h) % h
-        			idx: pix1 + (imy * w) + imx ; corrected pixel index
+        			idx: pixS + (imy * w) + imx ; corrected pixel index
         			r: idx/value and FF0000h >> 16 
         			g: idx/value and FF00h >> 8 
        				b: idx/value and FFh 
@@ -257,7 +215,7 @@ rcvMMean: routine [
        ]
        y: y + 1 
     ]
-    image/release-buffer src handle1 no
+    image/release-buffer src handleS no
     image/release-buffer dst handleD yes
 ]
 
@@ -269,15 +227,19 @@ rcvCreateStructuringElement: function [
 	element: copy []
 	cols: kSize/x
 	rows: kSize/y
-  	i: 1
-  	j: 1
+	cx: to-integer cols / 2 
+  	cy: to-integer rows / 2 
+	n: cols * rows
+	repeat i n [append element 0]
+	
   	case [
   		rectangle [
-  			j: 1
-  			while [j <= rows] [
-  				i: 1
-  				while [i <= cols] [
-  					append element 1 
+  			j: 0
+  			while [j < rows] [
+  				i: 0
+  				while [i < cols] [
+  					idx: (j * cols) + i + 1
+  					element/:idx: 1
   					i: i + 1
   				]
   				j: j + 1
@@ -285,16 +247,13 @@ rcvCreateStructuringElement: function [
   		]
   		cross [
   			i: j: 1
-  			while [i <= (rows * cols)] [append element 0 i: i + 1]
-  			cx: cols / 2 
-  			cy: rows / 2 
   			j: 0
   			while [j < rows][
   				i: 0
   				while [i < cols] [
   					idx: (j * cols) + i + 1
-  					if (i = cx) [element/(idx): 1]
-  					if (j = cy) [element/(idx): 1]
+  					if (i = cx) [element/:idx: 1]
+  					if (j = cy) [element/:idx: 1]
   					i: i + 1
   				]
   				j: j + 1
@@ -302,15 +261,12 @@ rcvCreateStructuringElement: function [
   		]
   		vline [
   			i: j: 1
-  			while [i <= (rows * cols)] [append element 0 i: i + 1]
-  			cx: cols / 2 
-  			cy: rows / 2 
   			j: 0
   			while [j < rows][
   				i: 0
   				while [i < cols] [
   					idx: (j * cols) + i + 1
-  					if (i = cx) [element/(idx): 1]
+  					if (i = cx) [element/:idx: 1]
   					i: i + 1
   				]
   				j: j + 1
@@ -318,15 +274,12 @@ rcvCreateStructuringElement: function [
   		]
   		hline [
   			i: j: 1
-  			while [i <= (rows * cols)] [append element 0 i: i + 1]
-  			cx: cols / 2 
-  			cy: rows / 2 
   			j: 0
   			while [j < rows][
   				i: 0
   				while [i < cols] [
   					idx: (j * cols) + i + 1
-  					if (j = cy) [element/(idx): 1]
+  					if (j = cy) [element/:idx: 1]
   					i: i + 1
   				]
   				j: j + 1
@@ -405,16 +358,17 @@ rcvBlackHat: function [
 ; ******************* morphological Operations matrices *************************
 
 ; for integer matrices
-; we don't need matrix lib here
+
 rcvMorphology: routine [
-   	src  	[vector!]
-    dst  	[vector!]
-    mSize	[pair!]
+   	src  	[object!]
+    dst  	[object!]
     cols	[integer!]
     rows	[integer!]
     kernel 	[block!] 
     op		[integer!]
     /local
+    	vecS	[red-vector!]
+    	vecD	[red-vector!]
         svalue 	[byte-ptr!]
         dvalue 	[byte-ptr!]
         idx	 	[byte-ptr!]
@@ -422,7 +376,6 @@ rcvMorphology: routine [
         idxD	[byte-ptr!]
         kBase 	[red-value!]	
 		kValue  [red-value!]
-        s		[series!]
         h 		[integer!]
         w 		[integer!]
         x 		[integer!]
@@ -440,14 +393,15 @@ rcvMorphology: routine [
 		unit	[integer!]
 		v		[integer!]
 ][
-    w: mSize/x
-    h: mSize/y
-    svalue: vector/rs-head src  ; get byte pointer address of the source matrix first value
-	dvalue: vector/rs-head dst	; a byte ptr for destination matrix
+    w: mat/get-rows src
+    h: mat/get-cols src
+    unit: mat/get-unit src
+    vecS: mat/get-data src
+    vecD: mat/get-data dst
+    svalue: vector/rs-head vecS  ; get byte pointer address of the source matrix first value
+	dvalue: vector/rs-head vecD	; a byte ptr for destination matrix
 	kBase:  block/rs-head kernel; get pointer address of the kernel first value
-	s: GET_BUFFER(src)			
-	unit: GET_UNIT(s)			; get mat bit size
-	vector/rs-clear dst 		; clears destination matrix
+	vector/rs-clear vecD 		; clears destination matrix
     idx:  svalue				; address alias
     idx2: svalue				; address alias
     idxD: dvalue				; destination address		
@@ -487,7 +441,7 @@ rcvMorphology: routine [
         		j: j + 1
         	]
        		dValue: idxD + (y * w) + x
-       		vector/rs-append-int dst maxi
+       		vector/rs-append-int vecD maxi
            	x: x + 1
        ]
        y: y + 1 
@@ -497,23 +451,21 @@ rcvMorphology: routine [
 ; ******************* morphological Operations**************************
 rcvErodeMat: function [
 "Erodes matrice by using structuring element"
-	src 	[vector!] 
-	dst 	[vector!] 
-	mSize 	[pair!] 
+	src 	[object!] 
+	dst 	[object!] 
 	kSize 	[pair!] 
 	kernel 	[block!]
 ][
-	rcvMorphology src dst mSize kSize/x kSize/y kernel 2
+	rcvMorphology src dst kSize/x kSize/y kernel 2
 ]
 
 rcvDilateMat: function [
 "Dilates matrice by using structuring element"
-	src 	[vector!] 
-	dst 	[vector!] 
-	mSize 	[pair!] 
+	src 	[object!] 
+	dst 	[object!] 
 	kSize 	[pair!] 
 	kernel 	[block!]
 ][
-	rcvMorphology src dst mSize kSize/x kSize/y kernel 1 
+	rcvMorphology src dst kSize/x kSize/y kernel 1 
 ]
 

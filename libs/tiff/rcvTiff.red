@@ -10,8 +10,6 @@ Red [
 	}
 ]
 
-#include %../../libs/core/rcvCore.red
-#include %../../libs/matrix/rcvMatrix.red
 #include %rcvTiffObject.red ; for Tiff definitions
 
 ; Thanks to Xie Qingtian for bin to integer R/S func
@@ -36,8 +34,8 @@ Red [
 ]
 
 
-
 ;global variables
+tiff:				#{}			; binary file
 tiffValues: 		[]			; block of tags values
 tagList: 			[]			; list of tags for visualization
 IFDOffsetList: 		[]			; list of Image File Directory offsets and number of entries
@@ -45,7 +43,7 @@ bigEndian: 			false 		; by default intel
 cc: 				1			; for data offset computation
 numberOfPages:		1			; 1 image
 imageType: 			"grayscale"	; default grayscale or bi-level 
-
+src:				make image! 5x5
 
 endian: func [str [binary!]
 ][
@@ -406,23 +404,41 @@ rcvReadTiffImageData: func [page [integer!]] [
 ]
 
 
-; Tiff images to Red Image datatype
+; Tiff images to Red Image 
+
+copyImage: routine [
+"Copy source image to destination image"
+    src 	[image!]
+    dst  	[image!]
+    /local
+        pixS pixD 			[int-ptr!]
+        handleS handleD i n [integer!]
+][
+    handleS: 0 handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+    i: 0
+    while [i < n] [
+    	pixD/value: pixS/value
+        pixS: pixS + 1 pixD: pixD + 1
+    	i: i + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
+]
+
 
 ;for 8-bit and 1-channel image (bi-level or grayscale)
 
-rcvTiff2Image: routine [
+tiff2Image: routine [
 "Convert Tiff image to Red image"
 	bin		[binary!]
 	dst		[image!]
 	/local
-	pixD 	[int-ptr!]
-	handle	[integer!]
-	pos		[integer!]
-	i		[integer!]
-	w		[integer!]
-	h		[integer!]
-	x		[integer!]
-	y		[integer!]
+	pixD 		[int-ptr!]
+	handle pos	[integer!]
+	w h x y i	[integer!]
 ][
 	handle: 0
     pixD: image/acquire-buffer dst :handle
@@ -430,7 +446,6 @@ rcvTiff2Image: routine [
     h: IMAGE_HEIGHT(dst/size)
     y: 0
     pos: 0
-    i: 0
     while [y < h][
     	x: 0
     	while [x < w] [
@@ -445,8 +460,8 @@ rcvTiff2Image: routine [
     image/release-buffer dst handle yes
 ]
 
-; for 32-bit image
-rcvBinary2mat: routine [
+; for 32-bit image (not used)
+binary2mat: routine [
 "Read 32-bit Tiff images"
 	binStr 	[binary!]
 	step	[integer!]
@@ -455,10 +470,8 @@ rcvBinary2mat: routine [
 	mat		[red-vector!]
 	pMat	[int-ptr!]
 	s    	[series!]
-	h		[byte-ptr!]
-	t		[byte-ptr!]
-	l		[integer!]
-	int		[integer!]
+	h t		[byte-ptr!]
+	l int	[integer!]
 ][
 	l: (binary/rs-length? binStr) / step
 	h: binary/rs-head binStr
@@ -482,9 +495,8 @@ rcvBinary2mat: routine [
 
 tiff82Red: does [
 	iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
- 	src: rcvCreateImage iSize 
-	switch SamplesPerPixel [
-		;1 [rcvTiff2Image imagedata src] 
+ 	src: make image! iSize 
+	switch SamplesPerPixel [ 
 		1 [tiff2Red 1 imagedata src]	; for bilevel, grayscale, and palette-color images
 		3 [src/rgb:  copy imageData]	; for RGB images		
 		4 [src/argb: copy imageData]	; for ARGB images
@@ -525,6 +537,78 @@ decodeBin: routine [
 	]
 ]
 
+mat2Image: routine [
+	mat		[vector!]
+	dst		[image!]
+	/local
+	pixD 			[int-ptr!]
+	value			[byte-ptr!]
+	handle unit		[integer!]
+	s				[series!]
+	h w x y i	[integer!]
+	
+] [
+	handle: 0
+    pixD: image/acquire-buffer dst :handle
+    w: IMAGE_WIDTH(dst/size) 
+    h: IMAGE_HEIGHT(dst/size) 
+    value: vector/rs-head mat ; get pointer address of the matrice
+    s: GET_BUFFER(mat)
+	unit: GET_UNIT(s)
+	print unit
+	y: 0
+    while [y < h] [
+    	x: 0
+       	while [x < w][
+       		i: vector/get-value-int as int-ptr! value unit; get mat value as integer
+       		if unit = 1 [i: i and FFh] ; for 8-bit values [-127 .. 127]
+       		pixD/value: ((255 << 24) OR (i << 16 ) OR (i << 8) OR i)
+       		value: value + unit
+           	pixD: pixD + 1
+           	x: x + 1
+       ]
+       y: y + 1
+    ]
+    image/release-buffer dst handle yes
+]
+
+convert: routine [
+"General image conversion routine"
+    src [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+        pixS 	[int-ptr!]
+        pixD 	[int-ptr!]
+        handleS	[integer!] 
+        handleD	[integer!] 
+        n i		[integer!] 
+        a r g b	[integer!] 
+        
+][
+    handleS: 0
+    handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+   	i: 0
+    while [i < n] [
+    	a: pixS/value >>> 24
+       	r: pixS/value and 00FF0000h >> 16 
+        g: pixS/value and FF00h >> 8 
+        b: pixS/value and FFh 
+        switch op [
+        	1 [pixD/value: (a << 24) OR (b << 16 ) OR (g << 8) OR r] ;2BGRA
+            2 [pixD/value: (a << 24) OR (r << 16 ) OR (g << 8) OR b] ;2RGBA
+        ]
+        pixS: pixS + 1
+        pixD: pixD + 1
+       i: i + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
+]
+
 
 tiff2Red: func [
 	step	[integer!]
@@ -534,7 +618,7 @@ tiff2Red: func [
  	decodeBin imageData mat step
  	iSize: to-pair compose [(TImage/ImageWidth) (TImage/ImageLength)]
  	src: make image! iSize
- 	rcvMat2Image mat src
+ 	mat2Image mat src
 ]
 
 
@@ -542,15 +626,15 @@ tiff2Red: func [
 ; Show Tiff image
 rcvTiff2RedImage: func [return: [image!]] [
 	switch TImage/BitsPerSample [
-		8  [tiff82Red] 		;  8-bit Image 
+		8  [tiff82Red] 		;  8-bit Image  
 		16 [tiff2Red 2]		;  16-bit Image
 		32 [tiff2Red 4]		;  32-bit Image
 	]
- 	img: rcvCreateImage src/size 
+ 	img: make image! src/size 
  	; test motorola or intel byte order for Tiff image 
  	either bigEndian [ 
- 			either rowsPerStrip = 1 [rcv2RGBA src img] [rcv2BGRA src img]
- 	] [rcvCopyImage src img] 
+ 			either rowsPerStrip = 1 [convert src img 2] [convert src img 1]
+ 	] [copyImage src img] 
  	img 
 ]
 
@@ -586,7 +670,7 @@ rcvLoadTiffImage: func [
 ; basic tiff writing 24-bit color RGB red image
 ; mode 1: intel little endian
 ; mode 2: motorola big endian 
-; actually red only supports little endian
+; actually red only supports little endian for writing
 
 rcvSaveTiffImage: func [
 	redImage 	[image!] 

@@ -32,7 +32,8 @@ view win: layout [
 		cam: camera iSize
 		canvas: base 320x240 white on-time [ 
 					tf/text: form now/time/precise
-					src: cam/image
+					camImg: to-image cam
+					src: rcvResizeImage camImg iSize
 					;rcv2gray/average to-image cam d1
 					rcv2gray/average src d1
 					rcvThreshold/binary d1 d2 threshold 255
@@ -53,7 +54,8 @@ view win: layout [
 					canvas/text: ""
 				][
 					cam/selected: cam-list/selected
-					src: to-image cam; to-image cam
+					camImg: to-image cam
+					src: rcvResizeImage camImg iSize
 					cSize/text: form src/size
 					d1: d2: src
 					canvas/rate: 0:0:0.04;  max 1/25 fps in ms

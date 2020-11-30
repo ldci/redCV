@@ -3,40 +3,47 @@ Red [
 	Author:  "Francois Jouen"
 	File: 	 %rcvHistogram.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016-2019 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016-2020 François Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
 	}
 ]
 
+;#include %../matrix/rcvMatrix.red ;--for stand alone test
 ;***************** HISTOGRAM ROUTINES ON IMAGE ***********************
+
+_minFloat: routine [
+	a 		[float!] 
+	b 		[float!]
+	return: [float!]
+][ 
+		either (a < b) [a] [b]
+]
+
+_maxFloat: routine [
+	a 		[float!] 
+	b 		[float!]
+	return: [float!]
+][ 
+		either (a > b) [a] [b]
+]
 
 rcvHistoImg: routine [
 "Calculates image histogram by channel"
     src  		[image!]		;red image
     op	 		[integer!]		;channel selection (argb or grayscale)
-    return: 	[vector!]		;32-bit matrix
+    return: 	[vector!]		;32-bit integer vector
     /local
-    	histo  	[red-vector!]
-        pix1 	[int-ptr!]
-        tvalue	[int-ptr!]
-        base 	[int-ptr!]	
-        handle1	[integer!] 
-        s		[series!] 
-        h 		[integer!]
-        w 		[integer!]
-        x 		[integer!]
-        y		[integer!]
-        r		[integer!] 
-        g		[integer!] 
-        b		[integer!]
-        a		[integer!]
-        c		[integer!]
+    	histo  				[red-vector!]
+        pix1 tvalue base 	[int-ptr!]	
+        handle1				[integer!] 
+        s					[series!] 
+        h w x y	r g b a c	[integer!]
 ][
     handle1: 0
     pix1: image/acquire-buffer src :handle1
-    histo: vector/make-at stack/push* 256 TYPE_INTEGER 4 ; 0..255 32-bit
+    histo: vector/make-at stack/push* 256 TYPE_INTEGER 4 ;--0..255 32-bit
     tvalue: as int-ptr! vector/rs-head histo
 	base: tvalue
     w: IMAGE_WIDTH(src/size)
@@ -70,81 +77,6 @@ rcvHistoImg: routine [
 ]
 
 ; Uses ARRAY (a block! of vectors!)		
-_oldrcvRGBHistogram: routine [
-"Calculates Array histogram"
-    src  	[image!]	; red image
-    array  	[block!]	; block of vectors
-    /local
-        pix1 [int-ptr!]
-        handle1  h w x y
-        lines 	[integer!]
-		cols	[integer!]
-        bsvalue [red-value!] 
-        bstail	[red-value!]
-        base	[red-value!] 
-        rvalue	[int-ptr!]
-        gvalue	[int-ptr!]
-        bvalue	[int-ptr!]
-        p		[int-ptr!]
-        vectBlk	[red-vector!]
-        r		[integer!] 
-        g 		[integer!]
-        b 		[integer!]
-        a		[integer!]
-        sBins	[integer!]
-        unit	[integer!]
-        
-][
-    handle1: 0
-    pix1: image/acquire-buffer src :handle1
-    bsvalue: block/rs-head array
-    bstail:  block/rs-tail array
-	lines:   block/rs-length? array 	;default 3 for RGB
-	vectBlk: as red-vector! bsvalue
-    cols: vector/rs-length? vectBlk		;number of bins
-    unit: rcvGetMatBitSize vectBlk
-   	sBins: as integer! (ceil (256.0 / cols)) ; for clustering color values
-    y: 1
-    ;get the address of each color vector
-    while [bsvalue < bstail][
-    	vectBlk: as red-vector! bsvalue
-    	if y = 1 [rvalue: as int-ptr! vector/rs-head vectBlk]; R bin values
-    	if y = 2 [gvalue: as int-ptr! vector/rs-head vectBlk]; G bin Values
-    	if y = 3 [bvalue: as int-ptr! vector/rs-head vectBlk]; B bin values
-    	bsvalue: bsvalue + 1
-    	y: y + 1
-    ] 
-    w: IMAGE_WIDTH(src/size)
-    h: IMAGE_HEIGHT(src/size)
-    y: 0
-    while [y < h] [
-    	x: 0
-       	while [x < w][
-       		a: pix1/value >>> 24
-       		r: pix1/value and 00FF0000h >> 16 
-        	g: pix1/value and FF00h >> 8 
-        	b: pix1/value and FFh 
-        	; cluster rgb values according to number of bins
-        	r: r / sBins 	
-        	g: g / sBins 
-        	b: b / sBins
-        	; process r bin and inc bin
-        	p: rvalue + r
-        	p/value: 1 + vector/get-value-int p unit
-        	; process g bin and inc bin
-        	p: gvalue + g
-        	p/value: 1 + vector/get-value-int p unit
-        	; process b bin and inc bin
-        	p: bvalue + b
-        	p/value: 1 + vector/get-value-int p unit
-        	pix1: pix1 + 1
-        	x: x + 1
-       	]
-       	y: y + 1
-    ]
-    image/release-buffer src handle1 no
-]
-
 rcvRGBHistogram: routine [
 "Calculates Array histogram"
     src  	[image!]	; red image
@@ -153,28 +85,14 @@ rcvRGBHistogram: routine [
     /local
         pix1 [int-ptr!]
         pixD 	[int-ptr!]
-        handle1	[integer!]
-        handleD [integer!]
-        h 		[integer!]
-        w 		[integer!]
-        x 		[integer!]
-        y		[integer!]
-        lines 	[integer!]
-		cols	[integer!]
-        bsvalue [red-value!] 
-        bstail	[red-value!]
-        base	[red-value!] 
-        rvalue	[int-ptr!]
-        gvalue	[int-ptr!]
-        bvalue	[int-ptr!]
-        p		[int-ptr!]
-        vectBlk	[red-vector!]
-        r		[integer!] 
-        g 		[integer!]
-        b 		[integer!]
-        a		[integer!]
-        sBins	[integer!]
-        unit	[integer!]
+        handle1	handleD 		[integer!]
+        h w	x y					[integer!]
+        lines cols				[integer!]
+        bsvalue bstail base		[red-value!] 
+        rvalue gvalue bvalue p	[int-ptr!]
+        vectBlk					[red-vector!]
+        r g b a	sBins unit		[integer!] 
+        s						[series!]
         
 ][
     handle1: 0
@@ -186,8 +104,9 @@ rcvRGBHistogram: routine [
 	lines:   block/rs-length? array 	;default 3 for RGB
 	vectBlk: as red-vector! bsvalue
     cols: vector/rs-length? vectBlk		; number of bins
-    unit: rcvGetMatBitSize vectBlk
-   	sBins: as integer! (ceil (256.0 / cols)) ; for clustering color values
+    s: GET_BUFFER(vectBlk)
+	unit: GET_UNIT(s)
+   	sBins: as integer! (ceil (256.0 / as float! cols)) ; for clustering color values
     y: 1
     ;get the address of each color vector
     while [bsvalue < bstail][
@@ -241,52 +160,22 @@ rcvMeanShift: routine [
 	converg	[float!]	; for mean convergence 
 	op		[logic!]	; for color control
 	/local
-	pix1 	[int-ptr!]
-	pixD 	[int-ptr!]
-    handle1	[integer!]
-    handleD [integer!] 
-    bsvalue [red-value!] 
-    bstail	[red-value!]
-    rvalue	[float-ptr!]
-    gvalue	[float-ptr!]
-    bvalue	[float-ptr!]
-    p		[float-ptr!]
-    vectBlk	[red-vector!]
-    h 		[integer!]
-    w		[integer!]
-    x		[integer!] 
-    y		[integer!]
-    lines 	[integer!]
-	cols	[integer!]
-    r 		[float!]
-    g 		[float!]
-    b 		[float!]
-    a		[float!]
-    binR	[float!]	 
-    binG	[float!] 
-    binB	[float!]
-    sR		[float!] 
-    sG		[float!]
-    sB		[float!]
-    weightR	[float!] 
-    weightG [float!]
-    weightB	[float!]
-    dist	[float!]
-    rd 		[float!]
-    gd 		[float!]
-    bd		[float!]
-    hr		[integer!] 
-    lr		[integer!]		 
-    hg		[integer!] 
-    lg 		[integer!]
-    hb		[integer!] 
-    lb		[integer!]
-    colorR 	[integer!]
-    colorG 	[integer!]
-    colorB	[integer!]
-    factor	[integer!]
-    unit	[integer!]
-   
+	pix1 pixD 				[int-ptr!]
+    handle1	handleD 		[integer!] 
+    bsvalue bstail			[red-value!]
+    rvalue gvalue bvalue p	[float-ptr!]
+    vectBlk	[				red-vector!]
+    h w x y lines cols		[integer!]
+    r g b a	binR binG binB	[float!]
+    sR sG sB				[float!] 
+    weightR	weightG weightB	[float!]
+    dist rd gd bd			[float!]
+    hr lr hg lg hb lb unit	[integer!] 
+    colorR colorG colorB	[integer!]
+    factor 					[float!]
+    s						[series!]
+    _a _r _g _b				[integer!]
+    rgba dRange				[subroutine!]
 ][
 	handle1: 0
     pix1: image/acquire-buffer src :handle1
@@ -297,8 +186,34 @@ rcvMeanShift: routine [
 	lines:   block/rs-length? array 
 	vectBlk: as red-vector! bsvalue
     cols: vector/rs-length? vectBlk
-    unit: rcvGetMatBitSize vectBlk
-    factor: 256 / cols
+    s: GET_BUFFER(vectBlk)
+	unit: GET_UNIT(s)
+    factor: 256.0 / (as float! cols)
+    a: r: g: b: 0.0
+    _a: _r: _g: _b: 0
+    binR: binG: binB: 0.0
+    hr: lr: hg: lg: hb: lb: 0
+    colorR: colorG: colorB: 0
+    ;--subroutines
+    rgba: [
+    	_a: pix1/value >>> 24 a: as float! _a
+    	_r: pix1/value and 00FF0000h >> 16 	r: as float! _r
+    	_g: pix1/value and FF00h >> 8 g: as float! _g
+    	_b: pix1/value and FFh b: as float! _b 
+        binR: ceil ( r / factor)
+		binG: ceil ( g / factor)
+		binB: ceil ( b / factor)
+    ]
+    
+    dRange: [
+    	hr: as integer! (_minFloat (as float! cols) (binR + colorBW))
+		lr: as integer! (_maxFloat 1.0 (binR - colorBW))
+		hg: as integer! (_minFloat (as float! cols) (binG + colorBW))
+		lg: as integer! (_maxFloat 1.0 (binG - colorBW))
+		hb: as integer! (_minFloat (as float! cols) (binB + colorBW))
+		lb: as integer! (_maxFloat 1.0 (binB - colorBW))
+    ]
+    ;--end of subroutines
     y: 1
     ;get the address of each vector
     while [bsvalue < bstail][
@@ -315,36 +230,25 @@ rcvMeanShift: routine [
     while [y < h] [
     	x: 0
        	while [x < w][
-       		a: as float! (pix1/value >>> 24)
-       		r: as float! (pix1/value and 00FF0000h >> 16) 
-        	g: as float! (pix1/value and FF00h >> 8)
-        	b: as float! (pix1/value and FFh) 
-        	binR: ceil (r / factor)
-			binG: ceil (g / factor)
-			binB: ceil (b / factor)
+       		rgba		
         	dist: converg + 1.0
         	while [dist > converg] [
-        		hr: as integer! minFloat as float! cols (binR + colorBW)
-				lr: as integer! maxFloat 1.0 (binR - colorBW)
-				hg: as integer! minFloat as float! cols (binG + colorBW)
-				lg: as integer! maxFloat 1.0 (binG - colorBW)
-				hb: as integer! minFloat as float! cols (binB + colorBW)
-				lb: as integer! maxFloat 1.0 (binB - colorBW)
-				sR: 0.0 
+        		dRange
+        		sR: 0.0 
 				weightR: 0.0
 				while [lr <= hr] [
 					p: rValue + lr
 					p/value: vector/get-value-float as byte-ptr! p unit
-				 	sR: sR + (1.0 * lr * p/value)
+				 	sR: sR + (1.0 * (as float! lr) * p/value)
 				 	weightR: weightR + p/value
 					lr: lr + 1
-				]
+				]	
 				sG: 0.0 
 				weightG: 0.0
 				while [lg <= hg] [
 					p: gValue + lg
 					p/value: vector/get-value-float as byte-ptr! p unit
-					sG: sG + (1.0 * lg * p/value) 
+					sG: sG + (1.0 * (as float! lg) * p/value) 
 					weightG: weightG + p/value
 					lg: lg + 1
 				]
@@ -353,7 +257,7 @@ rcvMeanShift: routine [
 				while [lb <= hb] [
 					p: bValue + lb
 					p/value: vector/get-value-float as byte-ptr! p unit
-					sB: sB + (1.0 * lb * p/value) 
+					sB: sB + (1.0 * (as float! lb) * p/value) 
 					weightB: weightB + p/value
 					lb: lb + 1
 				]
@@ -370,8 +274,8 @@ rcvMeanShift: routine [
 				binG: ceil sG 
 				binB: ceil sB 
 				dist: sqrt (rd + gd + bd)
-        	]
-        	colorR: (as integer! sR * factor) 
+			]
+			colorR: (as integer! sR * factor) 
 			colorG: (as integer! sG * factor) 
 			colorB: (as integer! sB * factor)
 			if op = true [
@@ -394,30 +298,28 @@ rcvMeanShift: routine [
 
 rcvHistoMat: routine [
 "Calculate matrix histogram"
-	mat 	[vector!]		;integer or float matrix 
-	return:	[vector!]		;8-bit matrix
+	mx 				[object!]		;integer or float matrix 
+	return:			[vector!]		;32-bit integer vector
 	/local
-	histo 	[red-vector!]
-	svalue	[byte-ptr!]  
-	tail	[byte-ptr!]
-	dvalue 	[int-ptr!]
-	base 	[int-ptr!]
-	s 		[series!]
-	unit	[integer!]
-	int		[integer!]
-	
+	vec histo 		[red-vector!]
+	svalue tail		[byte-ptr!]  
+	dvalue base 	[int-ptr!]
+	s 				[series!]
+	unit int n		[integer!]
 ] [
-    svalue: vector/rs-head mat ; get pointer address of the matrice
-    tail: vector/rs-tail mat
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
+	vec:  mat/get-data mx
+	unit: mat/get-unit mx
+    svalue: vector/rs-head vec ; get pointer address of the matrice data
+    tail: vector/rs-tail vec
+	n: vector/rs-length? vec
 	histo: vector/make-at stack/push* 256 TYPE_INTEGER 4
-	dvalue: as int-ptr! vector/rs-head histo
-	base: dvalue
+	base: as int-ptr! vector/rs-head histo ; pointer
+	dvalue: base
 	while [svalue < tail][
-		; int value 0..255
-		either unit <= 4 [int: as integer! svalue/value]
+		either vec/type = TYPE_INTEGER [int: as integer! svalue/value]
 		[int: as integer! vector/get-value-float svalue unit]
+		; we need int value 0..255
+		if unit = 1 [int: int and FFh]
 		dvalue: base + int					; position in histogram 
 		dvalue/value: dvalue/value + 1  	; increment number of value occurence
 		svalue: svalue + unit 				; next value in matrice
@@ -428,12 +330,11 @@ rcvHistoMat: routine [
 ]
 
 
-
 ; this is the cumulative-density function for the pixel value n
 rcvSumHistoMat: routine [
 "Calculates the cumulative sum of histogram "
 	histo 		[vector!]		;integer or float matrix  
-	return:		[vector!]		;8-bit matrix
+	return:		[vector!]		;32-bit vector
 	/local
 	sumHisto 	[red-vector!]
 	svalue		[byte-ptr!]  
@@ -452,8 +353,10 @@ rcvSumHistoMat: routine [
 	sum: 0
 	while [svalue < tail][
 		; get value in histo/(i)
-		either unit <= 4 [int: as integer! svalue/value]
-			[int: as integer! vector/get-value-float svalue unit]
+		either histo/type = TYPE_INTEGER [int: as integer! svalue/value]
+		[int: as integer! vector/get-value-float svalue unit]
+		; we need int value 0..255
+		if unit = 1 [int: int and FFh]
 		sum: sum + int										; increment sum	
 		vector/rs-append-int sumHisto sum					; store cumulative sum		
 		svalue: svalue + unit			    				; next value
@@ -463,14 +366,13 @@ rcvSumHistoMat: routine [
 	as red-vector! stack/set-last as cell! sumHisto
 ]
 
-
-
 rcvEqualizeHistoMat: routine [
 "Histogram equalization"
-	mat 		[vector!] 	;integer or float matrix
-	sumHisto 	[vector!] 	;8-bit matrix
+	mx 			[object!] 	;integer or float matrix
+	sumHisto 	[vector!] 	;32-bit matrix
 	constant 	[float!]
 	/local
+	vec			[red-vector!]
 	svalue 		[byte-ptr!] 
 	tail		[byte-ptr!]
 	ivalue		[int-ptr!]
@@ -480,20 +382,23 @@ rcvEqualizeHistoMat: routine [
 	int			[integer!] 
 	int2 		[integer!] 
 	unit 		[integer!]
+	p
 ] [
-	svalue: vector/rs-head mat ; get pointer address of the matrice
-    tail:  	vector/rs-tail mat
+	vec:  mat/get-data mx
+	unit: mat/get-unit mx
+	svalue: vector/rs-head vec ; get pointer address of the matrice data
+    tail:  	vector/rs-tail vec
     ivalue: as int-ptr! vector/rs-head sumHisto
     ibase: 	ivalue
-    s: GET_BUFFER(mat)
-	unit: GET_UNIT(s)
 	while [svalue < tail][
-		either unit <= 4 [int: vector/get-value-int as int-ptr! svalue unit] 
-						 [int: as integer! vector/get-value-float svalue unit]
+		either vec/type = TYPE_INTEGER [int: as integer! svalue/value]
+		[int: as integer! vector/get-value-float svalue unit]
 		ivalue: ibase + int 
-		int2: 	ivalue/value
-		k:  	constant * int2 * 1.0
+		int: 	ivalue/value
+		k:  	constant * as float! int
 		int2: 	as integer! k
+		;p: as int-ptr! svalue 
+		;p/value: int2
 		svalue/value: as byte! int2
 		svalue: svalue + unit
 	]
@@ -530,11 +435,11 @@ rcvEqualizeContrast: routine [
 
 rcvHistogram: function [
 "Calculates Image or Matrix histogram"
-	arr [image! vector!]  
+	arr [image! object!]  
 	/red /green /blue
 ][
 	t: type? arr
-	if t = vector! [histo: rcvHistoMat arr]
+	if t = object! [histo: rcvHistoMat arr]
 	if t = image!  [
 		case [
 			red 	[histo: rcvHistoImg arr 1]
@@ -549,34 +454,34 @@ rcvHistogram: function [
 
 rcvSmoothHistogram: function [
 "This function smoothes the input histogram by a 3 points mean moving average."
-	arr [vector!] 
+	arr [object!] 
 ][
 	histo: make vector! 256 
-	n: length? arr
+	n: length? arr/data
 	i: 2
 	while [i < n] [
-		histo/(i): to-integer (arr/(i - 1) + arr/(i) + arr/(i + 1)) / 3 
+		histo/:i: to-integer (arr/data/(i - 1) + arr/data/(i) + arr/data/(i + 1)) / 3 
 	 	i: i + 1
 	]
-	
 	histo/1: histo/2
 	histo/(n): histo/(n - 1)		
-	histo
+	arr/data: histo
+	arr
 ]
 
 
 
 rcvHistogramEqualization: function [  
-"This function performs histogram equalization on the input image array"
-	arr 	[vector!]   
+"This function performs histogram equalization on the input array"
+	arr 	[object!]   
 	gLevels [integer!]
 ] [
-	n: length? arr
-	constant: gLevels / to float! (n)	
-	histo: rcvHistoMat arr				; calculates histogram 
-	sumH:  rcvSumHistoMat histo 			; calculates the sum of histogram
-	rcvEqualizeHistoMat arr sumH constant	; transforms input mat to output mat
-]
+	n: length? arr/data
+	constant: gLevels / to float! (n)
+	histo: rcvHistoMat arr			; calculates histogram (vector)
+	sumH:  rcvSumHistoMat histo 	; calculates the sum of histogram
+	rcvEqualizeHistoMat arr sumH constant	; transforms input mat
+]	
 
 ; this function should be transformed to routine for faster access:)
 rcvMakeTranscodageTable: function [
@@ -596,16 +501,16 @@ rcvMakeTranscodageTable: function [
 
 rcvContrastAffine: function [
 "Enhances image contrast with affine function" 
-	arr [vector!] 
+	arr [object!] 
 	p 	[percent!]
 ] [
 	range: rcvMakeTranscodageTable p
-	rcvEqualizeContrast arr range
+	rcvEqualizeContrast arr/data range
 ]
 
-
+;******************** Histogram of Oriented Gradient **************************
 ; based on Ganesh Iyer's c++ code (https://github.com/lastlegion/hog)
-rcvHOG: routine [
+_rcvHOG: routine [
 "Histograms of Oriented Gradients"
     src  			[image!]
     matGx			[vector!]
@@ -614,48 +519,31 @@ rcvHOG: routine [
     nDivs			[integer!]
     return: 		[vector!]
     /local
-        pixS 		[int-ptr!]
-        idx 		[int-ptr!] 
-        *matgx		[int-ptr!]
-        *matgy 		[int-ptr!]
-        matHog		[red-vector!]
-        *matHog		[float-ptr!]
-        s			[series!]
-        handleS		[integer!] 
-        r g b		;integer!
-        h w x y		;integer!
-        m n			;integer!
-        lx rx		;integer! 
-        uy dy 		;integer!
-        nthBin		[integer!]
-        pixel 		[integer!]
-        nRow 		[integer!]
-        nCol		[integer!]
-        nHog  		[integer!]
-        cellX 		[integer!]
-        cellY		[integer!]
-        imgArea		[integer!]
-        pos 		[integer!]
-        posf		[float!]
-        hogPos		[float!]
-        xRight 		[float!]
-        xLeft		[float!]
-        yUp 		[float!]
-        yDown		[float!]
-        vx 			[float!]
-        vy			[float!]
-        theta		[float!] 
-        rho 		[float!]
-        nRho		[float!]
-        maxi		[float!]
-        binRange	[float!]
-        
+        pixS idx *matgx *matgy 		[int-ptr!]
+        matHog						[red-vector!]
+        *matHog						[float-ptr!]
+        s							[series!]
+        handleS r g b h w x y m n	[integer!]
+        lx rx uy dy nthBin pixel	[integer!]
+        nRow nCol nHog cellX cellY	[integer!]
+        imgArea	pos					[integer!]
+        posf hogPos	xRight xLeft 	[float!]
+        yUp yDown vx vy theta rho	[float!]
+        nRho maxi binRange			[float!]
+        rgb							[subroutine!]
 ][
 	handleS: 0
     pixS: image/acquire-buffer src :handleS
 	w: IMAGE_WIDTH(src/size)
     h: IMAGE_HEIGHT(src/size)
     imgArea: w * h
+    r: g: b: 0
+    rgb: [
+    	r: idx/value and 00FF0000h >> 16 
+		g: idx/value and FF00h >> 8 
+		b: idx/value and FFh 
+    ]
+    
     vector/rs-clear matGx
     vector/rs-clear matGy
    	;-- first a Sobel like edges detector on grayscale image
@@ -669,34 +557,26 @@ rcvHOG: routine [
 				rx: pixel + 1				; right pixel
 				if rx >= imgArea [rx: 0]	; OK first value
 				idx: pixS + rx
-				r: idx/value and 00FF0000h >> 16 
-        		g: idx/value and FF00h >> 8 
-        		b: idx/value and FFh 
-				xRight:  as float! (r + g + b) / 3.0
+				rgb
+				xRight: (as float! r) + (as float! g) + (as float! b) / 3.0
 				
 				lx: pixel - 1				; left pixel
 				if lx < 0 [lx: imgArea - 1]	; OK last value	
 				idx: pixS + lx
-				r: idx/value and 00FF0000h >> 16 
-        		g: idx/value and FF00h >> 8 
-        		b: idx/value and FFh 
-				xLeft:  as float! (r + g + b) / 3.0 
+				rgb
+				xLeft: (as float! r) + (as float! g) + (as float! b) / 3.0 
 				
 				uy: y - 1 * w + pos				; up pixel
 				if uy < 0 [ uy: imgArea - pos - 1] ; OK last row
 				idx: pixS + uy
-				r: idx/value and 00FF0000h >> 16 
-        		g: idx/value and FF00h >> 8 
-        		b: idx/value and FFh 
-				yUp:  as float! (r + g + b) / 3.0 
+				rgb
+				yUp: (as float! r) + (as float! g) + (as float! b) / 3.0
 				
 				dy: y + 1 * w + pos			; down pixel
 				if dy >= imgArea [dy: x]	; OK first row 
 				idx: pixS + dy
-				r: idx/value and 00FF0000h >> 16 
-        		g: idx/value and FF00h >> 8 
-        		b: idx/value and FFh 
-				yDown:  as float! (r + g + b) / 3.0 
+				rgb
+				yDown: (as float! r) + (as float! g) + (as float! b) / 3.0
 				vx: xRight - xLeft
 				vy: yUp - yDown
 				vector/rs-append-int matgx as integer! vx ; x gradients
@@ -707,7 +587,7 @@ rcvHOG: routine [
 		
 	]
 	; HOG matrice
-	binRange: (2.0 * pi) / nBins
+	binRange: (2.0 * pi) / (as float! nBins)
     cellX: w / nDivs
     cellY: h / nDivs 
 	nHog: nDivs * nDivs * nBins								;-- matrix size
@@ -786,6 +666,19 @@ rcvHOG: routine [
 	s: GET_BUFFER(matHog)								;-- Matrix values
     s/tail: as cell! (as float-ptr! s/offset) + nHog    ;-- set the tail properly
     as red-vector! stack/set-last as cell! matHog       ;-- return the new vector
+]
+
+rcvHOG: function [
+"Histograms of Oriented Gradients"
+    src  			[image!]	;--red image
+    nBins			[integer!]	;--number of bins of histogram
+    nDivs			[integer!]	;--image cells division
+    return:			[object!]
+][
+	matGx: matrix/create 3 64 as-pair src/size/x 1 [] 
+	matGy: matrix/create 3 64 as-pair src/size/y 1 [] 
+	vec: _rcvHOG src matGx/data matGy/data nBins nDivs
+	matrix/create 3 64 as-pair length? vec 1 to block! vec
 ]
 
 

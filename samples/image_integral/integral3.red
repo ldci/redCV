@@ -16,7 +16,7 @@ boxH: 5
 
 margins: 5x5
 msize: 320x240
-intSize: 32
+bitSize: 32
 isFile: false
 
 
@@ -38,9 +38,9 @@ loadImage: does [
 		gray: rcvCreateImage img1/size ; just for visualization
 		bimage: rcvCreateImage img1/size
 		rcv2Gray/average img1 gray
-		sum: rcvCreateMat 'integer! intSize img1/size
-		sqsum: rcvCreateMat 'integer! intSize img1/size
-		rcvIntegralImg img1 sum sqsum ;img1/size
+		ssum:  matrix/init 2 bitSize img1/size		; dst 1
+		sqsum: matrix/init 2 bitSize img1/size		; dst 2
+		rcvIntegralImg img1 ssum sqsum
 		canvas1/image: img1
 		canvas2/image: gray
 		isFile: true
@@ -55,16 +55,15 @@ ProcessImage: does [
 		plot: copy [line-width 1 pen green]
 		if error? try [boxW: to integer! wt/text] [boxW: 5]
 		if error? try [boxH: to integer! ht/text] [boxH: 5]
-		w: img1/size/x
-		h: img1/size/y
 		t1: now/time/precise
 		either r1/data 
-			[rcvProcessIntegralImage sum w h boxW boxH thresh plot] 
-			[rcvProcessIntegralImage sqsum w h boxW boxH thresh plot]
+			[rcvProcessIntegralImage ssum boxW boxH thresh plot] 
+			[rcvProcessIntegralImage sqsum boxW boxH thresh plot]
 		canvas3/image: draw bimage plot
 		t2: now/time/precise
 		sb/text: copy "Rendered : " 
-		append sb/text form t2 - t1
+		append sb/text form round/to third (t2 - t1) * 1000 0.01
+		append sb/text " ms"
 	]
 ]
 
@@ -76,8 +75,8 @@ view win: layout [
 		button 100 "Load Image" 		[loadImage]
 		r1: radio "Sum"					[ProcessImage]
 		r2: radio "Squared Sum"			[ProcessImage]
-		text "Threshold" sl: slider 180 [slt/data: 1 + to integer! face/data * 254 
-										thresh: to integer! slt/data
+		text "Threshold" sl: slider 180 [thresh: 1 + to integer! face/data * 254 
+										slt/text: form thresh
 										ProcessImage] 
 		slt: field 50 "32"
 		text "Box [width height]"

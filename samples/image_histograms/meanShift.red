@@ -8,7 +8,6 @@ Red [
 ;required libs
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
 #include %../../libs/math/rcvHistogram.red	
 
 isFile: false
@@ -16,16 +15,17 @@ margins: 5x5
 nBins: 128
 margins: 5x5
 msize: 256x256
+bitSize: 8
 img1:    make image! reduce [msize black]
 histor:  make vector! nBins		
 histog:  make vector! nBins
 histob:  make vector! nBins
-historc: make vector! nBins
-histogc: make vector! nBins
-histobc: make vector! nBins
-
+matR: matrix/init 2 bitSize 256x1 
+matG: matrix/init 2 bitSize 256x1 
+matB: matrix/init 2 bitSize 256x1
 colorBW: 1
 convergenceFact: 3.0
+;recycle/off
 
 loadImage: does [
 	tmp: request-file
@@ -42,77 +42,64 @@ loadImage: does [
 
 
 processMat: does [
-	; create array for RGB histograms according the number of bins 
+	;--sum for density probability
+	sumT: to-float (img1/size/x * img1/size/y) ; image size
+	
+	;--create arrays for RGB histograms according the number of bins 
 	histo: copy []
 	append/only histo make vector! nBins
 	append/only histo make vector! nBins
 	append/only histo make vector! nBins
-	;get array histograms
-	rcvRGBHistogram img1 img2 histo  ; we don't use img2 here
+	
+	histo2: copy []
+	vect1: make vector! reduce ['float! 64 nBins]
+	vect2: make vector! reduce ['float! 64 nBins]
+	vect3: make vector! reduce ['float! 64 nBins]
+	
+	;--get array histograms
+	rcvRGBHistogram img1 img2 histo  ;--we don't use img2 here
 	histor: histo/1		; R values
 	histog: histo/2		; G Values
 	histob: histo/3		; B Values
-
-	; we need maxi for Y scale conversion and plotting
-	historc: make vector! nBins
-	histogc: make vector! nBins
-	histobc: make vector! nBins
-	tmp: copy histor
-	sort tmp
-	maxi: last tmp
-	rcvConvertMatScale/std histor historc  maxi 200 ; change scale
-	tmp: copy histog
-	sort tmp
-	maxi: last tmp
-	rcvConvertMatScale/std histog histogc  maxi 200 ; change scale
-	tmp: copy histob
-	sort tmp
-	maxi: last tmp
-	rcvConvertMatScale/std histob histobc  maxi 200 ; change scale
 	
+	;--calculate density probability
+	repeat i nBins [vect1/:i: histor/:i / sumT]
+	repeat i nBins [vect2/:i: histog/:i / sumT]
+	repeat i nBins [vect3/:i: histob/:i / sumT]
 	
-	; sum and mean for density probability
-	sumT: to-float (img1/size/x * img1/size/y) ; image size
-
-	histo2: copy []
-	vect11: make vector! reduce ['float! 64 nBins]
-	vect21: make vector! reduce ['float! 64 nBins]
-	vect31: make vector! reduce ['float! 64 nBins]
-	
-	i: 1
-	foreach v histor [vect11/:i: v / sumT i: i + 1] ; mean R
-	i: 1
-	foreach v histog [vect21/:i: v / sumT i: i + 1]	; mean G
-	i: 1
-	foreach v histob [vect31/:i: v / sumT i: i + 1]	; mean B
 	; vectors for rcvMeanShift routine
-	append/only histo2 vect11
-	append/only histo2 vect21
-	append/only histo2 vect31
+	append/only histo2 vect1
+	append/only histo2 vect2
+	append/only histo2 vect3
+
+	;--we use maxi for scale conversion and plotting
+	;--update and create matrices for visualisation
+	matR/data: histo/1	
+	matG/data: histo/2	
+	matB/data: histo/3	
+	matRC: rcvConvertMatIntScale matR matrix/maxi matR 200 ; change scale
+	matGC: rcvConvertMatIntScale matG matrix/maxi matG 200 ; change scale
+	matBC: rcvConvertMatIntScale matB matrix/maxi matB 200 ; change scale
 ]
 
 showPlot: does [
 	plotr: copy [line-width 1 pen red line]
 	plotg: copy [line-width 1 pen green line]
 	plotb: copy [line-width 1 pen blue line]
-	
-	i: 1 
 	step: 256 / nBins
-	while [i < nBins] [ coord: as-pair (i * step) (250 - historc/(i))
-						append plotr coord
-						coord: as-pair (i * step) (250 - histogc/(i))
-						append plotg coord
-						coord: as-pair (i * step) (250 - histobc/(i))
-						append plotb coord
-						i: i + 1]				
-	canvas2/draw: reduce [plotr plotg plotb] 
+	repeat i nBins [
+		append plotr as-pair i * step 250 - matRC/data/:i
+		append plotg as-pair i * step 250 - matGC/data/:i
+		append plotb as-pair i * step 250 - matBC/data/:i
+	]
+	canvas2/draw: reduce [plotr plotg plotb]
 ]
 
 
 
 process: does [
-	processMat showPlot
-	if error? try [convergenceFact: to-float f2/text] [convergenceFact: 3.0]
+	processMat 
+	showPlot
 	rcvMeanShift img1 img2 histo2 to-float colorBW convergenceFact true
 	canvas3/image: img2
 ]
@@ -128,7 +115,7 @@ view win: layout [
 		sl0: slider 100 [
 			nBins: 128 - to-integer face/data * 127 
 			f0/text: form nBins
-			t/text: 	form nBins
+			t/text: form nBins		
 			if nBins > 2 [process]
 		]
 		f0: field 40 "256"
@@ -138,8 +125,11 @@ view win: layout [
 				if isFile [process]
 		]
 		f1: field 40 
-		text "Convergence" 
-		f2: field 40 
+		text "Convergence"
+		f2: field 40 [
+			if error? try [convergenceFact: to-float face/text] [convergenceFact: 3.0]
+			if isFile [process]
+		]
 		pad 10x0
 		button 60 "Quit" 		[Quit]
 		return
@@ -153,5 +143,5 @@ view win: layout [
 		t: text 40 right 
 		text 250 center "Meanshift segmented image"
 		do [t/text: form nBins f0/text: form nBins
-				f1/text: form colorBW f2/text: form convergenceFact]
+			f1/text: form colorBW f2/text: form convergenceFact]
 ]

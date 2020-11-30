@@ -18,6 +18,15 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
 
+###UPDATE NOVEMBER 30 2020
+All libs and code samples are compatible with the new less permissive, but faster Red compiler.
+
+This udpate also includes **a new matrix object** developed with Toomas Vooglaid during the last summer in order to improve initial matrix implementation.
+
+You'll find in *libs/matrix/atrix-as-obj/docs* a short and incomplete documentation and some samples.
+
+
+
 
 ###UPDATE JULY 15 2020
 

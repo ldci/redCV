@@ -44,7 +44,7 @@ loadImage: does [
 
 createCanny: func [img [image!]][
 	cImg: 	rcvCloneImage img					;copy source image
-	iSize: cImg/size							;image size
+	iSize: 	cImg/size							;image size
 	dst: 	rcvCreateImage iSize				;for edges visualisation
 	imgX: 	rcvCreateImage iSize				;Sobel X derivative
 	imgY: 	rcvCreateImage iSize				;Sobel X derivative 
@@ -67,25 +67,25 @@ createCanny: func [img [image!]][
 
 calculateCanny: func [lowT [integer!]  highT [integer!]] [
 	
-	matG: 	rcvCreateMat 'float! 64 iSize		;Gradient matrix (float)
-	matA: 	rcvCreateMat 'float! 64 iSize		;Angles matrix (float)
-	gradS:  rcvCreateMat 'float! 64 iSize		;Non-maximum suppression matrix (float)
-	doubleT: rcvCreateMat 'integer! 32 iSize	;Double threshold matrix (integer)
-	finalEdges: rcvCreateMat 'integer! 32 iSize	;Final edges matrix (integer)
-	rcvEdgesGradient imgX imgY matG				;get gradient matrix
-	rcvEdgesDirection imgX imgY matA 			;get angle matrix
+	matG: 	matrix/init 3 64 iSize			;Gradient matrix (float)
+	matA: 	matrix/init 3 64 iSize			;Angles matrix (float)
+	gradS:  matrix/init 3 64 iSize 			;Non-maximum suppression matrix (float)
+	doubleT:  matrix/init 2 32 iSize		;Double threshold matrix (integer)
+	finalEdges:  matrix/init 2 32 iSize		;Final edges matrix (integer)
+	rcvEdgesGradient imgX imgY matG/data	;get gradient matrix
+	rcvEdgesDirection imgX imgY matA/data	;get angle matrix
 	;step 3 Non-maximum suppression
 	rcvCopyMat matG gradS
-	rcvEdgesSuppress matA matG gradS iSize
+	rcvEdgesSuppress matA/data matG/data gradS/data iSize
 	weak: 128
 	strong: 255
-	rcvDoubleThresh gradS doubleT lowT highT weak strong
+	rcvDoubleThresh gradS/data doubleT/data lowT highT weak strong
 ]
 
 showCanny: does  [
 	weak: 128
 	strong: 255
-	rcvHysteresis doubleT finalEdges iSize weak strong
+	rcvHysteresis doubleT/data finalEdges/data iSize weak strong
 	rcvMat2Image finalEdges dst 
 	canvas/image: dst
 ]

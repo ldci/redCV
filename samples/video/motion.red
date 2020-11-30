@@ -12,9 +12,10 @@ rep., Carnegie Mellon University, Pittsburg, PA (2000)}
 
 
 ; required libs
+#include %../../libs/tools/rcvTools.red
 #include %../../libs/core/rcvCore.red
 #include %../../libs/math/rcvStats.red	
-
+#include %../../libs/imgproc/rcvImgProc.red
 
 iSize: 320x240
 prevImg: rcvCreateImage iSize
@@ -41,9 +42,11 @@ processCam: does [
 	rcv2BWFilter r1 r2 threshold 		; Applies B&W Filter to ANDed image
 	prevImg: currImg					; previous image contains now the current image
 	currImg: nextImg					; current image contains the next image				
-	;nextImg: to-image cam				; updates next image
-	nextImg: cam/image					; should work in red future version
-	cam/image: none						; it's works
+	camImg: cam/image					; should work in red future version
+	nextImg: rcvResizeImage camImg iSize; resize camera image ;cam/image
+	; Gaussian blurring
+	rcvGaussianFilter nextImg nextImg 3x3 1.0
+	cam/image: none						; it's works				
 	recycle
 ]
 
@@ -53,7 +56,10 @@ view win: layout [
 		title "Motion Detection"
 		origin margins space margins
 		text "Motion " 50 
-		motion: field 70 rate 0:0:1 on-time [face/text: form rcvCountNonZero r2]
+		motion: field 70 rate 0:0:1 on-time [
+			z: rcvCountNonZero r2
+			face/text: form z
+		]
 		text "Camera Size" 
 		cSize: field 80
 		onoff: button "Start/Stop" 85 on-click [
@@ -64,15 +70,18 @@ view win: layout [
 					canvas/image: black
 				][
 					cam/selected: cam-list/selected
-					prevImg: currImg: nextImg: to-image cam
-					cSize/text: form currImg/size
-					d1: rcvCreateImage currImg/size
-					d2: rcvCreateImage currImg/size
-					r1: rcvCreateImage currImg/size
-					r2: rcvCreateImage currImg/size
+					camImg: to-image cam
+					currImg: rcvResizeImage camImg iSize; 
+					prevImg: rcvCreateImage iSize 
+					nextImg: rcvCreateImage iSize
+					d1: rcvCreateImage iSize
+					d2: rcvCreateImage iSize
+					r1: rcvCreateImage iSize
+					r2: rcvCreateImage iSize
 					canvas/image: r2
 					canvas/rate: 0:0:0.04;  max 1/25 fps in ms
 					motion/rate: 0:0:0.04
+					cSize/text: form currImg/size
 					]
 			]
 		pad 160x0

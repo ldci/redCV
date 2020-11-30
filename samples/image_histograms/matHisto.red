@@ -8,39 +8,31 @@ Red [
 ;required libs
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
-#include %../../libs/tools/rcvTools.red
 #include %../../libs/math/rcvHistogram.red	
 
 margins: 5x5
-msize: 256x256
-img1: rcvCreateImage msize
-mat: rcvCreateMat 'integer! 8 img1/size
-histo1: make vector! 256
-histo2: make vector! 256
-
-t: now/time/precise
-random/seed to integer! t/second
+mSize: 262x256
+bitSize: 8
+img1: rcvCreateImage mSize
 
 processMat: does [
-	rcvRandomMat mat 255 
-	rcvMat2Image mat img1
-	histo1: rcvHistogram mat
-	tmp: copy histo1
+	mx: matrix/init/value/rand 2 bitSize mSize 255
+	color: random white
+	rcvMat2Image mx img1
+	vHisto: copy rcvHistoMat mx ;--or vHisto: rcvHistogram mx;
+	tmp: copy vHisto
 	sort tmp
 	maxi: last tmp
-	rcvConvertMatScale/std histo1 histo2  maxi 200 ; change scale
 	canvas1/image: img1
 ]
 
 showPlot: does [
-	coord: as-pair 1 256 - histo2/1
-	plot: copy [line-width 1 pen red line]
-	i: 1 
-	while [i <= 256] [  coord: as-pair (i) (256)
-						append plot coord
-						coord: as-pair (i) (256 - histo2/(i))
-						append plot coord
-						i: i + 1]
+	plot: compose [line-width 1 pen (color) line]
+	repeat i 256 [
+		append plot as-pair i + 2 256
+		v: to-integer (vHisto/:i / maxi) * 180
+		append plot as-pair i + 2 256 - v
+	]
 	canvas2/draw: reduce [plot] 
 ]
 
@@ -48,7 +40,7 @@ showPlot: does [
 
 ; ***************** Test Program ****************************
 view win: layout [
-		title "Histogram Tests"
+		title "Histogram Tests: 8-bit"
 		origin margins space margins
 		button 120 "Generate Matrix"	[processMat showPlot]
 		button 60 "Quit" 				[rcvReleaseImage img1 Quit]

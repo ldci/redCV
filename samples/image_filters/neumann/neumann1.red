@@ -70,9 +70,15 @@ view win: layout [
 								Quit]
 		return
 		bb: base 128x128 img1 
-		r1: radio "No filter"  [rcvCopyImage currentImage dst1 rcvCopyImage currentImage dst2]
-		r2: radio "Gradient"   [rcvGradNeumann currentImage dst1 dst2]
-		r3: radio "Divergence" [rcvDivNeumann currentImage dst1 dst2] 
+		r1: radio "No filter"  [rcvCopyImage currentImage dst1 rcvCopyImage currentImage dst2
+								canvas1/image: dst1 canvas2/image: dst2
+								]
+		r2: radio "Gradient"   [b: rcvGradNeumann currentImage dst1 dst2 
+								canvas1/image: b/1 canvas2/image: b/2
+								]
+		r3: radio "Divergence" [b: rcvDivNeumann currentImage dst1 dst2
+								canvas1/image: b/1 canvas2/image: b/2
+								] 
 		return
 		text 250 "derivative along the x axis"
 		text 250 "derivative along the y axis"

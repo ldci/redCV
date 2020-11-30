@@ -40,7 +40,7 @@ loadImage: does [
 		canvas/image: dst
 		iSize: currentImage/size
 		isFile: true
-		rcvRoberts currentImage dst iSize param
+		rcvRoberts currentImage dst param
 		r1/data: false
 		r2/data: false
 		r3/data: true
@@ -56,7 +56,7 @@ view win: layout [
 		cb: check "Grayscale"	[
 								either cb/data [currentImage: rcvCloneImage gray]
 					   			[currentImage: rcvCloneImage img1]
-					   			rcvRoberts currentImage dst iSize param
+					   			rcvRoberts currentImage dst param
 								]
 					
 		button 60 "Quit" 		[rcvReleaseImage img1 
@@ -67,10 +67,10 @@ view win: layout [
 		bb: base 160x120 img1
 		return
 		text middle 100x20 "Roberts Direction"
-		r1: radio "45 " 		[param: 1 rcvRoberts currentImage dst iSize param]
-		r2: radio "135 " 		[param: 2 rcvRoberts currentImage dst iSize param]	
-		r3:	radio "Both" 		[param: 3 rcvRoberts currentImage dst iSize param]
-		r4:	radio "Magnitude" 	[param: 4 rcvRoberts currentImage dst iSize param]
+		r1: radio "45 " 		[param: 1 rcvRoberts currentImage dst param]
+		r2: radio "135 " 		[param: 2 rcvRoberts currentImage dst param]	
+		r3:	radio "Both" 		[param: 3 rcvRoberts currentImage dst param]
+		r4:	radio "Magnitude" 	[param: 4 rcvRoberts currentImage dst param]
 		return
 		canvas: base 512x512 dst	
 		do [r3/data: true]
