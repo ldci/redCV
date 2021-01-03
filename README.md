@@ -18,6 +18,9 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
 
+###UPDATE JANUARY 2 2021
+redCV includes a support for Flir themal images. This will be extended to other thermal imagers such as Optris.
+
 ###UPDATE NOVEMBER 30 2020
 All libs and code samples are compatible with the new less permissive, but faster Red compiler.
 
