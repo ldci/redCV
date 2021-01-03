@@ -190,3 +190,45 @@ rcvContourArea: function [
 	]
 	either signed [(sum1 - sum2) / 2.0] [absolute (sum1 - sum2) / 2.0]
 ]
+
+;--new
+
+rcvRayTracing: routine [
+"Determine if a point is inside a given polygon or not"
+	poly 	[block!] ;--block of pair 
+	coord	[pair!]	 ;--tested point
+	return: [logic!]
+	/local
+	i n x y	xinters	[integer!] 	
+	p1x p1y p2x p2y [integer!]
+	bxy	idxy		[red-value!]
+	p				[red-pair!] 
+	inside			[logic!]
+		
+][
+	n: block/rs-length? poly
+	bxy: block/rs-head poly
+	p: as red-pair! bxy
+	p1x: p/x p1y: p/y
+	x: coord/x
+	y: coord/y
+	inside: false
+	i: 1
+	while [i < n] [
+		idxy: bxy + i
+		p: as red-pair! idxy
+		p2x: p/x p2y: p/y
+		if y > minInt  p1y p2y [
+			if y <= maxInt p1y p2y [
+				if x <= maxInt p1x p2x [
+					if p1y <> p2y [xinters: (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x]
+					if (p1x = p2x) or (x <= xinters) [inside: not inside]
+				]
+			]
+		]
+		p1x: p2x p1y: p2y
+		i: i + 1
+	]
+	inside 
+]
+
