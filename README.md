@@ -3,9 +3,10 @@
 ## see [http://www.red-lang.org](http://www.red-lang.org) 
 
 ![](images/red.ico) ![](images/redCV.png)
-### You need a recent Red version. Compiled with Red 0.6.4 for macOS built 10-Jul-2020/4:54:54+02:00 commit #a1d1495
+### You need a recent Red version. 
+### Compiled with Red 0.6.4 for macOS built 25-Dec-2020/0:08:25+01:00 commit #98f31b5
 
-###Tested with macOS, Linux Mint 32-bit, Windows XP and Windows 10
+### Tested with macOS, Linux Mint 32-bit, Windows XP and Windows 10
 
 You must compile samples since red routines are required.
 Most of samples require View.
@@ -18,10 +19,10 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
 
-###UPDATE JANUARY 2 2021
+### UPDATE JANUARY 2 2021
 redCV includes a support for Flir themal images. This will be extended to other thermal imagers such as Optris.
 
-###UPDATE NOVEMBER 30 2020
+### UPDATE NOVEMBER 30 2020
 All libs and code samples are compatible with the new less permissive, but faster Red compiler.
 
 This udpate also includes **a new matrix object** developed with Toomas Vooglaid during the last summer in order to improve initial matrix implementation.
@@ -31,9 +32,9 @@ You'll find in *libs/matrix/atrix-as-obj/docs* a short and incomplete documentat
 
 
 
-###UPDATE JULY 15 2020
+### UPDATE JULY 15 2020
 
-####More than 200 code samples documented!
+#### More than 200 code samples documented!
 
 **New libraries for Haar cascade and machine learning**
 
@@ -108,9 +109,9 @@ see [https://github.com/ldci/ffmpeg](https://github.com/ldci/ffmpeg) for better 
 1. /video/reccam.red
 
 
-###UPDATE FEBRUARY 4 2020
+### UPDATE FEBRUARY 4 2020
 
-###100% macOS, Windows, and Linux GTK compatible
+### 100% macOS, Windows, and Linux GTK compatible
 For Windows and macOS and now Linux-GTK. Thanks to 
 @bitbegin, @loziniak and @rcqls. 
 
