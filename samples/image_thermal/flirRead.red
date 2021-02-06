@@ -1,6 +1,6 @@
 #! /usr/local/bin/red
 Red [
-	Title:   "Virginia"
+	Title:   "Flir"
 	Author:  "Francois Jouen"
 	File: 	 %flirRead.red
 	needs:   view
@@ -16,9 +16,15 @@ loadImage: does [
 	tmp: request-file 
 	if not none? tmp [
 		clear tempList/data
+		clear f0/text
+		clear f1/text
+		clear f2/text
 		cb/data: false
-		flirFile: to-string tmp
-		rcvGetFlirMetaData flirFile 
+		canvas1/image: canvas2/image: none
+		canvas3/image: canvas4/image: none
+		do-events/no-wait
+		flirFile: to-string tmp	
+		rcvGetFlirMetaData flirFile 		
 		canvas1/image: load tmp
 		canvas2/image: rcvGetVisibleImage flirFile
 		canvas3/image: rcvGetImageTemperatures flirFile
@@ -38,27 +44,17 @@ getTemperatures: does [
 	tempList/data: blk
 ]
 
-cleanThermal: does [
-	if exists? to-file rgbimg 	[delete to-file rgbimg]
-	if exists? to-file irimg  	[delete to-file irimg]
-	if exists? to-file palimg 	[delete to-file palimg]
-	if exists? to-file rawimg 	[delete to-file rawimg]
-	if exists? to-file tempimg 	[delete to-file tempimg]
-	if exists? to-file exifFile [delete to-file exifFile]
-	if exists? to-file exifFile2 [delete to-file exifFile2]
-]
-
 view layout [
 	title "Thermal Images Reader"
-	button "Load" 			[loadImage]
+	button "Load" 	[loadImage]
 	pad 750x0
 	cb: check 150 "Show Temperatures" false [
 		do-events/no-wait
 		unless face/data [clear tempList/data]
 		if face/data [getTemperatures]
 	]
-	pad 50x0
-	button "Quit" 			[cleanThermal quit]
+	pad 40x0
+	button "Quit" 	[rcvCleanThermal quit]
 	return
 	canvas1: base 320x240
 	canvas2: base 320x240

@@ -14,6 +14,15 @@ flirFile: 	none
 loadImage: does [
 	tmp: request-file 
 	if not none? tmp [
+		canvas1/image: canvas2/image: none
+		canvas3/image: canvas4/image: none
+		clear f0/text
+		clear f1/text
+		clear f2/text
+		clear model/text
+		clear lens/text
+		clear iscale/text
+		do-events/no-wait
 		flirFile: to-string tmp
 		rcvGetFlirMetaData flirFile 
 		canvas1/image: load tmp
@@ -29,16 +38,6 @@ loadImage: does [
 	]
 ]
 
-cleanThermal: does [
-	if exists? to-file rgbimg 	[delete to-file rgbimg]
-	if exists? to-file irimg  	[delete to-file irimg]
-	if exists? to-file palimg 	[delete to-file palimg]
-	if exists? to-file rawimg 	[delete to-file rawimg]
-	if exists? to-file tempimg 	[delete to-file tempimg]
-	if exists? to-file exifFile [delete to-file exifFile]
-	if exists? to-file exifFile2 [delete to-file exifFile2]
-]
-
 view layout [
 	title "Thermal Images Aligment"
 	button "Load" 			[loadImage]
@@ -49,7 +48,7 @@ view layout [
 	text "Image Scale"
 	iscale: field 
 	pad 350x0
-	button "Quit" 			[cleanThermal quit]
+	button "Quit" 			[rcvCleanThermal quit]
 	return
 	canvas1: base 320x240
 	canvas2: base 320x240

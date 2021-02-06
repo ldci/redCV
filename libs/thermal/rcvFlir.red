@@ -1,6 +1,6 @@
 #! /usr/local/bin/red
 Red [
-	Title:   "Virginia"
+	Title:   "rcvFlir"
 	Author:  "Francois Jouen"
 	File: 	 %rcvFlir.red
 	needs:   view
@@ -11,7 +11,7 @@ Red [
 ;--exiftool and magick convert are required
 ;--we need include %exif.red file in order to get default red words
 ;--this file is mandatory and is automatically updated for new images
-#include %exif.red 				
+#include %default_exif.red 	
 
 ;--redCV required libraries
 #include %../core/rcvCore.red
@@ -21,25 +21,39 @@ Red [
 
 ;--this must be adapted according your OS
 exifTool: "/usr/local/bin/exiftool"
-convertTool: "/usr/local/bin/convert"
+convertTool: "/usr/local/bin/convert"	
+SourceFile: ""
+tmpDir: %.				
 
-exifFile:  	%tmp/exif.txt		;--for decoding Flir image
-exifFile2: 	%tmp/exif.red		;--get Red words
+exifFile:  	%exif.txt		;--for decoding Flir image
+exifFile2: 	%exif.red		;--get Red words
 flirPal: 	copy []			;--for color palette
-rgbimg: 	"tmp/rgb.jpg"		;--Flir embedded visible image
-irimg: 		"tmp/irimg.png"		;--Linear corrected Grayscale IR image
-palimg: 	"tmp/palette.png"	;--Flir palette
-rawimg:		"tmp/rawimg.png"	;--Corrected linear raw temperatures
-tempimg:	"tmp/celsius.pgm"	;--For temperatures export 
+rgbjpg: 	"rgb.jpg"		;--Flir embedded visible image
+rgbpng: 	"rgb.jpg"		;--Flir embedded visible image
+irimg: 		"irimg.png"		;--Linear corrected Grayscale IR image
+palimg: 	"palette.png"	;--Flir palette
+rawimg:		"rawimg.png"	;--Corrected linear raw temperatures
+tempimg:	"celsius.pgm"	;--For temperatures export 
 extracted?: false
 imgRatio: 0.0
 
-rcvGetFlirMetaData: function [
+rcvGetFlirMetaData: func [
 "Get all Flir file metadata values as red words"
 	fileName	[string!]
 ][
+	tmpDir: to-file rejoin [first split-path to-file filename "irtmp/"]
+	if not exists? tmpDir [make-dir tmpDir]
+	exifFile: to-file rejoin [tmpDir "exif.txt"]
+	exifFile2: to-file rejoin [tmpDir "exif.red"]
+	rgbjpg:  rejoin [tmpDir "rgb.jpg"]
+	rgbpng:  rejoin [tmpDir "rgb.png"]
+	irimg: rejoin [tmpDir "irimg.png"]	
+	palimg:  rejoin [tmpDir "palette.png"]
+	rawimg:	 rejoin [tmpDir "rawimg.png"]
+	tempimg:  rejoin [tmpDir "celsius.pgm"]
 	prog: copy rejoin [exifTool " -php -flir:all -q " fileName " > " exifFile]
 	ret: call/shell/wait prog
+	;alert form ret
 	var: read/lines exifFile
 	n: length? var
 	i: 2
@@ -68,18 +82,17 @@ rcvGetVisibleImage: function [
 	prog: rejoin [exifTool " -EmbeddedImage -b " fileName]
 	ret: call/wait/output prog binstr
 	switch EmbeddedImageType [ 
-		"PNG"  [write/binary %tmp/rgb.png binstr rgbimg: form %rgb.png]
-		"JPG"  [write/binary %tmp/rgb.jpg binstr rgbimg: form %rgb.jpg]
+		"PNG"  [write/binary to-file rgbpng binstr]
+		"JPG"  [write/binary to-file rgbjpg binstr]			
 		"DAT"  [imgsize: as-pair EmbeddedImageWidth EmbeddedImageHeight
 				img: make image! reduce [imgsize binstr]
-				save %tmp/rgb.jpg img
-				rgbimg: form %tmp/rgb.jpg]
+				save to-file rgbjpg img]
 	]
 	;--returned image
 	switch EmbeddedImageType [ 
-		"PNG"	[load %tmp/rgb.png]
-		"JPG"	[load %tmp/rgb.jpg]
-		"DAT"	[load %tmp/rgb.jpg]
+		"PNG"	[load to-file rgbpng]
+		"JPG"	[load to-file rgbjpg]
+		"DAT"	[load to-file rgbjpg]
 	]
 ]
 
@@ -288,4 +301,16 @@ rcvGetPIPImage: func [
 		rcvCropImage thermal img as-pair PiPX1 + PiPX2 PiPY1 + PiPY2
 	]
 	img
+]
+
+rcvCleanThermal: does [
+	if exists? to-file rgbjpg 		[delete to-file rgbjpg]
+	if exists? to-file rgbpng 		[delete to-file rgbpng]
+	if exists? to-file irimg  		[delete to-file irimg]
+	if exists? to-file palimg 		[delete to-file palimg]
+	if exists? to-file rawimg 		[delete to-file rawimg]
+	if exists? to-file tempimg 		[delete to-file tempimg]
+	if exists? to-file exifFile 	[delete to-file exifFile]
+	if exists? to-file exifFile2 	[delete to-file exifFile2]
+	if exists? to-file tmpDir 		[delete to-file tmpDir]
 ]

@@ -816,6 +816,120 @@ rcvMat2Array: routine [
 	as red-block! stack/set-last as cell! blk 
 ]
 
+;--NEWS
+
+rcvImg2IntBlock: routine [
+"Red image to a block of blocks of integer values"
+	src 		[image!] 
+	op			[integer!]
+	return: 	[block!]
+	/local
+	blk	blk2	[red-block!]
+	*Mat		[int-ptr!]
+	idx	ptr 	[int-ptr!]
+	w h i j		[integer!]
+	r g b a		[integer!]
+	handle		[integer!]
+	bHead		[red-value!]
+][
+	w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    handle: 0
+	*Mat: image/acquire-buffer src :handle
+	blk: as red-block! stack/arguments
+	block/make-at blk h
+	j: 0
+	while [j < h] [
+		i: 0
+		blk2: as red-block! stack/push*
+		block/make-at blk2 w
+		bHead: block/rs-head blk2	
+		while [i < w] [
+			idx: *Mat + (j * w + i)
+			ptr: as int-ptr! bHead
+			r: idx/value and FF0000h >> 16
+			g: idx/value and FF00h >> 8
+			b: idx/value and FFh
+			a: idx/value >>> 24
+       		switch op [
+       			0 [ptr/value: idx/value]		;rgba 
+       			1 [ptr/value:  r]				;r channel
+       			2 [ptr/value:  g]				;g channel
+       			3 [ptr/value:  b]				;b channel
+       			4 [ptr/value:  a]				;alpha channel
+       			5 [ptr/value: (r + b + g) / 3]	;grayscale
+       		]
+       		integer/make-in blk2 ptr/value
+       		bHead: bHead + 1
+			i: i + 1
+		]
+		block/rs-append blk as red-value! blk2
+		j: j + 1
+	]
+	image/release-buffer src handle no
+	blk
+]
+
+
+rcvImg2FloatBlock: routine [
+"Red image to a block of blocks of float values"
+	src 		[image!] 
+	op			[integer!]
+	return: 	[block!]
+	/local
+	blk	blk2	[red-block!]
+	*Mat idx	[int-ptr!]
+	ptr 		[float-ptr!]
+	w h i j		[integer!]
+	r g b a		[float!]
+	handle		[integer!]
+	bHead		[red-value!]  
+	f 			[float!]
+	ff			
+	
+][
+	int64!:  alias struct! [int1 [integer!] int2 [integer!]]
+	w: IMAGE_WIDTH(src/size)
+    h: IMAGE_HEIGHT(src/size)
+    handle: 0
+	*Mat: image/acquire-buffer src :handle
+	blk: as red-block! stack/arguments
+	block/make-at blk h
+	j: 0
+	while [j < h] [
+		i: 0
+		blk2: as red-block! stack/push*
+		block/make-at blk2 w
+		bHead: block/rs-head blk2	
+		while [i < w] [
+			idx: *Mat + (j * w + i)
+			ptr: as float-ptr! bHead
+			r: as float! (idx/value and FF0000h >> 16)
+			g: as float! (idx/value and FF00h >> 8)
+			b: as float! (idx/value and FFh)
+			a: as float! (idx/value >>> 24)
+       		switch op [
+       			0 [ptr/value: as float! (idx/value)];rgba 
+       			1 [ptr/value: r]				;r channel
+       			2 [ptr/value: g]				;g channel
+       			3 [ptr/value: b]				;b channel
+       			4 [ptr/value: a]				;alpha channel
+       			5 [ptr/value: (r + b + g) / 3.0];grayscale
+       		]
+       		f: floor ptr/value
+       		ff: as int64! :f
+       		float/make-in blk2 ff/int2 ff/int1							
+       		bHead: bHead + 1
+			i: i + 1
+		]
+		block/rs-append blk as red-value! blk2
+		j: j + 1
+	]
+	image/release-buffer src handle no
+	blk
+]
+
+;--END NEWS
 
 
 _rcvBlendMat: routine [
