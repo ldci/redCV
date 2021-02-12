@@ -7,23 +7,27 @@ Red [
 
 ;this version uses rcvSetIntensity and not rcvBlend
 
-#include %../../libs/redcv.red ; for redCV functions
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+
+
 margins: 10x10
 isize: 512x512
 bitSize: 32
 
 dst: rcvCreateImage isize
 
-mat1: rcvCreateMat 'integer! bitSize isize
-mat2: rcvCreateMat 'integer! bitSize  isize
-matD: rcvCreateMat 'integer! bitSize  isize
-
+mat1: matrix/init/value 2 bitSize isize 0
+mat2: matrix/init/value 2 bitSize isize 255
+mat3: matrix/init 2 bitSize isize
 alpha: 0.5
 
 blending: does [
-	rcvBlendMat mat1 mat2 matD alpha
-	rcvMat2Image matD dst
+	rcvBlendMat mat1 mat2 mat3 alpha
+	rcvMat2Image mat3  dst
+	canvas/image: dst
 ]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
@@ -40,9 +44,9 @@ view win: layout [
 		button 60 "Quit" [	rcvReleaseImage dst 
 							rcvReleaseMat mat1
 							rcvReleaseMat mat2
-							rcvReleaseMat matD
+							rcvReleaseMat mat3
 							Quit]
 		return
 		canvas: base isize dst
-		do [sl/data: alpha rcvColorMat mat1 0 rcvColorMat mat2 255 blending]
+		do [sl/data: alpha blending]
 ]
