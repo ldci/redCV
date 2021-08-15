@@ -3,7 +3,7 @@ Red [
 	Author:  "Francois Jouen"
 	File: 	 %rcvMatrix.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016-2021 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -816,7 +816,7 @@ rcvMat2Array: routine [
 	as red-block! stack/set-last as cell! blk 
 ]
 
-;--NEWS
+;--NEWS pour CSV export
 
 rcvImg2IntBlock: routine [
 "Red image to a block of blocks of integer values"
@@ -885,7 +885,7 @@ rcvImg2FloatBlock: routine [
 	handle		[integer!]
 	bHead		[red-value!]  
 	f 			[float!]
-	ff			
+	ff						
 	
 ][
 	int64!:  alias struct! [int1 [integer!] int2 [integer!]]
@@ -927,6 +927,21 @@ rcvImg2FloatBlock: routine [
 	]
 	image/release-buffer src handle no
 	blk
+]
+
+;Fast PGM conversion (Grayscale image)
+rcvImage2PGM: func [
+	src			[image!]
+	fName 		[file!]
+	colorMax	[integer!]	
+][
+	;MAGIC_P2: #{5032}; "P2" 
+	w: src/size/x 
+	h: src/size/y
+	write fName rejoin ["P2" tab]
+	write/append fName rejoin [w tab h tab]
+	write/append fName rejoin [form colorMax tab] 
+	write/append fName rcvImg2IntBlock src 5
 ]
 
 ;--END NEWS
@@ -1078,7 +1093,7 @@ makeRange: func [
 	a 		[number!] 
 	b 		[number!] 
 	step 	[number!]][
-    collect [i: a - step until [keep i: i + step i = b]]
+    collect [i: a - step until [keep i: i + step i >= b]]
 ]
 
 rcvMakeRangeMat: function [

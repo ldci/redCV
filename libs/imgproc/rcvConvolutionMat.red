@@ -1,7 +1,7 @@
 Red [
 	Title:   "Red Computer Vision: Core functions"
 	Author:  "Francois Jouen"
-	File: 	 %rcvMatConvolution.red
+	File: 	 %rcvConvolutionMat.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2016-2020 Francois Jouen. All rights reserved."
 	License: {

@@ -62,7 +62,7 @@ view win: layout [
 		]
 		text "Camera Size" 
 		cSize: field 80
-		onoff: button "Start/Stop" 85 on-click [
+		onoff: toggle 85 "Start/Stop" false [
 				either cam/selected [
 					cam/selected: none
 					canvas/rate: none

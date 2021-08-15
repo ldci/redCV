@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: Matrix functions"
 	Author:  "François Jouen, Toomas Vooglaid and Qingtian Xie"
-	File: 	 %rcvMatrix.red
+	File: 	 %routines-obj.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2020 Red Foundation. All rights reserved."
+	Rights:  "Copyright (C) 2020-2021 Red Foundation. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -11,11 +11,12 @@ Red [
 ]
 
 ;**********************NEW MATRIX OBJECT**************************
-;How to access matrix object with routines
-;Thanks to Qingtian Xie:)
+;--How to access matrix object with routines
+;--Thanks to Qingtian Xie:)
 
 #system [
 	mat: context [
+		;--pure Red/S  code
 		#enum matrix-fields! [
 			MAT_OBJ_TYPE	;-- 0
 			MAT_OBJ_BITS	;-- 1
@@ -94,3 +95,81 @@ Red [
 		]
 	];--end of context
 ];--end of Red/System
+
+;--now some routines and functions
+
+getMatType: routine [
+	mObj	[object!]
+	return:	[integer!]
+][
+	mat/get-type mObj
+]
+
+getMatBits: routine [
+	mObj	[object!]
+	return:	[integer!]
+][
+	mat/get-bits mObj
+]
+
+getMatOrder: routine [
+	mObj	[object!]
+	return:	[pair!]
+	/local
+	rows	[integer!]
+	cols	[integer!]
+	order	[red-pair!]
+][
+	order: pair/make-at stack/push* 0 0
+	rows: mat/get-rows mObj
+	cols: mat/get-cols mObj
+	order/x: cols
+	order/y: rows
+	as red-pair! stack/set-last as cell! order
+]
+
+getMatDataLength: routine [
+	mObj	[object!]
+	return:	[integer!]
+	/local
+		vec  [red-vector!]
+][
+	vec: mat/get-data mObj
+	vector/rs-length? vec 
+]
+
+getMatData: routine [
+	mObj	[object!]
+	return:	[vector!]
+	/local
+		vec  	[red-vector!]
+][
+	vec: mat/get-data mObj
+	as red-vector! stack/set-last as cell! vec
+]
+
+getMatUnit: routine [
+"Returns matrice unit"
+	mObj  	[object!]
+	return: [integer!]
+	/local
+	s		[series!] 
+	vec 	[red-vector!]
+] [
+	vec: mat/get-data mObj
+	s: GET_BUFFER(vec)
+	GET_UNIT(s)
+]
+
+
+getMatTypeAsString: function [
+	mObj	[object!]
+	return:	[string!]
+][
+	switch/default getMatType mObj [
+		1 [return "Char!"]
+		2 [return "Integer!"]
+		3 [return "Float!"]
+	][return "Unknown"]
+]
+

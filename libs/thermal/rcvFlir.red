@@ -29,7 +29,7 @@ exifFile:  	%exif.txt		;--for decoding Flir image
 exifFile2: 	%exif.red		;--get Red words
 flirPal: 	copy []			;--for color palette
 rgbjpg: 	"rgb.jpg"		;--Flir embedded visible image
-rgbpng: 	"rgb.jpg"		;--Flir embedded visible image
+rgbpng: 	"rgb.png"		;--Flir embedded visible image
 irimg: 		"irimg.png"		;--Linear corrected Grayscale IR image
 palimg: 	"palette.png"	;--Flir palette
 rawimg:		"rawimg.png"	;--Corrected linear raw temperatures
@@ -257,6 +257,7 @@ rcvGetTemperatureAsBlock: function [
 ;--aligment
 ;--for most cameras
 rcvAlignImages: func [
+"Align visible and thermal images"
 	fileName	[string!]
 	return:		[image!]
 ][

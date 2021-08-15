@@ -20,7 +20,7 @@ Red [
 ;--mData: matrix values as block transformed into vector for fast computation 
 
 ; When address is given as pair MxN it follows Red semantics of COLxROW
-; When ddress is given as two integers M an N, the order is ROW COL as conventional in math literature
+; When address is given as two integers M an N, the order is ROW COL as conventional in math literature
 ;------------------------------------------------------------------------------------------------------
 
 matrix: context [
@@ -902,7 +902,7 @@ matrix: context [
 	"Split matrix"
 		mx 		 [object!]  	"Matrix"
 		col 	 [integer!] 	"Column number at which to split matrix" 
-		return:  [object!]	;--matrix
+		return:  [object!]		;--matrix
 		/local 
 			data [block!] 
 			r 	 [integer!]
@@ -914,15 +914,50 @@ matrix: context [
 		rows: mx/rows
 		cols: mx/cols - col + 1
 		data: make block! cols * rows
+		_mx: _copy mx		;--copy to avoid to modify original matrix
 		repeat r rows [
 			row: rows - r + 1
-			idx: _getIdx mx row col
-			insert data to-block take/part at mx/data idx cols 
+			idx: _getIdx _mx row col
+			insert data to-block take/part at _mx/data idx cols 
 		] 
-		mx/cols: mx/cols - cols
-		create mx/type mx/bits as-pair cols rows data
+		_mx/cols: _mx/cols - cols
+		create _mx/type _mx/bits as-pair cols rows data
+	]
+	
+	
+	slice: func [
+	"Split matrix"
+		mx 		 [object!] 		"Matrix" 
+		srow	 [integer!]		"Starting row"
+		erow	 [integer!]		"Ending row"		
+		scol 	 [integer!] 	"Starting column"	
+		ecol	 [integer!]		"Ending column"	
+		return:  [object!]		;--matrix
+		/local 
+			data [block!] 
+			r 	 [integer!]
+			row  [integer!]
+			cols [integer!]
+			rows [integer!]
+			idx	 [integer!]
+	][
+		rows: erow - srow + 1
+		cols: ecol - scol + 1
+		data: make block! cols * rows
+		_mx: _copy mx		;--copy to avoid to modify original matrix
+		row: erow
+		repeat r rows [
+			col: scol
+			idx: _getIdx _mx row col
+			insert data to-block take/part at _mx/data idx cols
+			row: row - 1 
+		] 
+		_mx/cols: mx/cols - cols
+		_mx/rows: mx/rows - rows
+		create _mx/type _mx/bits as-pair cols rows data
 	]
 
+	;************************** Row and cols ops *****************************
 	
 	rowScalarProduct: func [
 	"Scalar multiplication of a matrix row"
@@ -940,7 +975,6 @@ matrix: context [
 		mx
 	]
 	
-	;************************** Row and cols ops *****************************
 	
 	rowAdd: func [
 	"Vector addition to a matrix row"
@@ -1056,7 +1090,7 @@ matrix: context [
 			mx
 		]
 	]
-	;'
+	
 	rotate: func [
 	"Rotate matrix"
 		mx 		 [object!]  "Matrix" 
@@ -1353,7 +1387,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 0
+		_matScalarOp mx 0 value
 	]
 	
 	scalarSubtraction: function [
@@ -1361,7 +1395,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-	_matScalarOp mx value 1
+	_matScalarOp mx 1 value
 	]
 	
 	scalarProduct: function [
@@ -1369,7 +1403,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 2
+		_matScalarOp mx 2 value
 	]
 	
 	scalarDivision: function [
@@ -1377,7 +1411,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 3
+		_matScalarOp mx 3 value
 	]
 	
 	scalarRemainder: function [
@@ -1385,7 +1419,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 4
+		_matScalarOp mx 4 value
 	]
 	
 	scalarAnd: function [
@@ -1393,7 +1427,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 5
+		_matScalarOp mx 5 value
 	]
 	
 	scalarOr: function [
@@ -1401,7 +1435,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 6
+		_matScalarOp mx 6 value
 	]
 	
 	scalarXor: function [
@@ -1409,7 +1443,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 7
+		_matScalarOp mx 7 value
 	]
 	
 	scalarRightShift: function [
@@ -1417,7 +1451,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 8
+		_matScalarOp mx 8 value
 	]
 	
 	scalarLeftShift: function [
@@ -1425,7 +1459,7 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 9
+		_matScalarOp mx 9 value
 	]
 	
 	scalarRightShiftUnsigned: function [
@@ -1433,11 +1467,13 @@ comment [rotateRow: func [
 		mx 		[object!]	"Matrix"
 		value 	[number!]	"Scalar value"
 	][
-		_matScalarOp mx value 10
+		_matScalarOp mx 10 value
 	]
 
 	;************* Decomposition *****************
-
+	;the identity matrix of size n is the n × n square matrix 
+	;with ones on the main diagonal and zeros elsewhere
+	
 	getIdentity: func [
 	"Get (left or right) identity matrix for a given matrix"
 		mx 			[object!]	"Matrix" 
@@ -1456,6 +1492,10 @@ comment [rotateRow: func [
 			cause-error 'user 'message ["You need to determine /side ['l | 'r] for non-square matrix!"]
 		]
 	]
+	
+	;lower–upper (LU) decomposition creates  a matrix as the product 
+	;of a lower triangular matrix and an upper triangular matrix
+	;only for float!  matrices
 	
 	LU: func [
         mx [object!]
@@ -1476,7 +1516,7 @@ comment [rotateRow: func [
                     if not zero? value: _getAt U c + r c [
                         _setAt L c + r c lambda: value / _getAt U c c
                         rowSub U c + r lambda * getRow U c
-                        matrix/show U
+                        ;matrix/show U
                     ]
                 ]
             ]

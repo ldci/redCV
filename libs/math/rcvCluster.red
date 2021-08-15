@@ -10,29 +10,30 @@ Red [
 	}
 ]
 
+;#include %../core/rcvCore.red ;--for stand alone test
+;#include %../matrix/rcvMatrix.red ;--for stand alone test
+;#include %../tools/rcvTools.red ;--for stand alone test
 
 ; ****************** KMeans alogorithm routines ******************
-
 ; All routines and functions require redCV array data type [block of vector]
 
 rcvGenCentroid: routine [
 "Generates centroids initial values"
 	array		[block!]	; array type
 	/local
-	bvalue 		[red-value!] 	
-   	p			[float-ptr!]
-    vectBlk		[red-vector!]
-    vvalue		[byte-ptr!] 
-    i			[integer!]
-    j			[integer!]
-    nCluster	[integer!]
-    unit		[integer!]
+		bvalue 				[red-value!] 	
+   		p					[float-ptr!]
+    	vectBlk				[red-vector!]
+    	vvalue				[byte-ptr!] 
+    	i j nCluster unit	[integer!]
+    	s					[series!]
 ][
 	;Generate centroids initial values
 	bvalue: block/rs-head array
 	nCluster:  block/rs-length? array
 	vectBlk: as red-vector! bvalue
-	unit: rcvGetMatBitSize vectBlk
+	s: GET_BUFFER(vectBlk)
+	unit: GET_UNIT(s)	
 	i: 0
     while [i < nCluster][
     	vectBlk: as red-vector! bvalue ; 3 values in vectBlk
@@ -61,26 +62,13 @@ rcvKNearest: routine [
 	op			[integer!] 
 	return: 	[float!]
 	/local
-	bcvalue		[red-value!]
-	vvalue		[byte-ptr!]
-	pvalue		[byte-ptr!]
-	vectBlk		[red-vector!]
-	nCluster	[integer!]
-	unit		[integer!]
-    i			[integer!]
-    j			[integer!]
-    min_d		[float!]
-    min_i		[float!]
-    cx 			[float!]
-    cy 			[float!]
-    cg			[float!]
-    px			[float!] 
-    py 			[float!]
-    pg			[float!]
-    x			[float!]
-    y			[float!] 
-    d			[float!]
-    r			[float!]
+		bcvalue					[red-value!]
+		vvalue  pvalue			[byte-ptr!]
+		vectBlk					[red-vector!]
+		nCluster unit i j		[integer!]
+    	min_d min_i cx cy cg	[float!]
+    	px py pg x y d r		[float!] 
+    	s						[series!]
 ] [
 	min_d: 1E100
 	min_i: 0.0
@@ -88,7 +76,8 @@ rcvKNearest: routine [
 	nCluster: block/rs-length? centroid
 	vectBlk: as red-vector! bcvalue
 	pvalue: vector/rs-head pt 
-	unit: rcvGetMatBitSize vectBlk
+	s: GET_BUFFER(vectBlk)
+	unit: GET_UNIT(s)	
 	i: 0
 	;get point value as a vector
 	while [i < 3][
@@ -118,7 +107,12 @@ rcvKNearest: routine [
 		]
 		x: cx - px
 	    y: cy - py
-	    d: _rcvDotsDistance x y 6 0.0 ; Squared Euclidian
+	    ; Squared Euclidian
+	    if x < 0.0 [x: 0.0 - x]
+		if y < 0.0 [y: 0.0 - y]
+		x: x * x
+		y: y * y
+		d: x + y 
 		;d: (x * x) + (y * y)
 		if min_d > d [
             min_d: d
@@ -140,32 +134,24 @@ rcvKMInit: routine [
 	centroid 	[block!] ;array
 	tmpblk		[block!] ;simple block for sum
 	/local
-	bcvalue		[red-value!]
-	bpvalue		[red-value!]
-	btvalue		[red-value!]
-	cvectBlk	[red-vector!]
-	pvectBlk	[red-vector!]
-	cvvalue		[byte-ptr!]
-	pvvalue		[byte-ptr!]	
-	p			[int-ptr!]
-	ptrc		[float-ptr!]
-	ptrp		[float-ptr!]
-	unit		[integer!]
-	d			[float!]
-	sum			[float!]
-	i			[integer!]
-	j			[integer!]
-	k			[integer!]
-	nCluster	[integer!]
-	len			[integer!]
-	dd
+		bcvalue	bpvalue	btvalue [red-value!]
+		cvectBlk pvectBlk		[red-vector!]
+		cvvalue	pvvalue			[byte-ptr!]
+		p						[int-ptr!]
+		ptrc ptrp				[float-ptr!]
+		unit i j k nCluster len	[integer!]
+		d sum					[float!]
+		s						[series!]
+		dd						; an internal structure for int64
 ][
 	bcvalue: block/rs-head centroid
 	bpvalue: block/rs-head points
 	btvalue: block/rs-head tmpblk
 	cvectBlk: as red-vector! bcvalue
 	pvectBlk: as red-vector! bpvalue
-	unit: rcvGetMatBitSize pvectBlk
+	s: GET_BUFFER(pvectBlk)
+	unit: GET_UNIT(s)	
+	;unit: rcvGetMatBitSize pvectBlk
 	len: block/rs-length? points
 	nCluster: block/rs-length? centroid
 	int64!:  alias struct! [int1 [integer!] int2 [integer!]]
@@ -186,11 +172,12 @@ rcvKMInit: routine [
 			dd: as int64! :d
 			sum: sum + d
 			;integer/make-in tmpblk as integer! sum
-			float/make-in tmpblk dd/int1 dd/int2
+			;float/make-in tmpblk dd/int1 dd/int2
+			float/make-in tmpblk dd/int2 dd/int1
 			bpvalue: bpvalue + 1
 			j: j + 1
 		]
-		sum: randf(sum)
+		sum: (sum * as float! _random/rand) / 2147483647.0 - 1.0 ;randf(sum)
 		bpvalue: block/rs-head points
 		btvalue: block/rs-head tmpblk
 		j: 0
@@ -251,36 +238,23 @@ rcvKMCompute: routine [
 	points 		[block!] 
 	centroid 	[block!]
 	/local
-	bcvalue		[red-value!]
-	bpvalue		[red-value!]
-	cvectBlk	[red-vector!]
-	pvectBlk	[red-vector!]
-	cvvalue		[byte-ptr!]
-	pvvalue		[byte-ptr!]	
-	f			[float-ptr!]
-	lenpts10	[integer!]
-	changed		[integer!]
-	i			[integer!]
-	j			[integer!]
-	idx			[integer!]
-	unit		[integer!]
-	len			[integer!]
-	nCluster	[integer!]
-	cx 			[float!]
-    cy 			[float!]
-    cg			[float!]
-    px			[float!] 
-    py 			[float!]
-    pg			[float!]
-    min_I
+		bcvalue bpvalue				[red-value!]
+		cvectBlk pvectBlk			[red-vector!]
+		cvvalue	pvvalue				[byte-ptr!]
+		f							[float-ptr!]
+		lenpts10 changed			[integer!]
+		i j idx unit len nCluster	[integer!]
+		cx cy cg px py pg min_I		[float!]
+    	s							[series!]
 ][
 	bcvalue: block/rs-head centroid
 	nCluster: block/rs-length? centroid
 	bpvalue: block/rs-head points
 	pvectBlk: as red-vector! bpvalue
 	len: block/rs-length? points
-	unit: rcvGetMatBitSize pvectBlk
-	
+	s: GET_BUFFER(pvectBlk)
+	unit: GET_UNIT(s)	
+	;unit: rcvGetMatBitSize pvectBlk
 	lenpts10: len >> 10
 	changed: 0
 	;Find clusters centroids

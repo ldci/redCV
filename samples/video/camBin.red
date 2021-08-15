@@ -46,7 +46,7 @@ view win: layout [
 		cam-list: drop-list 250 on-create [
 				face/data: cam/data
 		]
-		onoff: button "Start/Stop" on-click [
+		onoff: toggle 85  "Start/Stop" false [
 				either cam/selected [
 					cam/selected: none
 					canvas/rate: none

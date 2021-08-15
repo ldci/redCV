@@ -1,7 +1,7 @@
 Red [
 	Title:   "Red Computer Vision: Image Processing"
 	Author:  "Francois Jouen"
-	File: 	 %rcvConvolution.red
+	File: 	 %rcvConvolutionImg.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
 	License: {

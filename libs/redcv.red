@@ -3,12 +3,15 @@ Red [
 	Author:  "Francois Jouen"
 	File: 	 %redcv.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016-2019 Francois Jouen. All rights reserved."
+	Version: 2.0.0
+	Rights:  "Copyright (C) 2016-2021 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
 	}
 ]
+
+;redCV version: 2.0.0
 
 ;the printed result is rounded to the closest integer value by default if it is less than 
 ;an internal epsilon value. There is an option to disable that "pretty printing" for ;
@@ -21,15 +24,15 @@ system/options/float/pretty?: no
 ; Some routines (_rcvName) are internal routines  
 
 ; Thanks to Nenad Rakocevic and Qingtian Xie for constant help :)
-;#include %../../libs/redcv.red ; for redCV functions
+;#include %../../libs/redcv.red ; for all redCV functions
 
-; mandatory libs
+; mandatory modules
 #include %core/rcvCore.red 					; Basic image creating and processing functions
 #include %matrix/rcvMatrix.red				; Matrices functions
 #include %tools/rcvTools.red				; Some Red tools mainly used by rcvImgProc.red
-#include %imgproc/rcvImgProc.red			; Image and matrix processing algorithms
 
-; optional libs
+; optional modules
+#include %imgproc/rcvImgProc.red			; Image and matrix processing algorithms
 #include %imgproc/rcvColorSpace.red			; Color spaces
 #include %imgproc/rcvConvolutionImg.red		; Convolution for images
 #include %imgproc/rcvConvolutionMat.red		; Convolution for matrices
@@ -53,12 +56,16 @@ system/options/float/pretty?: no
 #include %objdetect/rcvSegmentation.red		; Image segmentation
 #include %zLib/rcvZLib.red					; ZLib compression
 #include %tiff/rcvTiff.red					; Tiff image reading and writing
-#include %pbm/rcvPbm.red					; Portable bitmap support
 #include %timeseries/rcvTS.red				; Time Series algorithms
 #include %timeseries/rcvSGF.red				; Savitzky-Golay filter
 #include %timeseries/rcvDTW.red				; Dynamic Time Warping algorithms
 #include %timeseries/rcvFFT.red				; FFT algorithms
+#include %timeseries/rcvWavelet.red			; Haar wavelets
 #include %highgui/rcvHighGui.red			; Fast Highgui functions
+#include %thermal/rcvFlir.red				; Flir IR camera tools
+#include %pbm/rcvPbm.red					; Portable bitmap support
+#include %pandore/panlibObj.red				; Access to C++ Pandore library
+
 
 
 

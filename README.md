@@ -4,7 +4,7 @@
 
 ![](images/red.ico) ![](images/redCV.png)
 ### You need a recent Red version. 
-### Compiled with Red 0.6.4 for macOS built 25-Dec-2020/0:08:25+01:00 commit #98f31b5
+### Compiled with Red 0.6.4 for macOS built 11-Aug-2021/0:56:38+02:00  commit #3124920
 
 ### Tested with macOS, Linux Mint 32-bit, Windows XP and Windows 10
 
@@ -18,6 +18,24 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 *then just red -c FileName -> Faster compilation*
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
+
+### **UPDATE AUGUST 15 2021**###
+
+##redCV version is now 2.0.0##
+
+More than **600 routines and functions** for image processing.
+ 
+redCV is fully compatible with the **matrix object** we developed with Toomas Vooglaid and Qingtian Xie during 2020 summer break.
+
+redCV can talk with **Pandore C++ library**.
+
+redCV is completly **modular**.
+
+redCV documentation is **updated**.
+
+redCV code samples also **updated**. 
+
+
 
 ### UPDATE JANUARY 2 2021
 redCV includes a support for Flir themal images. This will be extended to other thermal imagers such as Optris.

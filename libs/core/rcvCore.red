@@ -129,7 +129,7 @@ rcvSaveImage: function [
 ;new
 ; [bmp png jpeg gif]
 rcvSaveImageAs: function [
-"Save image to file (only png actually)"
+"Save image to file"
 	src 		[image!] 
 	fileName 	[file!] 
 	type		[word!]
@@ -173,7 +173,6 @@ rcvCloneImage: function [
 	dst
 ]
 
-; Random New To be documented
 rcvRandImage: routine [
 	dst			[image!]
 	/local
@@ -231,8 +230,6 @@ rcvColorImage: function [src [image!] acolor [tuple!]
 ]
 
 
-
-
 ;************** Pixel Access Routines **********
 rcvGetPixel_old: routine [
 "Returns pixel value at xy coordinates as tuple"
@@ -285,7 +282,7 @@ rcvGetPixelAsInteger: routine [
 "Returns pixel value at xy coordinates as integer"
 	src1 		[image!] 
 	coordinate 	[pair!] 
-	return: [integer!]
+	return: 	[integer!]
 	/local 
 		pix1 			[int-ptr!]
 		handle1 w pos	[integer!] 
@@ -530,11 +527,12 @@ rcvFilterBW: routine [
         r: g: b: v
         switch op [
         	0 [either v >= thresh [r: 255 g: 255 b: 255] [r: 0 g: 0 b: 0]]
-        	1 [either v > thresh [r: maxValue g: maxValue b: maxValue] [r: 0 g: 0 b: 0]]
-        	2 [either v > thresh [r: 0 g: 0 b: 0] [r: maxValue g: maxValue b: maxValue]]
-        	3 [either v > thresh [r: thresh g: thresh b: thresh] [r: r g: g b: b]]
-        	4 [either v > thresh [r: r g: g b: b] [r: 0 g: 0 b: 0]]
-        	5 [either v > thresh [r: 0 g: 0 b: 0] [r: r g: g b: b]]
+        	1 [either v > thresh  [r: maxValue g: maxValue b: maxValue] [r: 0 g: 0 b: 0]]
+        	2 [either v > thresh  [r: 0 g: 0 b: 0] [r: maxValue g: maxValue b: maxValue]]
+        	3 [either v > thresh  [r: thresh g: thresh b: thresh] [r: r g: g b: b]]
+        	4 [either v > thresh  [r: r g: g b: b] [r: 0 g: 0 b: 0]]
+        	5 [either v > thresh  [r: 0 g: 0 b: 0] [r: r g: g b: b]]
+        	6 [either v > thresh  [r: 1 g: 1 b: 1] [r: 0 g: 0 b: 0]]
         ]  
         pixD/value: pixel2	       
         pixS: pixS + 1
@@ -561,7 +559,7 @@ rcvThreshold: function [
 	dst [image!] 
 	thresh [integer!] 
 	mValue [integer!]
-	/binary /binaryInv /trunc /toZero /toZeroInv
+	/binary /binaryInv /trunc /toZero /toZeroInv /toZeroOne
 ][
 	case [
 		binary 		[rcvFilterBW src dst thresh mValue 1]
@@ -569,6 +567,7 @@ rcvThreshold: function [
 		trunc		[rcvFilterBW src dst thresh mValue 3]
 		toZero 		[rcvFilterBW src dst thresh mValue 4]
 		toZeroInv 	[rcvFilterBW src dst thresh mValue 5]
+		toZeroOne	[rcvFilterBW src dst thresh mValue 5]
 	]
 ]
  
@@ -577,7 +576,7 @@ rcvInvert: function [
 	src [image!] 
 	dst [image!]
 ][
-	dst/rgb:  complement src/rgb 
+	dst/rgb: complement src/rgb 
 ]
 
 ;***************** LOGICAL OPERATOR ON IMAGE ROUTINES ************
@@ -1278,6 +1277,53 @@ rcvMeanImages: function [
 ]
 
 ;******************** SUB-ARRAYS ************************
+;--new
+rcvRChannel: routine [
+    src  [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+    	rpixel wpixel	[subroutine!]
+        pixS 			[int-ptr!]
+        pixD 			[int-ptr!]
+        handleS handleD [integer!]
+        i n				[integer!]
+        r g b a			[integer!]
+][
+    handleS: 0
+    handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+    a: r: g: b: 0
+    ;--subroutines read and write pixels
+    rpixel: [
+    	a: pixS/value >>> 24 r: pixS/value and 00FF0000h >> 16 
+        g: pixS/value and FF00h >> 8 b: pixS/value and FFh 
+    ]
+    wpixel: [(a << 24) OR (r << 16 ) OR (g << 8) OR b]
+    ;--end subroutines
+    i: 0
+    while [i < n] [
+        rpixel
+        switch op [
+        	0 [pixD/value: pixS/value]
+            1 [r: 0]	;remove Red Channel
+            2 [g: 0] 	;remove Green Channel 
+            3 [b: 0] 	;remove Blue Channel
+            4 [b: g: 0]	;keep Red Channel
+            5 [r: b: 0]	;keep Green Channel
+            6 [r: g: 0]	;keep Blue Channel
+        ]
+        pixD/value: wpixel
+        pixS: pixS + 1
+        pixD: pixD + 1
+        i: i + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
+]
+;--end new
 
 rcvSChannel: routine [
     src  [image!]
