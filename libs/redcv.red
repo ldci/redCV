@@ -62,8 +62,9 @@ system/options/float/pretty?: no
 #include %timeseries/rcvFFT.red				; FFT algorithms
 #include %timeseries/rcvWavelet.red			; Haar wavelets
 #include %highgui/rcvHighGui.red			; Fast Highgui functions
-#include %thermal/rcvFlir.red				; Flir IR camera tools
 #include %pbm/rcvPbm.red					; Portable bitmap support
+#include %thermal/Flir/rcvFlir.red			; Flir IR camera tools
+#include %thermal/Optris/optrisriff.red		; Optris IR camera tools
 #include %pandore/panlibObj.red				; Access to C++ Pandore library
 
 
