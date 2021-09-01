@@ -19,12 +19,12 @@ Use first -u compiler option to create a Red RT library and then just -c option 
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
 
-###**UPDATE SEPTEMBER 1 2021**
+### **UPDATE SEPTEMBER 1 2021**
 Support for Optris Infrared devices added including images and movies samples.
 
 ### **UPDATE AUGUST 15 2021**
 
-##redCV version is now 2.0.0
+## redCV version is now 2.0.0
 
 More than **600 routines and functions** for image processing.
  
