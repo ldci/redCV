@@ -19,12 +19,8 @@ _rcvDotsDistance: routine [
 	p		[float!]	; power for Minkowski
 	return: [float!]
 	/local
-	x2		[float!] 
-	y2		[float!]
-	m1		[float!]
-	m2		[float!]
-	s		[float!]		
-] [
+		x2 y2 m1 m2 s	[float!] 	
+][
 	if dx < 0.0 [dx: 0.0 - dx]
 	if dy < 0.0 [dy: 0.0 - dy]
 	x2: dx * dx
@@ -33,7 +29,8 @@ _rcvDotsDistance: routine [
 	switch op [
 		1	[sqrt (x2 + y2)]				; Euclidian
 		2	[dx + dy]						; Manhattan
-		3	[maxFloat dx dy]				; Chessboard
+		;3	[maxFloat dx dy]				
+		3	[either (dx > dy) [dx] [dy]]	; Chessboard
 		4	[m1: pow dx p m2: pow dy p
 			 s: m1 + m2 pow s (1.0 / p)]	; Minkowsky
 		5	[either (dx > dy) [dx] [dy]]	; Chebyshev
@@ -50,7 +47,7 @@ _rcvDotsFDistance: routine [
 	op		[integer!]	; distance op
 	return: [float!]
 	/local
-	r		[float!]
+		r		[float!]
 ] [
 	switch op [
 		1 [r: (dx1 / dx2) + (dy1 / dy2)]; Camberra
@@ -66,21 +63,15 @@ rcvDistance2Color: routine [
 		dist 	[float!] 
 		t 		[tuple!]
 		/local
-		r 		[integer!]
-		g 		[integer!]
-		b		[integer!]
-		rf 		[integer!]
-		gf 		[integer!]
-		bf		[integer!]
-		arr1	[integer!]
+			r g b rf gf bf arr1	[integer!]
 ][
 	r: t/array1 and FFh 
 	g: t/array1 and FF00h >> 8 
 	b: t/array1 and 00FF0000h >> 16 
-	rf: as integer! (dist * r)
-	gf: as integer! (dist * g)
-	bf: as integer! (dist * b)
-	arr1: (bf << 16) or (gf << 8 ) or rf
+	rf: as integer! (dist * as float! r)
+	gf: as integer! (dist * as float! g)
+	bf: as integer! (dist * as float! b)
+	arr1: (rf << 16) or (gf << 8 ) or bf
 	stack/set-last as red-value! tuple/push 3 arr1 0 0
 ]
 
@@ -208,6 +199,7 @@ rcvGetAngle: function [
 ;needs a coordinate translation p - shape centroid
 ; angle * 180 / pi radian -> degrees
 ; angle * pi / 180 degree -> radian
+
 rcvGetAngleRadian: function [
 "Gets angle in radian "
 	p [pair!]
@@ -240,24 +232,11 @@ rcvVoronoiDiagram: routine [
 	param2	[integer!]		; kind of distance
 	param3	[float!]		; p value for Minkowski distance
 	/local
-	pix1 	[int-ptr!]
-	idxim	[int-ptr!]
-	pt		[int-ptr!]
-	n 		[integer!]
-	x 		[integer!]
-	y 		[integer!]
-	s		[integer!] 
-	w		[integer!] 
-	h		[integer!] 
-	sMin	[integer!]
-	handle1 [integer!]
-	d 		[float!]
-	dMin 	[float!]
-	p		[red-pair!] 		
-	bxy		[red-value!]
-	bcl 	[red-value!]
-	idxy	[red-value!]
-	idxc	[red-value!]
+		pix1 idxim pt				[int-ptr!]
+		n x y s w h sMin handle1	[integer!]
+		d dMin						[float!]
+	 	p							[red-pair!] 		
+		bxy bcl	idxy idxc			[red-value!]
 ][
 	handle1: 0
 	n: block/rs-length? peaks
@@ -326,31 +305,13 @@ rcvDistanceDiagram: routine [
 	param2	[integer!]		; kind of distance
 	param3	[float!]		; p value for Minkowski distance
 	/local
-	pix1 	[int-ptr!]
-	idxim	[int-ptr!]
-	n 		[integer!]
-	x 		[integer!]
-	y 		[integer!]
-	s		[integer!] 
-	w		[integer!] 
-	h		[integer!] 
-	sMin	[integer!]
-	handle1 [integer!]
-	d 		[float!]
-	dMin 	[float!]
-	dMax	[float!]
-	p		[red-pair!] 		
-	bxy		[red-value!]
-	idxy	[red-value!]
-	bcl 	[red-value!]
-	idxc	[red-value!]	
-	r 		[integer!]
-	g 		[integer!]
-	b		[integer!]
-	dr 		[integer!]
-	dg 		[integer!]
-	db		[integer!]
-	t		[red-tuple!]
+		pix1 idxim					[int-ptr!]
+		n x y w h s sMin handle1	[integer!]
+		d dMin 	dMax				[float!]
+	 	p							[red-pair!] 		
+		bxy	idxy bcl idxc			[red-value!]	
+		r g b dr dg db				[integer!]
+		t							[red-tuple!]
 ][
 	handle1: 0
 	n: block/rs-length? peaks
@@ -364,13 +325,13 @@ rcvDistanceDiagram: routine [
     	x: 0
        	while [x < w ][
        		;calculate distance 
-       		dMax: 0.1 * _rcvDotsDistance as float! w as float! h param2 param3 
-       		dMin: 0.1 * _rcvDotsDistance as float! w as float!  h param2 param3
+       		dMax: 0.1 * _rcvDotsDistance (as float! w) (as float! h) param2 param3 
+       		dMin: 0.1 * _rcvDotsDistance (as float! w) (as float! h) param2 param3
        		s: 0
        		while [s < n] [
        			idxy: bxy + s
        			p: as red-pair! idxy
-       			d: _rcvDotsDistance as float! p/x - x  as float! p/y - y param2 param3
+       			d: _rcvDotsDistance (as float! p/x - x) (as float! p/y - y) param2 param3
        			d: d / dMax
        			if d < dMin [
 					sMin: s
@@ -385,9 +346,9 @@ rcvDistanceDiagram: routine [
 			r: t/array1 and 00FF0000h >> 16
 			g: t/array1 and FF00h >> 8 
 			b: t/array1 and FFh 
-			dr: as integer! (d * r)
-			dg: as integer! (d * g)
-			db: as integer! (d * b)
+			dr: as integer! (d * as float! r)
+			dg: as integer! (d * as float! g)
+			db: as integer! (d * as float! b)
 			idxim: pix1 + (y * w) + x
 			idxim/value: (255 << 24) OR (dr << 16 ) OR (dg << 8) OR db
        		x: x + 1
