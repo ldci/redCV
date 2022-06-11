@@ -81,7 +81,7 @@ view win: layout [
 	title "Quick Convex Hull Area"
 	origin margins space margins
 	text "Max Number of points"
-	nbpf: field 50 data nbpMax [if error? try [nbpMax: to integer! face/data] [nbp: nbp]]
+	nbpf: field 50  [if error? try [nbpMax: to integer! face/data] [nbp: nbp]]
 	
 	button 80x30 "Generate" [if error? try [nbpMax: to integer! nbpf/data] [nbpMax: nbpMax] 
 						  generatePoints canvas/image: draw img plot showHull]
@@ -98,4 +98,5 @@ view win: layout [
 	return 
 	canvas: base 512x512 img
 	list: text-list 100x512 data []
+	do [nbpf/text: form nbpMax]
 ]

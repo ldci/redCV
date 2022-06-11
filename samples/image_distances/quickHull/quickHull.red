@@ -12,6 +12,7 @@ http://www.ahristov.com/tutorial/geometry-games/convex-hull.html}
 
 ; required libs
 #include %../../../libs/core/rcvCore.red
+;#include %../../../libs/tools/rcvTools.red
 #include %../../../libs/math/rcvQuickHull.red
 
 margins: 5x5
@@ -56,7 +57,7 @@ view win: layout [
 	title "Quick Convex Hull"
 	origin margins space margins
 	text "Number of points"
-	nbpf: field 50 data nbp [if error? try [nbp: to integer! face/data] [nbp: nbp]]
+	nbpf: field 50 [if error? try [nbp: to integer! face/data] [nbp: nbp]]
 	cb1: check "Show Numbers"
 	cb2: check "CCW"
 	button 75 "Generate" [if error? try [nbp: to integer! nbpf/data] [nbp: nbp] 
@@ -64,4 +65,5 @@ view win: layout [
 	button 50 "Quit" 	[Quit]
 	return 
 	canvas: base 512x512 img
+	do [nbpf/text: form nbp]
 ]

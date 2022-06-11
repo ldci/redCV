@@ -22,9 +22,9 @@ img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 
 imgcopy: rcvCreateImage isize
-binaryMat: rcvCreateMat 'integer! 32 isize
-lumMat: rcvCreateMat 'integer! 32 isize
-gradientMat: rcvCreateMat 'integer! 32 isize
+;binaryMat: rcvCreateMat 'integer! 32 isize
+;lumMat: rcvCreateMat 'integer! 32 isize
+;gradientMat: rcvCreateMat 'integer! 32 isize
 
 
 cPoints: copy []
@@ -37,8 +37,8 @@ quitApp: does [
 	rcvReleaseImage img0
 	rcvReleaseImage img1
 	rcvReleaseImage img2
-	rcvReleaseImage imgcopy
-	rcvReleaseMat binaryMat
+	;rcvReleaseImage imgcopy
+	;rcvReleaseMat binaryMat
 	Quit
 ]
 
@@ -56,15 +56,15 @@ loadImage: does [
 		img3: rcvCreateImage img0/size
 		imgcopy: rcvCreateImage img0/size
 		rcvCopyImage img0 imgcopy
-		lumMat: rcvCreateMat 'integer! 32 img0/size ; grasycale matrix
-		gradientMat: rcvCreateMat 'integer! 32 img0/size ;
-		binaryMat: rcvCreateMat 'integer! 32 img0/size ; for binary gradient [0/1]
+		lumMat: matrix/init 2 32 img0/size ; grasycale matrix
+		gradientMat: matrix/init 2 32 img0/size ;
+		binaryMat: matrix/init 2 32 img0/size ; for binary gradient [0/1]
 		
 		; we need a grayscale image
 		rcv2Gray/luminosity img0 img1
 		compute
 		
-		fSize/data: form img0/size
+		fSize/text: form img0/size
 		lw: 1
 		if img0/size > 1024x768 [lw: 5]
 		canvas1/image: img2
@@ -77,16 +77,16 @@ loadImage: does [
 
 ; calls routines from rcvChamfer.red 
 compute: does [
-	rcvImage2Mat img1 lumMat 	
+	rcvImage2Mat img1 lumMat 
 	; Gradient (sobel) 	mat				
 	gMax: rcvMakeGradient lumMat gradientMat img0/size	
 	; binary thresholding		
 	rcvMakeBinaryGradient gradientMat binaryMat gMax threshold
 	; for visualization
-	binaryMat * 255	
+	binaryMat/data * 255	
 	rcvMat2Image binaryMat img2
 	; for calculation
-	binaryMat / 255
+	binaryMat/data / 255
 ]
 
 
@@ -95,7 +95,7 @@ showHull: does [
 	cPoints: copy []
 	chull: copy []
 	t1: now/time/precise
-	rcvGetPairs binaryMat img1/size cPoints
+	rcvGetPairs binaryMat cPoints
 	rcvCopyImage imgcopy img0
 	chull: rcvQuickHull/cw cPoints
 	; we need 3 points or more for polygon drawing 
@@ -108,6 +108,7 @@ showHull: does [
 	canvas2/image: draw img0 plot
 	t2: now/time/precise
 	frender/text: rejoin [rcvElapsed t1 t2 " ms"]
+	do-events/no-wait
 ]
 
 
@@ -132,7 +133,7 @@ view win: layout [
 	sl: slider 320 [
 		if isFile [
 			threshold: 1 + to-integer face/data * 100
-			fgt/data: form threshold
+			fgt/text: form threshold
 			compute
 			canvas1/image: img2
 			if cb/data [showHull]
