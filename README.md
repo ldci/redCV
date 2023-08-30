@@ -38,6 +38,8 @@ redCV documentation is **updated**.
 
 redCV code samples also **updated**. 
 
+[![Join the chat at https://gitter.im/ldci/redCV](https://badges.gitter.im/ldci/redCV.svg)](https://gitter.im/ldci/redCV?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 
 ### UPDATE JANUARY 2 2021
