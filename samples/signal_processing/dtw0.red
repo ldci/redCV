@@ -23,7 +23,7 @@ img: rcvCreateImage 256x256
 plot: copy []
 calculate: does [
 	rcvDTWDistances x y dMatrix
-	rcvDTWCosts x y dMatrix cMatrix
+	rcvDTWCosts x y dMatrix cMatrix 
 	dtw: rcvDTWGetDTW cMatrix
  	fDTW/text: copy "DTW x y: "
 	append fDTW/text form dtw

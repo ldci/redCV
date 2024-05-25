@@ -20,8 +20,13 @@ Red [
 #include %../../imgproc/rcvGaussian.red
 
 ;--this must be adapted according your OS
-exifTool: "/usr/local/bin/exiftool"
-convertTool: "/usr/local/bin/convert"	
+;--for macOS
+;exifTool: "/usr/local/bin/exiftool"
+;convertTool: "/usr/local/bin/convert"
+;--for windows
+;exifTool: "C:\Users\fjouen\Programmation\exiftool"
+exifTool: "exiftool"
+convertTool: "magick"	
 SourceFile: ""
 tmpDir: %.				
 
@@ -37,6 +42,7 @@ tempimg:	"celsius.pgm"	;--For temperatures export
 extracted?: false
 imgRatio: 0.0
 
+;--OK
 rcvGetFlirMetaData: func [
 "Get all Flir file metadata values as red words"
 	fileName	[string!]
@@ -47,13 +53,12 @@ rcvGetFlirMetaData: func [
 	exifFile2: to-file rejoin [tmpDir "exif.red"]
 	rgbjpg:  rejoin [tmpDir "rgb.jpg"]
 	rgbpng:  rejoin [tmpDir "rgb.png"]
-	irimg: rejoin [tmpDir "irimg.png"]	
+	irimg:   rejoin [tmpDir "irimg.png"]	
 	palimg:  rejoin [tmpDir "palette.png"]
 	rawimg:	 rejoin [tmpDir "rawimg.png"]
-	tempimg:  rejoin [tmpDir "celsius.pgm"]
-	prog: copy rejoin [exifTool " -php -flir:all -q " fileName " > " exifFile]
+	tempimg: rejoin [tmpDir "celsius.pgm"]
+	prog: copy rejoin [exifTool " -php -flir:all -q " to-local-file fileName " > " to-local-file exifFile]
 	ret: call/shell/wait prog
-	;alert form ret
 	var: read/lines exifFile
 	n: length? var
 	i: 2
@@ -73,13 +78,14 @@ rcvGetFlirMetaData: func [
 	do load exifFile2
 ]
 
+;--OK
 rcvGetVisibleImage: function [
 "Get embedded visible RGB image"
 	fileName	[string!]
 	return:		[image!]
 ][
 	binstr: copy #{}
-	prog: rejoin [exifTool " -EmbeddedImage -b " fileName]
+	prog: copy rejoin [exifTool " -EmbeddedImage -b " to-local-file fileName]
 	ret: call/wait/output prog binstr
 	switch EmbeddedImageType [ 
 		"PNG"  [write/binary to-file rgbpng binstr]
@@ -96,29 +102,27 @@ rcvGetVisibleImage: function [
 	]
 ]
 
+;--OK
 rcvGetFlirPalette: function [
 "Extract color table, swap Cb Cr and expand pal color table from [16,235] to [0,255]"
 	fileName	[string!]
 	return:		[image!]
 ][
-	img: make image! reduce [224x1 gray]			
-	if PaletteColors > 0 [
-		size: rejoin [form PaletteColors "x1"]
-		prog:  rejoin [
-			exifTool  " " fileName " -b -Palette" 
-			" | " convertTool " -size " size 
-			" -depth 8 YCbCr:- -separate -swap 1,2"
-			" -set colorspace YCbCr -combine -colorspace RGB -auto-level " 
-			palimg
-		]
-		call/shell/wait prog 
-		img: load to-file palimg
+	img: make image! reduce [224x1 gray]
+	size: form img/size
+	prog:  rejoin [
+		exifTool  " " to-local-file fileName " -b -Palette" 
+		" | " convertTool " -size " size 
+		" -depth 8 YCbCr:- -separate -swap 1,2"
+		" -set colorspace YCbCr -combine -colorspace RGB -auto-level " 
+		to-local-file palimg
 	]
-	img
+	ret: call/shell/wait prog 
+	load to-file palimg
 ]
 
 rcvMakeRedPalette: function [
-"Export Flir palette values as a Red block"
+"Export Flir palette values as a block"
 	return:		[block!]
 ][
 	;--make scale image for Red
@@ -128,32 +132,33 @@ rcvMakeRedPalette: function [
 	flirPal		
 ]
 
+;--OK
 rcvGetFlirRawData: function [
 "Get Flir RAW thermal data"
 	fileName	[string!]
 	return:		[image!]
 ][
 	if RawThermalImageType = "TIFF" [
-		prog: rejoin [
-			exifTool " -RawThermalImage " fileName 
-			" | " convertTool " " rawimg
+		prog: copy rejoin [
+			exifTool " -RawThermalImage " to-local-file fileName 
+			" | " convertTool " " to-local-file rawimg
 		]
 	]
 	;16-bit PNG JPG OR DAT format: change byte order
 	if RawThermalImageType <> "TIFF" [
 		size: rejoin [form RawThermalImageWidth "x" form RawThermalImageHeight]
-		prog: rejoin [
-				exifTool " -b -RawThermalImage " fileName 
+		prog: copy rejoin [
+				exifTool " -b -RawThermalImage " to-local-file fileName 
 				" | " convertTool " - gray:- | " 
-				convertTool " -depth 16 -endian msb -size " size " gray:- " 
-				rawimg
+				convertTool " -depth 16 -endian MSB -size " size " gray:- " 
+				to-local-file rawimg
 			]
 	]
 	ret: call/shell/wait prog
 	extracted?: true
 	load to-file rawimg
 ]
-
+;--Red Files
 rcvGetPlanckValues: func [
 "All the values we need for temperature computation"
 ][
@@ -199,10 +204,10 @@ rcvGetImageTemperatures: function [
 	ssMin: form sMin ssDelta: form sDelta
 	mathExp: rejoin ["("B"/ln("R1"/("R2"*(65535*u+"O"))+"F")-"ssMin")/"ssDelta]
 	;#"^"" for inserting " in convert argument
-	prog: rejoin [convertTool " " rawimg " -fx " #"^"" mathExp #"^"" " " irimg]
+	prog: rejoin [convertTool " " to-local-file rawimg " -fx " #"^"" mathExp #"^"" " " to-local-file irimg]
 	ret: call/shell/wait prog
 	;--convert linear gray IR image to pgm format for temperature reading
-	prog: rejoin [convertTool " " irimg " -compress none " tempimg]
+	prog: rejoin [convertTool " " to-local-file irimg " -compress none " to-local-file tempimg]
 	ret: call/shell/wait prog
 	load to-file irimg
 ]
@@ -256,19 +261,19 @@ rcvGetTemperatureAsBlock: function [
 
 ;--aligment
 ;--for most cameras
-rcvAlignImages: func [
+rcvAlignImages: function [
 "Align visible and thermal images"
 	fileName	[string!]
 	return:		[image!]
 ][
 	thermal: load to-file fileName								;--Original Flir Image
 	visible: rcvGetVisibleImage fileName						;--Embbedded RGB Image	
-	imgRatio: 1.0 - (1.0 / Real2IR)								;--Image ratio
+	imgRatio: 1.0 - (1.0 / Real2IR)								;--Image ratio OK
 	either imgRatio > 0.0 [
 		cropXY: visible/size * imgRatio							;--ROI Size
 		offSetXY: as-pair to-integer OffsetX to-integer OffsetY	;--Flir Offset as pair!
 		imgOffset: cropXY / 2 + offSetXY						;--ROI Offset
-		imgSize: cropXY +  thermal/size							;--ROI Size					
+		imgSize: cropXY +  thermal/size							;--ROI Size	
 		img: rcvResizeImage visible imgSize						;--Resize destination image
 		rcvCropImage visible img imgOffset						;--Crop ROI to destination
 	][

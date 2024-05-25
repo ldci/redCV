@@ -16,9 +16,12 @@ Red [
 ;--if min and max temperatures are not found, we must use a calibration curve
 ;--since only the raw sensor data are stored in the file
 
-home: select list-env "HOME"
-appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
-change-dir to-file appDir
+;OS: to-string system/platform
+;if any [os = "macOS" os = "Linux" ] [home: select list-env "HOME"] 
+;if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
+
+;appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
+;change-dir to-file appDir
 
 #include %../../../libs/thermal/Optris/optrisriff.red
 #include %../../../libs/thermal/Optris/optrisroutines.red
@@ -195,8 +198,8 @@ readFrame: func [
 	v: to-integer reverse copy/part binaryData 2
 	either v < 4095 [l: 4095] [l: 65535]
 	f13/text: rejoin [to-hex/size binaryData/1 2 " " to-hex/size binaryData/2 2 ] 
-	getTempInt16Values binaryData l matV	;--get 16-bit values
-	getTempLowByte binaryData l matGS		;--get low byte values
+	getTempInt16Values binaryData matV  l	;--get 16-bit values
+	getTempLowByte binaryData matGS	l 3		;--get low byte values
 	img1/rgb: to-binary to-block matGS		;--make grayscale image
 	canvas1/image: img1						;--show image
 	

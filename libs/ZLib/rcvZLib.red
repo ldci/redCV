@@ -10,12 +10,12 @@ Red [
 	}
 ]
 
-#system [
+#system-global [
 	#include %zlib.reds ; for ZLib compression
 	; Thanks to Bruno Anselme
 ]
 
-; ZLib routines for binary values
+; ZLib routines for binary values such as images
 
 rcvCompressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
 	/local 
@@ -23,7 +23,7 @@ rcvCompressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
 	data		[byte-ptr!]
 	buffer		[byte-ptr!] 		
 ][
-	byte-count: 0
+	byte-count: 0 ;--for integer pointer that returns output buffer size
 	data: binary/rs-head as red-binary! rgb
 	buffer: zlib/compress data binary/rs-length? rgb :byte-count level
 	as red-binary! stack/set-last as red-value! binary/load buffer byte-count	

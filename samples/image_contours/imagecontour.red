@@ -185,5 +185,5 @@ view win: layout [
 		text 80 "Bottom Left" f3: field 80
 		text 80 "Bottom Right" f4: field 80
 		return
-		r: area 788x100
+		r: area 788x100 wrap
 ]

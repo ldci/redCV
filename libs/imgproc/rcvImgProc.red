@@ -1181,7 +1181,7 @@ rcvLaplacianOfRobinson: function [
 
 rcvLaplacianOfGaussian: function [
 "Laplacian of Gaussian"
-	src 	[image! vector!] 
+	src 	[image! object!] 
 	dst		[image! object!]
 	op		[integer!]
 ][
@@ -1378,16 +1378,13 @@ rcvEdgesDirection: routine [
     srcY  	[image!]	;Y Sobel Derivative
     matA	[vector!]	;Angles matrix
     /local
-        pixX 	[int-ptr!]
-        pixY 	[int-ptr!]
-        mValue 	[byte-ptr!]
-        handle1 handle2 
-        h w x y
-        derivX 
-        derivY 
-        angle 
-        unit
-        s
+        pixX 					[int-ptr!]
+        pixY 					[int-ptr!]
+        mValue 					[byte-ptr!]
+        handle1 handle2	unit 	[integer!]
+        h w x y					[integer!]
+        derivX derivY angle 	[float!]
+        s						[series!]
 ][
 	handle1: 0
 	handle2: 0

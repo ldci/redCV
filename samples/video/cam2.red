@@ -8,7 +8,8 @@ Red [
 
 iSize: 320x240
 margins: 10x10
-cam: none ; for camera object
+;cam: none ; for camera object
+set 'cam make face! [type: 'camera offset: 0x0 size: 20x15]
 
 view win: layout [
 		title "Red Camera"
@@ -20,7 +21,8 @@ view win: layout [
 		return
 		canvas: base iSize black on-time [
 			canvas/text: form now/time 
-			canvas/image: cam/image	
+			;rcanvas/image: cam/image		;--macOS
+			canvas/image: to image! cam		;--other
 			cam/image: none	
 			if cb/data [recycle]
 			f/text: form stats
@@ -37,6 +39,7 @@ view win: layout [
 					face/text: "Start"
 				][
 					cam/selected: cam-list/selected
+					show cam
 					canvas/rate: 0:0:0.04;  max 1/25 fps in ms
 					face/text: "Stop"
 					]	
@@ -44,5 +47,6 @@ view win: layout [
 		do [cam-list/selected: 1 canvas/rate: none 
 			canvas/para: make para! [align: 'right v-align: 'bottom] 
 			cam/visible?: false
+			
 		]
 ]

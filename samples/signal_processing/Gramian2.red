@@ -22,12 +22,12 @@ generateSignal: function [op [integer!] return: [vector!] ] [
 	img: rcvCreateImage imgSize
 	plot: compose [line-width 1 pen green line]
 	x: make vector! reduce ['float! 64 sSize]
-	;'
 	i: 0
 	case [
 		op = 1 [forall x [x/1: 64.0 * sine i  append plot as-pair i  90 - x/1 i: i + 1]]
 		op = 2 [forall x [x/1: 64.0 * cosine i  append plot as-pair i  90 - x/1 i: i + 1]]
-		op = 3 [forall x [if error? try [x/1: 64.0 * tangent i] [x1: 0.0]  
+		;--a pb here that I can't understand: -1.#INF error
+		op = 3 [forall x [if error? try [x/1: 64.0 * tangent i] [x/1: 0.0] 
 						append plot as-pair i  90 - x/1 i: i + 1]]
 		op = 4 [forall x [x/1: random 180.0   append plot as-pair i  x/1 i: i + 1]]
 	]

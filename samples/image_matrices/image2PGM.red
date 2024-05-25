@@ -9,17 +9,16 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 
-isize: 512x512
-
-img1: rcvCreateImage isize
+isize: 512x512							;--fix image size
+img1: rcvCreateImage isize				;--create image			
 isFile: false
 
 loadImage: does [
 	canvas1/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
-		img1: rcvLoadImage tmp
-		canvas1/image: img1
+	unless none? tmp [
+		img1: rcvLoadImage tmp			;--load source image
+		canvas1/image: img1				;--show source image
 		isFile: true
 	]
 ]
@@ -27,8 +26,10 @@ loadImage: does [
 convert: does [
 	if isFile [
 		tmpF: request-file/save
-		if not none? tmpF [rcvImage2PGM img1 tmpF 255
-			call rejoin ["open " form tmpF]
+		unless none? tmpF [
+			rcvImage2PGM img1 tmpF 255
+			;call rejoin ["open " form tmpF] 	;--only macOS
+			result/text: read tmpF				;--all OS
 		]
 	]
 ]
@@ -38,8 +39,8 @@ view win: layout [
 		title "Export Image to PGM"
 		button "Load" 			[loadImage]
 		button "Save as PGM"	[convert] 
-		pad 260x0	 
 		button 60 "Quit" 		[rcvReleaseImage img1 Quit]
 		return
 		canvas1: base isize img1
+		result: area isize wrap
 ]

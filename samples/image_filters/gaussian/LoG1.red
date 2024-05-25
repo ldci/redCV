@@ -44,7 +44,7 @@ loadImage: does [
 	]
 ]
 
-process: does [if isFile [rcvLaplacianOfGaussian cImg dst cImg/size op]]
+process: does [if isFile [rcvLaplacianOfGaussian cImg dst op]]
 
 
 ; ***************** Test Program ****************************

@@ -8,10 +8,11 @@ Red [
  * This version allows to use mean and standard deviation 
  * for generating different distributions
  * This version uses standard Red language and is not very fast.
+ * This code must be executed in terminal
  *}
 
 RAND_MAX: 2147483647 ; max int
-NMAX: 10000000
+NMAX: 100000;10000000
 
 mean: function [values [block! vector!] return: [float!]][
 	n: length? values

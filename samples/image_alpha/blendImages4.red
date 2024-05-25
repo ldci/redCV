@@ -1,10 +1,11 @@
 Red [
 	Title:   "Blend Operator "
 	Author:  "Francois Jouen"
-	File: 	 %blendImages3.red
+	File: 	 %blendImages4.red
 	Needs:	 'View
 ]
 
+;--this version is similar to blendImages3.red but uses rcvAlphaBlend routine
 
 ; required libs
 #include %../../libs/core/rcvCore.red
@@ -48,5 +49,5 @@ view win: layout [
 		return
 		canvas: base iSize2 dst
 		return
-		text 500 center "© Red Foundation 2020"
+		text 500 center "© Red Foundation 2020-2024"
 ]

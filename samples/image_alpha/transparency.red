@@ -18,10 +18,10 @@ loadImage: does [
 	isFile: false
 	canvas/image: none
 	tmp: request-file 
-	if not none? tmp [		
+	unless none? tmp [		
 		img1: load tmp	
 		img2: rcvCreateImage img1/size
-		rcvSetAlpha img1 img2 255
+		rcvSetAlpha img1 img2 t
 		canvas/image: img2
 		isFile: true
 	]
@@ -37,6 +37,7 @@ view win: layout [
 		sl: slider 300  [t: 255 - (to integer! sl/data * 255)
 						 	vf/data: form t
 						 	rcvSetAlpha img1 img2 t
+						 	do-events/no-wait
 						]
 		vf: field 30 "255"
 		button 80 "Quit" [quit]

@@ -632,10 +632,10 @@ rcvArray2Vector: routine [
 
 
 rcvFFTImage: func [
-"A generic function for image FFT"
+"A generic func for image FFT"
 	src			[image!]
-	return: 	[image!]
 	/forward /backward
+	return: 	[image!]
 ][
 	dst:  	 rcvCreateImage src/size			;--for returned image
 	matLog:  matrix/init 3 64 src/size			;--for log scale matrix
@@ -677,8 +677,9 @@ rcvFFTMat: func [
 "Return amplitude matrices calculated by FFT"
 	matRe	[object!]
 	matIm	[object!]
-	return: [object!]
 	/forward /backward
+	return: [object!]
+	
 ][
 	if matrix/_matSimilar? matRe matIm [
 		if all [matRe/type = 3 matIm/type = 3] [

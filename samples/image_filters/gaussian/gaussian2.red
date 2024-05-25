@@ -51,5 +51,5 @@ view win: layout [
 		button 50 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
 		canvas: base 512x512 black
-		f: area 160x512
+		f: area 160x512 wrap
 ]

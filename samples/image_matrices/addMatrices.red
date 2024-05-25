@@ -11,9 +11,9 @@ Red [
 
 isize: 256x256
 bitSize: 32
-img1: rcvCreateImage isize
-img2: rcvCreateImage isize
-img3: rcvCreateImage isize
+img1: rcvCreateImage isize						;--create 8-bit image
+img2: rcvCreateImage isize						;--create 8-bit image
+img3: rcvCreateImage isize						;--create 8-bit image
 
 isFile: false
 
@@ -24,15 +24,15 @@ loadImage: does [
 	canvas2/image/rgb: black
 	canvas3/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
-		img1: rcvLoadImage tmp
-		img2: rcvCreateImage img1/size			
-		img3: rcvCreateImage img1/size
-		mat1: matrix/init 2 bitSize img1/size
-		mat2: matrix/init 2 bitSize img1/size
-		mat3: matrix/init 2 bitSize img1/size
-		canvas1/image: img1
-		rcvImage2Mat img1 mat1
+	unless none? tmp [
+		img1: rcvLoadImage tmp					;--read original image
+		img2: rcvCreateImage img1/size			;--update img2 image according to size		
+		img3: rcvCreateImage img1/size			;--update img3 image according to size
+		mat1: matrix/init 2 bitSize img1/size	;--an integer matrix
+		mat2: matrix/init 2 bitSize img1/size	;--an integer matrix
+		mat3: matrix/init 2 bitSize img1/size	;--an integer matrix
+		canvas1/image: img1						;--show original image
+		rcvImage2Mat img1 mat1					;--original image to integer matrix
 		isFile: true
 	]
 ]
@@ -40,12 +40,12 @@ loadImage: does [
 ; generate random image
 generate: does [
 	if isFile [
-		mat2: matrix/init/value/rand 2 bitSize img1/size 128
-		rcvMat2Image mat2 img2
-		canvas2/image: img2
-		mat3: matrix/addition mat1 mat2
-		rcvMat2Image mat3 img3
-		canvas3/image: img3
+		mat2: matrix/init/value/rand 2 bitSize img1/size 128;--a random integer matrix
+		rcvMat2Image mat2 img2								;--matrix to image
+		canvas2/image: img2									;--show result
+		mat3: matrix/addition mat1 mat2						;--add both matrices
+		rcvMat2Image mat3 img3								;--matrix to image
+		canvas3/image: img3									;--show result
 	]
 ]
 

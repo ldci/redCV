@@ -2,11 +2,11 @@
 Red [
 	Title:   "Test image operators Red VID "
 	Author:  "Francois Jouen"
-	File: 	 %channels.red
+	File: 	 %redChannels.red
 	Needs:	 'View
 ]
 
-;' version without redCV but is really slow
+;--'version without redCV is pretty slow but illustrates how Red extract is powerfull
 
 fileName: ""
 isFile: false
@@ -22,7 +22,7 @@ loadImage: does [
 	canvasB/image: none
 	sb1/text: ""
 	tmp: request-file 
-	if not none? tmp [		
+	unless none? tmp [		
 		fileName: to string! to-local-file tmp	
 		rimg: load tmp	
 		canvas/image: rimg
@@ -33,21 +33,21 @@ loadImage: does [
 splitImage: function[][
 	if isFile [
 		t1: now/time/precise
-		rgb1: extract/index rimg/rgb 3 1
-		rgb2: extract/index rimg/rgb 3 2
-		rgb3: extract/index rimg/rgb 3 3
-		rgb: copy #{}
+		rgb1: extract/index rimg/rgb 3 1			;--r channel values
+		rgb2: extract/index rimg/rgb 3 2			;--g channel values
+		rgb3: extract/index rimg/rgb 3 3			;--b channel values
+		rgb: copy #{}								;--make r channel image
 		foreach v rgb1 [append/dup rgb v 3 ]
 		imgR: make image! reduce [rimg/size rgb]
-		rgb: copy #{}
+		rgb: copy #{}								;--make g channel image
 		foreach v rgb2 [append/dup rgb v 3]
 		imgG: make image! reduce [rimg/size rgb]
-		rgb: copy #{}
+		rgb: copy #{}								;--make b channel image
 		foreach v rgb3 [append/dup rgb v 3]
 		imgB: make image! reduce [rimg/size rgb]
-		canvasR/image: imgR
-		canvasG/image: imgG
-		canvasB/image: imgB
+		canvasR/image: imgR							;--show result
+		canvasG/image: imgG							;--show result
+		canvasB/image: imgB							;--show result
 		sb1/text: copy "Rendered in "
 		append sb1/text form now/time/precise - t1
 	]	

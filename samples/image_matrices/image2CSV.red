@@ -9,19 +9,19 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 
-isize: 256x256
-bitSize: 32
+isize: 256x256							;--fix image size
+bitSize: 32								;--integer 32-bit
 
-img1: rcvCreateImage isize
-delimiter: comma
+img1: rcvCreateImage isize				;--create image
+delimiter: comma						;--default separator
 
 loadImage: does [
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
 		canvas1/image/rgb: black
 		clear a/text
-		img1: rcvLoadImage tmp
-		canvas1/image: img1
+		img1: rcvLoadImage tmp			;--read image
+		canvas1/image: img1				;--show image
 		f/text: form img1/size
 	]
 ]
@@ -29,7 +29,8 @@ loadImage: does [
 convert: does [
 	tmpF: request-file/save/filter ["CSV File" "*.csv;*.txt"]
 	if not none? tmpF [
-		either rd1/data [bImg: rcvImg2IntBlock img1 5]
+		;--save as integer or float values
+		either rd1/data [bImg: rcvImg2IntBlock img1 0]
 						[bImg: rcvImg2FloatBlock img1 5]
 		write tmpF to-csv/with bImg delimiter	
 		a/text: read tmpF
@@ -62,5 +63,5 @@ view win: layout [
 		text 256 "CSV Export"
 		return
 		canvas1: base isize img1
-		a: area 512x256
+		a: area 512x256 wrap
 ]

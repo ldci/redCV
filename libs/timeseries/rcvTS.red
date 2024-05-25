@@ -18,22 +18,23 @@ rcvTSStats: routine [
      blk	 	 	[block!]
      op				[integer!]
      /local
-     length
-     sum sum2 a b num
-     mean sd
-     mini maxi
-     val
-     headS tailS unit
-     f s 
+     headS tailS 		[byte-ptr!]
+     unit		        [integer!]
+     sum1 sum2 a b num  [float!]
+     length mean sd		[float!]
+     mini maxi val		[float!]
+     s					[series!] 
+     f 
+     
 ][
 	 block/rs-clear blk
-	 sum: 0.0
+	 sum1: 0.0
 	 sum2: 0.0
 	 mean: 0.0
 	 sd: 0.0
 	 maxi: 0.0
-	 mini: 10000.00
-	 length: as float! vector/rs-length? signal
+	 mini: 1.7976931348623158E+308; max float value
+	 length: (as float! vector/rs-length? signal)
 	 headS: vector/rs-head signal
 	 tailS: vector/rs-tail signal
 	 s: GET_BUFFER(signal)
@@ -44,17 +45,17 @@ rcvTSStats: routine [
 	 		1 [val: vector/get-value-float headS unit]
 	 	]
 	 	either val >= maxi [maxi: val] [maxi: maxi]
-	 	either val < mini [mini: val] [mini: mini]
-		sum: sum + val
+	 	either val <  mini [mini: val] [mini: mini]
+		sum1: sum1 + val
 		sum2: sum2 + (val * val)
 		headS: headS + unit
 	]
-	mean: sum / length
-	a: Sum * Sum
+	mean: sum1 / length
+	a: sum1 * sum1
 	b: a / length
-    num: (sum2 - b);
+	num: (sum2 - b);
     if num < 0.0 [num: 0.0 - num]
-    sd: sqrt  (Num / (length - 1))
+    sd: sqrt (Num / (length - 1.0)) 
     f: float/box mean
     block/rs-append blk as red-value! f 
     f: float/box sd
@@ -153,7 +154,7 @@ rcvTSMMFiltering: routine [
 	/local headS headF tailS tailF unit1 unit2 s
 	n val val2 pt64 p4
 	idx
-	sum
+	sum1
 	mm
 ][ 
 	headS: vector/rs-head signal
@@ -166,17 +167,17 @@ rcvTSMMFiltering: routine [
 	unit2: GET_UNIT(s)
 	while [headS < (tailS - filterSize)] [
 		n: 0
-		sum: 0.0
+		sum1: 0.0
 		while [n < filterSize] [
 			idx: headS + (n * unit1)
 			switch op [
 	 			0 [val: as float! vector/get-value-int as int-ptr! idx unit1]
 	 			1 [val: vector/get-value-float idx unit1]
 	 		]
-			sum: sum + val
+			sum1: sum1 + val
 			n: n + 1
 		]
-		mm: sum / as float! filterSize
+		mm: sum1 / as float! filterSize
 		switch op [
 	 		0	[p4: as int-ptr! headF
 	 			p4/value: switch unit2[
@@ -194,16 +195,16 @@ rcvTSMMFiltering: routine [
 	]
 	
 	;calculates mean for the last values (filterSize)
-	sum: 0.0
+	sum1: 0.0
 	while [headS < tailS] [
 		switch op [
 	 			0 [val: as float! vector/get-value-int as int-ptr! headS unit1]
 	 			1 [val: vector/get-value-float headS unit1]
 	 		]
-	 	sum: sum + val
+	 	sum1: sum1 + val
 	 	headS: headS + unit1
 	]
-	mm: sum / as float! filterSize
+	mm: sum1 / as float! filterSize
 	
 	while [headF < tailF] [
 		switch op [
@@ -222,6 +223,73 @@ rcvTSMMFiltering: routine [
 	]
 ]
 
+;--NEW
+;--absolute deviation from median or mean
+rcvTSDeviation: routine [
+	 signal 			[vector!]
+	 moment				[float!]
+	 factor				[float!]
+     op					[integer!]
+     return:			[float!]
+     /local
+     headS tailS 		[byte-ptr!]
+     unit		        [integer!]
+     sum1 length 		[float!]
+     val val2			[float!]
+     s					[series!] 
+     
+][
+	 sum1: 0.0
+	 length: (as float! vector/rs-length? signal)
+	 headS: vector/rs-head signal
+	 tailS: vector/rs-tail signal
+	 s: GET_BUFFER(signal)
+	 unit: GET_UNIT(s)
+	 while [headS < tailS][
+	 	switch op [
+	 		0 [val: as float! vector/get-value-int as int-ptr! headS unit]
+	 		1 [val: vector/get-value-float headS unit]
+	 	]
+	 	val2: val - moment
+	 	if val2 < 0.0 [val2: 0.0 - val2] ;--absolute difference
+	 	val2: val2 * factor 			;--1.4826 for median constant
+	 	sum1: sum1 + val2
+		headS: headS + unit
+	]
+	sum1 / length
+]
+
+rcvTSMoment: routine [
+	 signal 			[vector!]
+	 moment				[float!]
+	 exponent			[float!]
+     op					[integer!]
+     return:			[float!]
+     /local
+     headS tailS 		[byte-ptr!]
+     unit		        [integer!]
+     sum1 length  val	[float!]
+     s					[series!] 
+     
+][
+	 sum1: 0.0
+	 length: (as float! vector/rs-length? signal)
+	 headS: vector/rs-head signal
+	 tailS: vector/rs-tail signal
+	 s: GET_BUFFER(signal)
+	 unit: GET_UNIT(s)
+	 while [headS < tailS][
+	 	switch op [
+	 		0 [val: as float! vector/get-value-int as int-ptr! headS unit]
+	 		1 [val: vector/get-value-float headS unit]
+	 	]
+	 	sum1: sum1 + pow (val - moment) exponent
+		headS: headS + unit
+	]
+	sum1 / length
+]
+
+;--end NEWS
 
 ; *********************** Time Series Functions ********************
 
@@ -282,6 +350,41 @@ rcvTSMMFilter: function [
 	if (type? signal/1) = float!   [rcvTSMMFiltering signal filter filterSize 1]
 ]
 
+;--NEWS
+rcvTSMedian: function [
+"Median value"
+	signal 		[vector!]
+	return:		[number!]
+][
+	sorted: copy signal
+	n: length? sorted
+	sort sorted
+	if odd?  n [idx: (n + 1) / 2 val: sorted/:idx]
+	if even? n [idx: n / 2 v1: sorted/:idx v2: sorted/(idx + 1) val: (v1 + v2) / 2]
+	val
+]
+
+rcvTSMin: function [
+"Minimal value"
+	signal 		[vector!]
+	return:		[number!]
+][
+	sorted: copy signal
+	sort sorted
+	sorted/1
+]
+
+rcvTSMax: function [
+"Maximal value"
+	signal 		[vector!]
+	return:		[number!]
+][
+	sorted: copy signal
+	sort sorted
+	n: length? sorted
+	sorted/:n
+]
+;--end NEWS
 
 
 

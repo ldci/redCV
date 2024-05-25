@@ -64,10 +64,15 @@ makeCanny: function [img [image!] lowT [integer!]  highT [integer!]] [
 	hy: [1.0 2.0 1.0 0.0 0.0 0.0 -1.0 -2.0 -1.0]
 	rcvConvolve cImg imgX hx 1.0 0.0
 	rcvConvolve cImg imgY hy 1.0 0.0
-	rcvEdgesGradient imgX imgY matG/data		;get gradient matrix
-	rcvEdgesDirection imgX imgY matA/data 		;get angle matrix
+	rcvEdgesGradient imgX imgY matG/data		;get gradient matrix as a vector
+
+	;--pb here with rcvEdgesDirection
+	;--Access Error: bad media data (corrupt image, sound, video)
+	;rcvEdgesDirection imgX imgY matA/data 		;get angle matrix as a vector
 	;gradient visualization
+	probe 3
 	gMat: rcvMatFloat2Int matG 32 255.0
+	probe 4
 	rcvMat2Image gMat imgG 
 	canvas1/image: imgG
 	;step 3 Non-maximum suppression

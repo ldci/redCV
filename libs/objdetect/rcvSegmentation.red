@@ -3,7 +3,7 @@ Red [
 	Author:  "Francois Jouen"
 	File: 	 %rcvSegmentation.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2020 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -53,7 +53,8 @@ rcvSkinColor: routine [
         either r > g [mini: g][mini: r] if b < mini [mini: b]
     	either r > g [maxi: r][maxi: g] if b > maxi [maxi: b]
         diff: r - g  if diff < 0 [diff: 0 - diff]
-        pixD/value: pixel0 if rule [pixD/value: pixel1]
+        ;pixD/value: pixel0 if rule [pixD/value: pixel1]
+        either rule [pixD/value: pixel1] [pixD/value: pixel0]
         pixS: pixS + 1
         pixD: pixD + 1
     	i: i + 1

@@ -22,7 +22,7 @@ probe im
 print lf 
 print "Fast Fourier Transform: forward"
 t1: now/time/precise
-rcvFFT re im 1
+rcvFFT re im 1 1
 repeat i len [
 	print [i ": " re/:i "," rejoin [im/:i"i"]]
 ]

@@ -528,24 +528,24 @@ rcvImage2Mat32: routine [
     pix: image/acquire-buffer src :handle1
     w: IMAGE_WIDTH(src/size) 
     h: IMAGE_HEIGHT(src/size) 
-    y: 0 
     vec: mat/get-data mObj
 	unit: mat/get-unit mObj
     dvalue: vector/rs-head vec	; a byte ptr
+    y: 0 
     while [y < h] [
     	x: 0
        	while [x < w][
         	rcvSetIntValue as integer! dvalue pix/value unit
-           	x: x + 1
            	pix: pix + 1
            	dValue: dValue + unit
+           	x: x + 1
        	]
        	y: y + 1
     ]
     image/release-buffer src handle1 no
 ]
 
-;--only 32-bit
+;--only 32-bit matrices
 rcv32Mat2Image: routine [
 "Matrix to Red Image"
 	mObj	[object!]
@@ -1380,6 +1380,7 @@ rcvSortMat: function [
 		1 [sort mat1/data]
 	   -1 [sort/reverse mat1/data]
 	]
+	mat1
 ]
 
 rcvFlipMat: function [
@@ -1387,6 +1388,7 @@ rcvFlipMat: function [
 	mx 		[object!] 
 ][
 	reverse mx/data
+	mx
 ]
 
 rcvLengthMat: function [

@@ -23,7 +23,8 @@ view win: layout [
 		button 100 "Test Copy" [
 						  mat: matrix/init/value/rand 3 64 5x4 25.0
 						  s/text: form mat/data
-						  ssum: rcvCopyMat mat; ssum: matrix/_copy mat ;
+						  ;ssum: rcvCopyMat mat; 
+						  ssum: matrix/_copy mat
 						  d/text: form ssum/data]
 		button 100 "Quit" [Quit]
 		return

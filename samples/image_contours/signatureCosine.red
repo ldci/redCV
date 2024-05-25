@@ -1,7 +1,7 @@
 Red [
 	Title:   "Matrix tests "
 	Author:  "Francois Jouen"
-	File: 	 %freeman.red
+	File: 	 %signatureCosine.red
 	Needs:	 'View
 ]
 

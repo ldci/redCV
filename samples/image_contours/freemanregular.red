@@ -51,7 +51,7 @@ processImage: does [
 		idx: (p/y * visited/cols + p/x) + 1
 		rcvSetContourValue visited p 0; pixel is visited
 		append append append plot 'circle (p) 1 
-		append s form d
+		if d > -1 [append s form d]
 		pgb/data: to-percent (i / to-float perim)
 		if anim [do-events/no-wait]; to show progression
 		;get the next pixel to process
@@ -86,9 +86,10 @@ view win: layout [
 		]
 		newShape: true
 		canvas/draw: reduce [plot]
+		processImage
 	]
 	pad 20x0
-	cb: check "Show Anination" [anim: face/data]
+	cb: check "Show Anination" true [anim: face/data]
 	button "Process" [if newShape [processImage]]
 	pgb: progress 170
 	pad 130x0
@@ -100,7 +101,7 @@ view win: layout [
 			Quit]
 	return
 	canvas: base iSize black
-	r: area 200x512
+	r: area 200x512 wrap
 	return
 	pad 120x0
 	f1: field 60

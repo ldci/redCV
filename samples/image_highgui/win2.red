@@ -1,7 +1,7 @@
 Red [
 	Title:   "Red Computer Vision: Highgui tests"
 	Author:  "Francois Jouen"
-	File: 	 %rcvHighGui.red
+	File: 	 %win2.red
 	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
@@ -9,11 +9,11 @@ Red [
 	}
 	Needs:	 'View
 ]
-
+;--I do not understand why this code must be executed in terminal mode
 img1: load %../../images/lena.jpg
 margins: 10x10
 
-title: "Resizes "
+title: "Resize"
 append title form to-local-file %../../images/lena.jpg
 win: layout [
 		title title
@@ -24,7 +24,8 @@ win: layout [
 view/flags/no-wait win 'resize
 
 ; Handles the resize of window content when resized
-insert-event-func [
+
+insert-event-func 'newsize [
 	if event/type = 'resize [
 		win/pane/1/size: win/size - (margins * 2) 
 	]

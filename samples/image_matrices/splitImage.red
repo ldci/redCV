@@ -27,16 +27,16 @@ loadImage: does [
 	canvas4/image/rgb: black
 	canvas5/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
-		img1: rcvLoadImage tmp
+	unless none? tmp [
+		img1: rcvLoadImage tmp						;--load image
 		imgC1: rcvCreateImage img1/size				;--create image for rgb
-		imgC2: rcvCreateImage img1/size
-		imgC3: rcvCreateImage img1/size
-		imgD:  rcvCreateImage img1/size					
+		imgC2: rcvCreateImage img1/size				;--create image for rgb
+		imgC3: rcvCreateImage img1/size				;--create image for rgb
+		imgD:  rcvCreateImage img1/size				;--create image for rgb			
 		mat0: matrix/init 2 bitSize img1/size 		;--create all matrices we need for argb
-		mat1: matrix/init 2 bitSize img1/size
-		mat2: matrix/init 2 bitSize img1/size
-		mat3: matrix/init 2 bitSize img1/size
+		mat1: matrix/init 2 bitSize img1/size		;--create all matrices we need for argb
+		mat2: matrix/init 2 bitSize img1/size		;--create all matrices we need for argb
+		mat3: matrix/init 2 bitSize img1/size		;--create all matrices we need for argb
 		canvas1/image: img1
 		isFile: true
 	]
@@ -45,24 +45,24 @@ loadImage: does [
 ; splits image into 4 matrices
 split: does [
 	if isFile [
-		b: rcvSplit2Mat img1 bitSize
-		mat0: b/1
-		mat1: b/2
-		mat2: b/3
-		mat3: b/4
-		rcvMat2Image mat1 imgC1
-		rcvMat2Image mat2 imgC2 
-		rcvMat2Image mat3 imgC3  
-		canvas2/image: imgC1
-		canvas3/image: imgC2
-		canvas4/image: imgC3
+		b: rcvSplit2Mat img1 bitSize				;--split image into 4 channels
+		mat0: b/1									;--r channel
+		mat1: b/2									;--g channel
+		mat2: b/3									;--b channel
+		mat3: b/4									;--alpha channel
+		rcvMat2Image mat1 imgC1						;--get r channel
+		rcvMat2Image mat2 imgC2 					;--get g channel					
+		rcvMat2Image mat3 imgC3 					;--get b channel 
+		canvas2/image: imgC1						;--show r channel
+		canvas3/image: imgC2						;--show g channel
+		canvas4/image: imgC3						;--show b channel
 	]
 ]
 
 ;merges image from 4 matrices whatever the bitSize
 merge: does [
 	if isFile [
-		rcvMerge2Image mat0 mat1 mat2 mat3 imgD
+		rcvMerge2Image mat0 mat1 mat2 mat3 imgD		;--merge all matrices in a rgb image
 		canvas5/image: imgD
 	]
 ]

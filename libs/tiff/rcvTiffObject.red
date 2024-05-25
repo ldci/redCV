@@ -511,20 +511,20 @@ tiffTags: [
 ;Tiff Header Structure
 ; header size: 8 bytes
 TIFFHeader: make object! [
-	tiffBOrder:		integer!	; 2 bytes 0-1 byte order
-	tiffVersion:	integer!	; 2 bytes 2-3 42 version number
-	tiffFIFD: 		integer!	; 4 bytes 4-7 offset of the first Image File Directory
+	tiffBOrder:		0;	integer!	; 2 bytes 0-1 byte order
+	tiffVersion:	42; integer!	; 2 bytes 2-3 42 version number
+	tiffFIFD: 		0;	integer!	; 4 bytes 4-7 offset of the first Image File Directory
 ]
 
 ;Image File Directory entry
 ; Dir entry size: 12 bytes by entry
 
 TImgFDEntry: make object![
-	tiffTag: 		integer! ; byte 0-1 TIFF Field Tag 2 bytes 0-1 see TIFF Tag Definitions
-	tiffDataType: 	integer! ; byte 2-3  Field data type  2 bytes 2-3 see TIFFDataType
-	tiffDataLength: integer! ; byte 4-7  number of values of the indicated type; length in spec  4 bytes 4-7
-	tiffOffset: 	integer! ; byte 8-11 byte offset to field data 4 bytes 8-11 or value of the field if datalength < 4 byte
-	redValue: 		string!	 ; supplementary red field to get the "real" value
+	tiffTag: 		0;	integer! ; byte 0-1 TIFF Field Tag 2 bytes 0-1 see TIFF Tag Definitions
+	tiffDataType: 	0;	integer! ; byte 2-3  Field data type  2 bytes 2-3 see TIFFDataType
+	tiffDataLength: 0;	integer! ; byte 4-7  number of values of the indicated type; length in spec  4 bytes 4-7
+	tiffOffset: 	0;	integer! ; byte 8-11 byte offset to field data 4 bytes 8-11 or value of the field if datalength < 4 byte
+	redValue: copy ""	;string! ; supplementary red field to get the "real" value
 ]
 
 ; kind of TIFF Images
@@ -533,35 +533,37 @@ TImgFDEntry: make object![
  images in earlier versions of the TIFF specification}
 
 TBiLevel: make object![
-	SubfileType: 				integer!; 254 or 255
-	ImageWidth: 				integer!; 256 SHORT or LONG
-	ImageLength: 				integer!; 257 SHORT or LONG
-	Compression: 				integer!; 259 SHORT expected value: 1, 2 or 32773
-	PhotometricInterpretation: 	integer!; 262 SHORT expected value 0 1
-	StripOffsets: 				integer!; 273 SHORT or LONG
-	RowsPerStrip: 				integer!; 278 SHORT or LONG
-	StripByteCounts: 			integer!; 279 SHORT or LONG
-	XResolution: 				float!	; 282 RATIONAL
-	YResolution: 				float!	; 283 RATIONAL
-	ResolutionUnit: 			integer!; 296 SHORT expected value: 1, 2 or 3	
+	SubfileType: 				0	;integer!; 254 
+	NewSubfileType:				0	;integer!; 255
+	ImageWidth: 				0	;integer!; 256 SHORT or LONG
+	ImageLength: 				0	;integer!; 257 SHORT or LONG
+	Compression: 				1	;integer!; 259 SHORT expected value: 1, 2 or 32773
+	PhotometricInterpretation: 	1	;integer!; 262 SHORT expected value 0 1
+	StripOffsets: 				0	;integer!; 273 SHORT or LONG
+	RowsPerStrip: 				1	;integer!; 278 SHORT or LONG
+	StripByteCounts: 			0	;integer!; 279 SHORT or LONG
+	XResolution: 				0.0	;float!	; 282 RATIONAL
+	YResolution: 				0.0	;float!	; 283 RATIONAL
+	ResolutionUnit: 			1	;integer!; 296 SHORT expected value: 1, 2 or 3	
 ]
 
 { Baseline TIFF grayscale images were called TIFF Class G images in earlier versions
 of the TIFF specification}
 
 TGrayScale: make object! [
-	SubfileType: 				integer!; 254 or 255 
-	ImageWidth: 				integer!; 256  SHORT or LONG
-	ImageLength: 				integer!; 257  SHORT or LONG
-	BitsPerSample: 				integer!; 258  SHORT 4 or 8
-	Compression: 				integer!; 259 SHORT 1 or 32773
-	PhotometricInterpretation: 	integer!; 262 SHORT 0 or 1
-	StripOffsets: 				integer!; 273 SHORT or LONG
-	RowsPerStrip: 				integer!; 278 SHORT or LONG
-	StripByteCounts: 			integer!; 279  LONG or SHORT
-	XResolution: 				float!	; 282  RATIONAL
-	YResolution: 				float!	; 283  RATIONAL
-	ResolutionUnit: 			integer!; 296  SHORT 1 or 2 or 3
+	SubfileType: 				0;	integer!; 254 
+	NewSubfileType:				0	;integer!; 255
+	ImageWidth: 				0;	integer!; 256 SHORT or LONG
+	ImageLength: 				0	;integer!; 257 SHORT or LONG
+	BitsPerSample: 				8	;integer!; 258 SHORT 4 or 8
+	Compression: 				1	;integer!; 259 SHORT 1 or 32773
+	PhotometricInterpretation: 	1	;integer!; 262 SHORT 0 or 1
+	StripOffsets: 				0	;integer!; 273 SHORT or LONG
+	RowsPerStrip: 				1	;integer!; 278 SHORT or LONG
+	StripByteCounts: 			0	;integer!; 279 LONG or SHORT
+	XResolution: 				0.0	;float!	; 282 RATIONAL
+	YResolution: 				0.0	;float!	; 283 RATIONAL
+	ResolutionUnit: 			1	;integer!; 296 SHORT 1 or 2 or 3
 ]
 
 {Baseline TIFF palette-color images were called TIFF Class P images in earlier
@@ -570,21 +572,22 @@ versions of the TIFF specification }
 
 
 TColorPalette: make object! [
-	SubfileType: 				integer!; 254 or 255
-	ImageWidth: 				integer!; 256  SHORT or LONG
-	ImageLength: 				integer!; 257 SHORT or LONG
-	BitsPerSample: 				integer!; 258 SHORT 4 or 8
-	Compression: 				integer!; 259 SHORT 1 or 32773
-	PhotometricInterpretation: 	integer!; 262 SHORT 3
-	StripOffsets: 				integer!; 273 SHORT or LONG
-	SamplesPerPixel: 			integer!; 277 SHORT 3 or more
-	RowsPerStrip: 				integer!; 278 SHORT or LONG
-	StripByteCounts: 			integer!; 279 LONG or SHORT
-	XResolution: 				float!	; 282 RATIONAL
-	YResolution: 				float!	; 283  RATIONAL
-	ResolutionUnit: 			integer!; 296  SHORT 1 or 2 or 3
-	ColorMap: 					integer!; 320 SHORT
-	ColorMapCount: 				integer!; 320 length
+	SubfileType: 				0	;integer!; 254 
+	NewSubfileType:				0	;integer!; 255
+	ImageWidth: 				0	;integer!; 256 SHORT or LONG
+	ImageLength: 				0	;integer!; 257 SHORT or LONG
+	BitsPerSample: 				8	;integer!; 258 SHORT 4 or 8
+	Compression: 				1	;integer!; 259 SHORT 1 or 32773
+	PhotometricInterpretation: 	3	;integer!; 262 SHORT 3
+	StripOffsets: 				0	;integer!; 273 SHORT or LONG
+	SamplesPerPixel: 			3	;integer!; 277 SHORT 3 or more
+	RowsPerStrip: 				1	;integer!; 278 SHORT or LONG
+	StripByteCounts: 			0	;integer!; 279 LONG or SHORT
+	XResolution: 				0.0	;float!	; 282 RATIONAL
+	YResolution: 				0.0	;float!	; 283 RATIONAL
+	ResolutionUnit: 			1	;integer!; 296 SHORT 1 or 2 or 3
+	ColorMap: 					0	;integer!; 320 SHORT
+	ColorMapCount: 				0	;integer!; 320 length
 ]
 
 { In an RGB image, each pixel is made up of three components: red, green, and
@@ -592,22 +595,21 @@ blue. There is no ColorMap}
 
 
 TRGBImage: make object! [
-	SubfileType: 				integer!; 254 or 255 
-	ImageWidth: 				integer!; 256 SHORT or LONG
-	ImageLength: 				integer!; 257 SHORT or LONG
-	BitsPerSample: 				integer!; 258 SHORT 8,8,8
-	Compression: 				integer!; 259  SHORT 1 or 32773
-	PhotometricInterpretation: 	integer!; 262 SHORT 2
-	StripOffsets: 				integer!; 273 SHORT or LONG
-	SamplesPerPixel: 			integer!; 277 SHORT 3 or more
-	RowsPerStrip: 				integer!; 278 SHORT or LONG
-	StripByteCounts: 			integer!; 279 LONG or SHORT
-	XResolution:				float!	; 282  RATIONAL
-	YResolution: 				float!	; 283  RATIONAL
-	ResolutionUnit: 			integer!; 296 SHORT 1, 2 or 3
+	SubfileType: 				0; integer!; 254 
+	NewSubfileType:				0; integer!; 255 
+	ImageWidth: 				0; integer!; 256 SHORT or LONG
+	ImageLength: 				0; integer!; 257 SHORT or LONG
+	BitsPerSample: 				8; integer!; 258 SHORT 8,8,8
+	Compression: 				1; integer!; 259  SHORT 1 or 32773
+	PhotometricInterpretation: 	2; integer!; 262 SHORT 2
+	StripOffsets: 				0; integer!; 273 SHORT or LONG
+	SamplesPerPixel: 			0; integer!; 277 SHORT 3 or more
+	RowsPerStrip: 				0; integer!; 278 SHORT or LONG
+	StripByteCounts: 			0; integer!; 279 LONG or SHORT
+	XResolution:				0.0;float!	; 282  RATIONAL
+	YResolution: 				0;0;float!	; 283  RATIONAL
+	ResolutionUnit: 			1;integer!; 296 SHORT 1, 2 or 3
 ]
-
-
 
 
 

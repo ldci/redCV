@@ -10,8 +10,8 @@ Red [
 		See https://github.com/red/red/blob/master/BSL-License.txt
 	}
 ]
-;--based on https://moonbooks.org/Articles
-;--/How-to-plot-a-Gabor-filter-using-python-and-matplotlib-/
+{based on https://moonbooks.org/Articles
+/How-to-plot-a-Gabor-filter-using-python-and-matplotlib-/}
 
 rcvGaborChangeBase: function [
 "Calculates x and y theta"
@@ -42,11 +42,11 @@ rcvGaborFunction: function [
 
 rcvGaborKernel: function [
 "Generates Gabor kernel"
-	theta	[float!]
-	f		[float!]
-	sigma_x [float!]
-	sigma_y [float!]
-	radius	[integer!]
+	theta	[float!]	;--angle in radian
+	f		[float!]	;--the wavelength of the filter  > 0.0
+	sigma_x [float!]	;--the standard deviation of the Gaussian function > 0.0 
+	sigma_y [float!]	;--ellipticity of kernel function
+	radius	[integer!]	;--kernel size
 	return: [block!]
 ][
 	mini: 9999999999.0

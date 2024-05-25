@@ -37,7 +37,7 @@ loadImage: does [
 	canvas2/image: none
 	canvas3/image: none
 	tmp: request-file 
-	if not none? tmp [		
+	unless none? tmp [		
 		img: load tmp	
 		imgW: img/size/x 
 		imgH: img/size/y
@@ -45,11 +45,11 @@ loadImage: does [
 		srcCopy:  rcvCreateImage img/size
 		edges: rcvCreateImage img/size
 		bw: rcvCreateImage img/size
-		mat: make vector! imgW * imgH		; a matrix for Hough transform
-		rcvConvolve img edges canny 1.0 0.0 ; edges detection
-		rcv2BW edges bw						; B&W image [0 255]
-		rcvCopyImage img srcCopy			; src image copy
-		rcvImage2Mat bw mat 				; image to mat for Hough transform
+		mat: matrix/init 2 32 img/size			; a matrix for Hough transform
+		rcvConvolve img edges canny 1.0 0.0 	; edges detection
+		rcv2BW edges bw							; B&W image [0 255]
+		rcvCopyImage img srcCopy				; src image copy
+		rcvImage2Mat bw mat 					; image to mat for Hough transform
 		canvas1/image: img
 		canvas2/image: bw
 		isFile: true
@@ -61,7 +61,7 @@ loadImage: does [
 
 process: does [
 	acc: rcvMakeHoughAccumulator imgW imgH			; makes Hough accumulator
-	rcvHoughTransform mat acc imgW imgH 127			; performs Hough transform
+	rcvHoughTransform mat/data acc imgW imgH 127	; performs Hough transform
 	hSpace: rcvCreateImage rcvGetAccumulatorSize acc; creates Hough space image
 	rcvHough2Image acc hSpace contrast				; shows Hough space
 	canvas3/image: hSpace

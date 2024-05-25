@@ -9,31 +9,31 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 
-isize: 256x256
-bitSize: 32
+isize: 256x256							;--fix image size
+bitSize: 32								;--32-bit integer
 
-img1: rcvCreateImage isize
-img2: rcvCreateImage isize
-mat:  matrix/init 2 bitSize isize
+img1: rcvCreateImage isize				;--create first image
+img2: rcvCreateImage isize				;--create second image
+mat:  matrix/init 2 bitSize isize		;--a 32-bit integer matrix
 
 loadImage: does [
 	canvas1/image/rgb: black
 	canvas2/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
-		img1: rcvLoadImage tmp
-		img2: rcvCreateImage img1/size
-		canvas1/image: img1
-		convert
+	unless none? tmp [
+		img1: rcvLoadImage tmp			;--read original image
+		img2: rcvCreateImage img1/size	;--update second image according to size
+		canvas1/image: img1				;--show original image
+		convert							;--conversion
 	]
 ]
 
 convert: does [
 	f/text: rejoin [form bitSize "-bit"]
-	mat:  matrix/init 2 bitSize img1/size
-	rcvImage2Mat img1 mat	; Converts image to 1 Channel matrix [0..255] 
-	rcvMat2Image mat img2	; Converts matrix to red image
-	canvas2/image: img2		; Shows converted image
+	mat:  matrix/init 2 bitSize img1/size	;--32-bit integer matrix
+	rcvImage2Mat img1 mat					;--Convert image to 1 Channel matrix [0..255] 
+	rcvMat2Image mat img2					;--Convert matrix to red image
+	canvas2/image: img2						;--Show converted image
 ]
 
 ; ***************** Test Program ****************************

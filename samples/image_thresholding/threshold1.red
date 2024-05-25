@@ -10,6 +10,7 @@ Red [
 #include %../../libs/core/rcvCore.red
 
 margins: 3x10
+;--I do not understand why this code must be executed in terminal mode
 img1: rcvLoadImage %../../images/baboon.jpg
 dst:  rcvCreateImage img1/size
 thresh: 127

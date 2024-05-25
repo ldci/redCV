@@ -13,7 +13,7 @@ flirFile: 	none
 
 loadImage: does [
 	tmp: request-file 
-	if not none? tmp [
+	unless none? tmp [
 		canvas1/image: canvas2/image: none
 		canvas3/image: canvas4/image: none
 		clear f0/text

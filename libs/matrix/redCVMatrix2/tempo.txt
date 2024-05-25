@@ -1,0 +1,4 @@
+if left [
+    			data: copy []
+    			repeat i rows [repeat j cols [append data either i = (cols - j + 1) [v1][v0]]]
+    		]

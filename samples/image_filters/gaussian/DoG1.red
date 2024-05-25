@@ -35,10 +35,10 @@ loadImage: does [
 		cImg rcvCreateImage img1/size
 		either cb/data [cImg: rcvCloneImage gray]
 					   [cImg: rcvCloneImage img1]
-		
 		dst:  rcvCloneImage cImg
 		bb/image: img1
-		rcvDoGFilter cImg dst cImg/size kSize  1.0 2.0 factor
+		rcvDoGFilter cImg dst kSize 1.0 2.0 factor
+		probe 3
 		canvas/image: dst
 		isFile: true
 	]
@@ -60,7 +60,7 @@ view win: layout [
 		cb: check 128 "Grayscale" 	[
 					either cb/data  [cImg: rcvCloneImage gray]
 					[cImg: rcvCloneImage img1]
-					rcvDoGFilter cImg dst cImg/size kSize 1.0 2.0 factor
+					rcvDoGFilter cImg dst kSize 1.0 2.0 factor
 					canvas/image: dst
 		]
 		
@@ -68,7 +68,7 @@ view win: layout [
 		sl: slider 380 [
 			factor: 1.0 + (face/data * 127.0)
 			f/text: form factor
-			if isFile [rcvDoGFilter cImg dst cImg/size kSize 1.0 2.0 factor canvas/image: dst]
+			if isFile [rcvDoGFilter cImg dst kSize 1.0 2.0 factor canvas/image: dst]
 		]
 		f: field 50 "16.0"
 		return

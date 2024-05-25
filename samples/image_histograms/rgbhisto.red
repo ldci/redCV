@@ -29,7 +29,7 @@ loadImage: does [
 	canvas2/draw: none
 	canvas2/image: black
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
 		img1:  load  tmp
 		canvas1/image: img1
 		img2: make image! reduce [img1/size black]
@@ -50,7 +50,6 @@ processMat: does [
 	matR/data: histo/1
 	matG/data: histo/2
 	matB/data: histo/3
-	
 	; we need maxi for Y scale conversion
 	matRC: rcvConvertMatIntScale matR matrix/maxi matR 200
 	matGC: rcvConvertMatIntScale matG matrix/maxi matG 200
@@ -67,8 +66,8 @@ showPlot: does [
 		append plotr as-pair (i * step) (250 - matRC/data/:i) 
 		append plotg as-pair (i * step) (250 - matGC/data/:i)
 		append plotb as-pair (i * step) (250 - matBC/data/:i)
-		i: i + 1
-	]				
+	]
+			
 	canvas2/draw: reduce [plotr plotg plotb] 
 ]
 
@@ -76,8 +75,7 @@ showPlot: does [
 view win: layout [
 		title "Histogram Filtering"
 		origin margins space margins
-		button 100 "Load Image" [loadImage processMat showPlot
-		]
+		button 100 "Load Image" [loadImage processMat showPlot]
 		pad 150x0
 		text 60 "Bins" 	
 		drop-down 60 data ["256" "128" "64" "32" "16"]

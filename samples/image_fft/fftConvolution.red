@@ -39,8 +39,9 @@ loadImage: function [
 
 fft: does [
 	t1: now/time/precise
-	rcvMul rcvFFTImage/forward img1 rcvFFTImage/forward img2 Img3 
-	canvas3/image: rcvFFTImage/forward img3
+	rcvMul rcvFFTImage/forward img1 
+	img3: rcvFFTImage/forward img2 
+	canvas3/image: img3;rcvFFTImage/forward img3
 	;canvas4/image: rcvFFTImage/backward img3
 	canvas4/image: rcvFFTConvolve img1 img2
 	t2: now/time/precise

@@ -23,7 +23,7 @@ loadImage: function [
 	return: [image!]]
 [
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
 		img0: rcvLoadImage tmp
 		img:  rcvResizeImage img0 iSize
 	]
@@ -37,12 +37,15 @@ view win: layout [
 		button 125 "Load" 
 		[	img1: loadImage 
 			canvas1/image: img1
-			blk: rcvSplit2 img1
-			rcvMerge blk/1 blk/1 blk/1 img2 ;--red channel only
+			;--valid with Red 0.6.4 but not with Red 0.6.5
+			;blk: rcvSplit2 img1
+			;rcvMerge blk/1 blk/1 blk/1 img2 	;--red channel only
+			;--so we use a cannonical rcvSplit function
+			rcvSplit/red img1 img2				;--red channel only
 			canvas2/image: img2
-			rcv2BWFilter img2 img3 128		;--B&W filter
+			rcv2BWFilter img2 img3 128			;--B&W filter
 			canvas3/image: img3
-			rcvAnd img1 img3 img4			;--result  
+			rcvAnd img1 img3 img4				;--result  
 			canvas4/image: img4
 		]
 		

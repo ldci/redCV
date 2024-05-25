@@ -47,7 +47,7 @@ process: does [
 	matHog: rcvHOG img1 nBins nDivs
 	matInt: rcvMatFloat2Int matHog 32 200.0
 	x: 10
-	repeat i nHog [
+	repeat i (nHog - 2) [
 		tL: as-pair (x) 240 - matInt/data/:i
 		bR: as-pair (x + 4) 240
 		append plot 'box

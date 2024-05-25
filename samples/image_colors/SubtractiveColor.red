@@ -42,7 +42,7 @@ view win: layout [
 	bb2: base 256x256 img2
 	bb3: base 256x256 dst
 	return
-	text 150 "© Red Foundation 2019"
+	text 250 "© Red Foundation 2019-2024"
 ]
 	
 	

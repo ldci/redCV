@@ -21,7 +21,7 @@ img:  rcvCreateImage iSize
 plot:  compose [fill-pen white box 155x155 355x355]
 _plot: compose [line-width 1 pen green 
 			text 175x480 "Angle"
-			line 5x10 5x470 5x470 375x470 375x5 5x10 
+			line 5x10 5x470 375x470 375x10 5x10 
 			line 190x10 190x470
 			text 10x450 "0" text 178x450 "180" text 345x450 "360" 
 			pen red
@@ -33,7 +33,7 @@ canvas2: none
 
 
 processImage: does [
-	if system/platform <> 'Linux [img: to-image canvas]
+	;if system/platform <> 'Linux [img: to-image canvas]
    	rcvZeroImage img
     canvas/image: draw img canvas/draw; reduce [plot]
 	rcvImage2Mat img mat 	 

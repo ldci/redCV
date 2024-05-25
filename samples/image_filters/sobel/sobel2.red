@@ -69,7 +69,7 @@ view win: layout [
 		text 100x20 "Sobel Direction"
 		r1: radio  "Y 1" 		[param: 1 if isFile [rcvSobel cImg dst param op]]
 		r2: radio  "Y 2" 		[param: 2 if isFile [rcvSobel cImg dst param op]]		
-		r3:	radio  "Y 1+ Y 2"	[param: 3 if isFile [rcvSobel cImg dst param op]]
+		r3:	radio  "Y 1 + Y 2"	[param: 3 if isFile [rcvSobel cImg dst param op]]
 		return
 		canvas: base defSize dst	
 		do [r1/data: true]

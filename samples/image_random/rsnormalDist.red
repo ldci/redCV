@@ -8,6 +8,7 @@ Red [
  * This version allows to use mean and standard deviation for generating 
  * different distributions
  * This version uses Red/System routines for a faster calculation.
+ * This code must be executed in terminal
  *}
 
 NMAX: 10000000

@@ -8,7 +8,7 @@ Red [
 ; last Red Master required!
 #include %../../libs/core/rcvCore.red
 #include %../../libs/highgui/rcvHighGui.red
-
+;--I do not understand why this code must be executed in terminal mode
 img1: rcvLoadImage %../../images/lena.jpg
 img2: rcvCreateImage img1/size ;512x512 
 

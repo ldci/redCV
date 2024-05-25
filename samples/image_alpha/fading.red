@@ -19,7 +19,7 @@ loadImage: does [
     sl/data: 0%
 	delta: 0.0
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1
 		canvas/image: dst
@@ -34,8 +34,9 @@ view win: layout [
 		button 60 "Load" 		[loadImage]						
 		sl: slider 240 [if isFile [
 							delta: 1.0 - to float! sl/data * 1
-							vf/data: form delta 
-							rcvPow img1 dst delta	
+							vf/text: form round/to delta 0.001
+							rcvPow img1 dst delta
+							do-events/no-wait	
 						]				 
 		]	
 		vf: field 50 "1.0"								

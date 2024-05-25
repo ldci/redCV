@@ -118,7 +118,7 @@ view win: layout [
 					Quit]
 	return
 	canvas: base iSize black
-	r: area 200x512
+	r: area 200x512 wrap
 	return
 	pad 120x0
 	f1: field 60

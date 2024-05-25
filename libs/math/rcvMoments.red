@@ -67,7 +67,7 @@ rcvGetMatSpatialMoment: routine [
     moment
 ]
 
-;--a revoir 
+ 
 rcvGetMatCentralMoment: routine [
 "Returns the central moment of the mat"
 	mx  		[object!]
@@ -120,6 +120,7 @@ rcvGetNormalizedCentralMoment: function [
 	mx  			[object!]
     p				[float!]
     q				[float!]
+    return:			[float!]
 ] [
 	moment1: rcvGetMatCentralMoment mx  p q 
 	moment2: rcvGetMatCentralMoment mx  0.0 0.0
@@ -129,67 +130,30 @@ rcvGetNormalizedCentralMoment: function [
 ]
 
 
+
+
 rcvGetMatHuMoments: function [
-"Returns 7 Hu moments of the image"
+	"Return the seven invariant Hu moments of the image"
 	mat  			[object!]
 	return:			[block!]
-][
-	;where ηi,j are normalized central moments of 2-nd and 3-rd orders.
-	n20: rcvGetNormalizedCentralMoment mx 2.0 0.0
-	n02: rcvGetNormalizedCentralMoment mx 0.0 2.0
-	n11: rcvGetNormalizedCentralMoment mx 1.0 1.0
-	n12: rcvGetNormalizedCentralMoment mx 1.0 2.0
-	n21: rcvGetNormalizedCentralMoment mx 2.0 1.0
-	n30: rcvGetNormalizedCentralMoment mx 3.0 0.0
-	n03: rcvGetNormalizedCentralMoment mx 0.0 3.0
-
-	{from OpenCV
-	h1=η20+η02
-	h2=(η20-η02)²+4η11²
-	h3=(η30-3η12)²+ (3η21-η03)²
-	h4=(η30+η12)²+ (η21+η03)²
-	h5=(η30-3η12)(η30+η12)[(η30+η12)²-3(η21+η03)²]+(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]
-	h6=(η20-η02)[(η30+η12)²- (η21+η03)²]+4η11(η30+η12)(η21+η03)
-	h7=(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]-(η30-3η12)(η21+η03)[3(η30+η12)²-(η21+η03)²]
-	}
+] [
+	n20: rcvGetNormalizedCentralMoment mat 2.0 0.0
+	n02: rcvGetNormalizedCentralMoment mat 0.0 2.0
+	n11: rcvGetNormalizedCentralMoment mat 1.0 1.0
+	n12: rcvGetNormalizedCentralMoment mat 1.0 2.0
+	n21: rcvGetNormalizedCentralMoment mat 2.0 1.0
+	n30: rcvGetNormalizedCentralMoment mat 3.0 0.0
+	n03: rcvGetNormalizedCentralMoment mat 0.0 3.0
 	
 	hu1: n20 + n02
-	hu2: power (n20 - n02) 2 +  (4 * (power n11 2))
-	;hu2: (n20 - n02) ** 2 + (2 * n11) ** 2
-	
-	hu3: (power n30 - (3 * n12) 2) + (power 3 * n21 - n03 2)
-	hu4: power (n30 + n12) 2 + power (n21 + n03) 2
-	
-	
-	;h5=(η30-3η12)(η30+η12)[(η30+η12)²-3(η21+η03)²]+(3η21-η03)(η21+η03)[3(η30+η12)²-(η21+η03)²]
-	
-	
-	a: n30 - (3 * n12)
-	b: n30 + n12
-	c: power n30 + n12 2
-	d: 3 * power n21 + n03 2 
-	e: 3 * n21 - n03
-	f: n21 + n03
-	g: 3 * power n30 + n12 2
-	h: power n21 + n03 2
-	
-	hu5: (a * b) * (c - d) + (e * f * (g - h))
-	
-	
-	
-	;hu5: n30 - (3 * n12) * (n30 + n12) - (3 * (n21 + n03) ** 2)))) 
-	;	+ (((3 * n21) - n03) * (n21 + n03)) * (3 * ((n30 + n12) ** 2) - ((n21 + n03) ** 2))
-	a: n20 - n02
-	b: (n30 + n12) ** 2
-	c: (n21 + n03) ** 2
-	d: 4 * n11
-	e: n30 + n12
-	f: n21 + n03
-	;print (a * (b - c)) + (d * e * f)
-	
-	hu6: (n20 - n02) * (((n30 + n12) ** 2) - (n21 + n03) ** 2) + (4 * n11) * ((n30 + n12) * (n21 + n03))
+	hu2: (n20 - n02) ** 2 + (2 * n11) ** 2
+	hu3: (n30 - 3 * n12) ** 2 + (3 * n21 - n03) ** 2
+	hu4: (n30 + n12) ** 2 + (n21 + n03) ** 2
+	hu5: (n30 - 3 * n12) ** 2 + (n30 + n12) * ((n30 + n12) ** 2 - 3 * (n21 + n03) ** 2) +
+			(3 * n21 - n03) * (n21 + n03) * (3 * (n30 + n12) ** 2 - (n21 + n03) ** 2)
+	hu6: (n20 - n02) * ((n30 + n12) ** 2 - (n21 + n03) ** 2) + 4 * n11 * (n30 + n12) * (n21 + n03)
 	hu7: (3 * n21 - n03) * (n30 + n12) * ((n30 + n12) ** 2 - 3 * (n21 + n03) ** 2) -
 			(n30 - 3 * n12) * (n21 + n03) * (3 * (n30 + n12) ** 2 - (n21 + n03) ** 2)
-	; return: 		[block!]		
 	reduce [hu1 hu2 hu3 hu4 hu5 hu6 hu7]
 ]
+

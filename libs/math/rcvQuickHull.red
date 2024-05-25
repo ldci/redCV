@@ -10,6 +10,7 @@ Red [
 	}
 ]
 
+#include %../../libs/tools/rcvTools.red
 
 {Quick Hull implementation
 Based on Alexander Hristov's Java code

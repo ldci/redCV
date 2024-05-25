@@ -8,7 +8,7 @@ Red [
 ;required libs
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/core/rcvCore.red
-#include %../../libs/zLib/rcvZLib.red
+#include %../../libs/zLib/rcvZLib.red ;--Thanks to Bruno Anselme
 
 margins: 5x5
 defSize: 256x256
@@ -24,19 +24,19 @@ clevel: -1 ; default
 loadImage: does [
 	isFile: false
 	tmp: request-file
-	if not none? tmp [
-		imgSize: rcvGetImageFileSize tmp
-		rgb: rcvLoadImageAsBinary tmp
-		img1: rcvCreateImage imgSize 
-		img2: rcvCreateImage imgSize 
-		img3: rcvCreateImage imgSize
-		img1/rgb: rgb 
-		b1/image: img1
-		b2/image: img2
-		b3/image: img3
-		f0/text: f1/text: f11/text: f2/text: f3/text: sb/text: ""
-		result: copy #{}
-		result2: copy #{}
+	unless none? tmp [
+		imgSize: rcvGetImageFileSize tmp	;--get image size
+		rgb: rcvLoadImageAsBinary tmp		;--load image as binary values
+		img1: rcvCreateImage imgSize		;--create image 
+		img2: rcvCreateImage imgSize 		;--create image 
+		img3: rcvCreateImage imgSize		;--create image 
+		img1/rgb: rgb 						;--source image as binary
+		b1/image: img1						;--show image
+		b2/image: img2						;--show image
+		b3/image: img3						;--show image
+		f0/text: f1/text: f11/text: f2/text: f3/text: sb/text: sb2/text: ""
+		result: copy #{}					;--create binary string
+		result2: copy #{}					;--create binary string
 		f1/text: form imgSize
 		isFile: true
 		isCompressed: false
@@ -46,6 +46,7 @@ loadImage: does [
 
 compressImage: does [
 	sb/text: "Compressing image..."
+	sb2/text: ""
 	f0/text: f2/text:  ""
 	img2/rgb: 0.0.0
 	b2/image: img2
@@ -54,40 +55,36 @@ compressImage: does [
 	do-events/no-wait
 	n: length? rgb
 	t1: now/time/precise
-	result: rcvCompressRGB rgb clevel
-	n1: length? result	
-	compression: 100 - (100 * n1 / n)
-	f0/text: rejoin [" Compression: " form compression " %"]
+	result: rcvCompressRGB rgb clevel	;--compress image according level
+	t2: now/time/precise
+	sb/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
+	nC: length? result	
+	;image compression ratio τ 
+	compression: round/to 1.0 - (nC / n) * 100 0.01
+	f0/text: rejoin ["Compression: " form compression " %"]
 	f11/text: rejoin [form n " bytes"]
-	f2/text: rejoin [form n1 " bytes"]
+	f2/text: rejoin [form nC " bytes"]
 	; not useful for compression
-	; only to show image compression and avoid pointer error
+	; only to show image compression 
 	if cb/data [
-		i: n1 
-		while [i < n ] [
-			append result 0
-			i: i + 1
-		]
 		img2/rgb: copy result
 		b2/image: img2
 	]
-	t2: now/time/precise
-	sb/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
 	isCompressed: true
 ]
 
 uncompressImage: does [
-	sb/text: ""
+	sb2/text: "Uncompressing image..."
 	f3/text: ""
 	do-events/no-wait
 	n: length? rgb
 	t1: now/time/precise
-	result2: rcvDecompressRGB result n
+	result2: rcvDecompressRGB result n	;-uncompress image
 	t2: now/time/precise
 	f3/text: rejoin [form length? result2 " bytes"]
 	img3/rgb: copy result2
 	b3/image: img3
-	sb/text: rejoin ["Uncompressed in " rcvElapsed t1 t2 " ms"]
+	sb2/text: rejoin ["Uncompressed in " rcvElapsed t1 t2 " ms"]
 ]
 
 
@@ -103,12 +100,17 @@ view win: layout [
 			2 [clevel: 9]
 			3 [clevel: -1]
 		]
+		isCompressed: false
 	]
-	cb: check 130 "Show compression"
-	button 90 "Compress" [if isFile [compressImage]]
-	f0: field 120
-	button 105 "Uncompress" [if isCompressed [uncompressImage]]
-	button 50 "Quit" [if isFile [rcvReleaseImage img1 rcvReleaseImage img2 rcvReleaseImage img3]
+	cb: check 130 "Show compression" true
+	button 88 "Compress" [if isFile [compressImage]]
+	f0: field 137
+	button 93 "Uncompress" [if isCompressed [uncompressImage]]
+	button 50 "Quit" [if isFile [
+									rcvReleaseImage img1 
+									rcvReleaseImage img2 
+									rcvReleaseImage img3
+								]
 					 quit]
 	return
 	f1: field 125 f11: field 125
@@ -119,7 +121,9 @@ view win: layout [
 	b2: base defSize black
 	b3: base defSize black
 	return
-	sb: field 778
+	sb: field 256
+	pad 261x0
+	sb2: field 256
 ]
 
 

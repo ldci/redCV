@@ -53,18 +53,19 @@ view/tight [
 		style rect: base 255.255.255.240 clipSize2 loose draw []
 		origin margins space margins
 		button 90 "Load Image"		[loadImage]
-		check "Show RoI" true		[either face/data [p1/draw: drawClip] [p1/draw: []] ]
+		check "Show RoI" true		[either face/data [p1/draw: drawClip] [p1/draw: []]]
 		pad 350x0
 		button 80 "Quit" 	 		[rcvReleaseImage imgSrc imgDst Quit]
 		return 
 		canvas: base 512x512 imgDst cursor hand react [
-			posc: p1/offset - winBorder	
+			posc: p1/offset - winBorder							;--this returns a pointD2 datatype
+			posi: rcv2pair posc									;--all libs require a pair! 
 			if all [posc/x >= 0 posc/y >= 0
 					posc/x <= (defSize/x - clipSize/x)  
 					posc/y <= (defSize/y - clipSize/y)] [
-					start: posc
+					start: posi
 					end: start + clipSize
-					sb/text: rejoin [form start	"-" form end]
+					sb/text: rejoin [form posc " [" form start	"->" form end "]"]
 					if isFile [
 							rcvCropImage imgDst imgRoi start
 							roi/image: imgRoi

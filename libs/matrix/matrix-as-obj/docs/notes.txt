@@ -1,0 +1,15 @@
+Some comments for Toomas and Qingtian
+
+The approach proposed by Toomas (see matrix-as-obj) is an interesting hybrid implementation. We have a general matrix object with methods that allow to create  new mx objects with a few properties such as:
+type: matrix type as char!, integer! or float!
+bits: bit-size 8, 16, 32 or 64 according to matrix type
+rows: number of rows
+cols: number of columns
+data: matrix values as a vector
+Methods implemented in matrix object use a mx object as parameter and thus we don't need to prefix matrix methods by self, since methods are external to the mx object and are applied to the mx object. However, we have to decide which methods modify the mx object and which methods create a new mx object (e.g rotate). Personally, I always try to keep the original object unchanged and create a new object from the transformation. This is the way I adopted for redCV.
+What is interesting with this approach is that we use a unique matrix object, without cloning, and that general (context) object is able to apply its own methods to a lot of mx sub-objects. 
+Qingtian's comments are welcome:)
+
+in fact we need self/method
+
+  

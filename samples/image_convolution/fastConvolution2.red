@@ -71,7 +71,7 @@ view win: layout [
 	f1: field 50 "0"
 	text 100 "Brightness"
 	sl2: slider 200 [delta: 0.0 + (face/data * 256.0) 
-		f2/data: to integer! form delta
+		f2/data: to integer! delta
 		if isFile [convolve]
 	]
 	f2: field 50 "0"

@@ -73,7 +73,7 @@ isTilted: 				0							;--tilted Haar feature?
 ;--create int pointers that give access to Red arrays by routines
  
 rcvCreateArrayPointers: routine [
-"Create integer pointers that give access to Red arrays by routines"
+"Create integer or float pointers that give access to Red arrays by routines"
 ][ 
 	sarray:	 as int-ptr! vector/rs-head as red-vector!   #get 'stagesArray		
 	rarray:	 as int-ptr! vector/rs-head as red-vector!   #get 'rectanglesArray	
@@ -180,14 +180,16 @@ and original win size}
 				;--weight rectangles 1 2 3			
 				if any [k = 5 k = 10 k = 15] [append weightsArray vf]
 				;--tilted not used for frontal faces
-				if k = 16 [append tiltedArray v isTilted: isTilted + v]	
-				if k = 17 [append treeThreshArray vf]	;--threshold of the filter
-				if k = 18 [append alpha1Array vf]		;--left value of the filter 
-				if k = 19 [append alpha2Array vf]		;--right value of the filter
-				if k = 20 [append logic1Array v]		;--left has node?
-				if k = 21 [append node1Array vf]		;--left node value
-				if k = 22 [append logic2Array v]		;--right has node?
-				if k = 23 [append node2Array vf]		;--right node value
+				case [
+					k = 16 [append tiltedArray v isTilted: isTilted + v]	
+					k = 17 [append treeThreshArray vf]	;--threshold of the filter
+					k = 18 [append alpha1Array vf]		;--left value of the filter 
+					k = 19 [append alpha2Array vf]		;--right value of the filter
+					k = 20 [append logic1Array v]		;--left has node?
+					k = 21 [append node1Array vf]		;--left node value
+					k = 22 [append logic2Array v]		;--right has node?
+					k = 23 [append node2Array vf]		;--right node value
+				]
 				line: line + 1
 				k: k + 1
 			]
@@ -240,7 +242,6 @@ rcvCreateHaarCascade: routine [
 ]
 
 
-
 ;**************************************************************************************
 ;--This routine downsample an image using nearest neighbor
 ;--It is used to build the image pyramid
@@ -249,22 +250,10 @@ rcvNearestNeighbor: routine [
 	src		[image!]
 	dst		[image!]
 	/local
-	idxS 	[int-ptr!]
-	idxD	[int-ptr!]
-	pixS	[int-ptr!]
-	pixD	[int-ptr!]
-	handleS	[integer!]
-	handleD	[integer!]
-	w1		[integer!] 
-	h1		[integer!]
-	w2		[integer!]
-	h2		[integer!]
-	xRatio	[integer!]
-	yRatio	[integer!]
-	x2 		[integer!]
-	y2 		[integer!]
-	i 		[integer!]
-	j		[integer!]
+	idxS idxD pixS pixD		[int-ptr!]
+	handleS	handleD			[integer!]
+	w1 h1 w2 h2	 x2 y2 i j	[integer!] 
+	xRatio yRatio			[integer!]
 ][
 	handleS: 0
     handleD: 0
@@ -304,28 +293,11 @@ rcvHaarIntegralImage1: routine [
     dst1  			[vector!]
     dst2 			[vector!]
     /local
-        pix1 		[int-ptr!]
-        pixD1 		[byte-ptr!]
-        pixD2 		[byte-ptr!]
-        idxD1		[byte-ptr!]
-        idxD2		[byte-ptr!]
-        p4			[int-ptr!]
-        s			[series!]
-        handle1 	[integer!]
-        unit		[integer!]
-        h 			[integer!]
-        w 			[integer!]
-        x 			[integer!]
-        y 			[integer!]
-        pIndexD		[integer!] 
-        ssum 		[integer!]
-        sqsum   	[integer!] 
-        t			[integer!]
-        tq			[integer!]
-        r 			[integer!]
-        g 			[integer!]
-        b			[integer!] 
-        rgb			[integer!]
+        pix1 p4						[int-ptr!]
+        pixD1 pixD2 idxD1 idxD2		[byte-ptr!]
+        s							[series!]
+        handle1 unit h w x y r g b	[integer!]
+        pIndexD	ssum sqsum t tq rgb	[integer!] 
 ][
     handle1: 0
     pix1:  image/acquire-buffer src :handle1 	;--image
@@ -407,30 +379,9 @@ rcvHaarIntegralImage2: routine [
     dst2 			[vector!]
     dst3			[vector!]
     /local
-        pix1 		[int-ptr!]
-        pixD0		[int-ptr!]		
-        pixD1 		[int-ptr!]
-        pixD2 		[int-ptr!]
-        pixD3		[int-ptr!]
-        handle1 	[integer!]
-        h 			[integer!]
-        w 			[integer!]
-        y 			[integer!]
-        ssum 		[integer!]
-        sqsum   	[integer!]  
-        r 			[integer!]
-        g 			[integer!]
-        b			[integer!] 
-        rgb			[integer!]
-        idx1		[integer!]
-        idx2		[integer!]
-        idx3		[integer!]
-        idx4		[integer!]
-        val1 		[integer!]
-        val2		[integer!]
-        j 			[integer!]
-        k 			[integer!]
-        l			[integer!]
+        pix1 pixD0 pixD1 pixD2 pixD3		[int-ptr!]
+        handle1 h w y ssum sqsum r g b rgb 	[integer!]
+        idx1 idx2 idx3 idx4 val1 val2 j k l	[integer!]
 ][
     handle1: 0
     pix1:   image/acquire-buffer src :handle1 	;--source image
@@ -498,32 +449,11 @@ rcvCannyFilter: routine [
 	lowPass	[vector!]
 	canny	[vector!]
 	/local
-	pixS 	[int-ptr!]
-	pixD	[int-ptr!]
-	ptrG	[int-ptr!]
-	ptrLP	[int-ptr!]
-	ptrC	[int-ptr!]
-	w		[integer!]
-	h		[integer!]
-	i 		[integer!]
-	j 		[integer!]
-	k		[integer!] 
-	sum		[integer!]
-	sum2	[integer!]
-	gradX 	[integer!]
-	gradY	[integer!]
-	ind0 	[integer!]
-	ind1 	[integer!]
-	ind2	[integer!]
-	ind_1 	[integer!]
-	ind_2	[integer!]
-	count	[integer!]
-	handleS	[integer!]
-	handleD [integer!]
-	r 		[integer!]
-	g 		[integer!]
-	b		[integer!]
-	rgb		[integer!]
+	pixS pixD ptrG ptrLP ptrC		[int-ptr!]
+	w h i j k sum sum2 gradX gradY	[integer!]
+	ind0 ind1 ind2 ind_1 ind_2		[integer!]
+	handleS handleD 				[integer!]
+	count r g b rgb 				[integer!]
 ][
 	handleS: 0
 	handleD: 0
@@ -775,22 +705,11 @@ rcvEvalWeakClassifier: routine [
 	rIndex				[integer!]
 	return:				[float!]
 	/local
-	ptr					[int-ptr!]
-	overflow			[int-ptr!]
-	sigma				[float!]
-	t					[float!]
-	idx					[integer!]
-	weight				[float!]
-	a					[integer!]
-	b					[integer!]
-	c					[integer!]
-	d					[integer!]
-	hasLeft?			[integer!]
-	hasRight?			[integer!]
-	leftNode			[float!]
-	rightNode			[float!]
-	v2					[float!]
-	v1					[float!]
+	ptr	overflow				[int-ptr!]
+	sigma weight t				[float!]
+	idx a b c d	area			[integer!]
+	hasLeft? hasRight?			[integer!]
+	leftNode rightNode v1 v2	[float!]
 ][
 	;--the node threshold is multiplied by the standard deviation of the image
 	t: tarray/treeIndex * variance  
@@ -810,7 +729,8 @@ rcvEvalWeakClassifier: routine [
 	idx: rIndex + 3 ptr: as int-ptr! srarray/idx 
 	ptr: ptr + pOffset either ptr < overflow [d: ptr/value] [d: overflow/value]
 	weight: warray/wIndex
-	sigma: weight * as float! (a - b - c + d)
+	area: a - b - c + d
+	sigma: weight * as float! (area)
 	
 	; second rectangle
 	idx: rIndex + 4 ptr: as int-ptr! srarray/idx 
@@ -823,7 +743,8 @@ rcvEvalWeakClassifier: routine [
 	ptr: ptr + pOffset either ptr < overflow [d: ptr/value] [d: overflow/value]
 	wIndex: wIndex + 1
 	weight: warray/wIndex
-	sigma: sigma + (weight * as float! (a - b - c + d))
+	area: a - b - c + d
+	sigma: sigma + (weight * as float! (area))
 	
 	;third rectangle 
 	idx: rIndex + 8
@@ -839,7 +760,8 @@ rcvEvalWeakClassifier: routine [
 		ptr: ptr + pOffset either ptr < overflow [d: ptr/value] [d: overflow/value]
 		wIndex: wIndex + 1
 		weight: warray/wIndex
-		sigma: sigma + (weight * as float! (a - b - c + d))
+		area: a - b - c + d
+		sigma: sigma + (weight * as float! (area))
 	]
 	
 	;--go to left or  right according node threshold value
@@ -852,13 +774,13 @@ rcvEvalWeakClassifier: routine [
 		if hasLeft? > 0 [
 			;--node has leaves (2 max) -> go to the next left node
 			until [			
-				idx: treeIndex + leftNode	
+				idx: treeIndex + (as integer! leftNode)	
 				v1: a1array/idx 
 				leftNode: n1array/idx
 				hasLeft?: l1array/idx
 				hasleft? = 0 
 			]
-		] 
+		]
 		;--no leaves return left value
 		return v1 	
 	][  
@@ -868,7 +790,7 @@ rcvEvalWeakClassifier: routine [
 		if hasRight? > 0 [
 			;--node has leaves (2 max) -> go to the next right node
 			until [
-				idx: treeIndex + rightNode
+				idx: treeIndex + (as integer! rightNode)
 				v2: a2array/idx
 				rightNode: 	n2array/idx
 				hasRight?:	l2array/idx
@@ -1186,7 +1108,6 @@ rcvDetectObjects: func [
 		sum1: 	make vector! sz/x * sz/y	;--summed-area table
 		sqsum1:	make vector! sz/x * sz/y	;--square summed-area table
 		stsum1: make vector! sz/x * sz/y	;--tilted summed-area table
-		
 		;--build image pyramid by downsampling with nearest neighbor routine
 		case [
 			method = 0 [rcvNearestNeighbor img img1]	;--default 
@@ -1206,13 +1127,12 @@ rcvDetectObjects: func [
        	
        	;--set integral images for Haar classifier cascade
        	rcvSetImageForCascadeClassifier
-       	
        	;--process the current scale with the cascaded filter
         rcvScaleImageInvoker factor step sz startPos allCandidates maxCandidates stageThreshold
        	factor: factor * scaleFactor
        	
 	];--end of the factor loop, finish all scales in pyramid
-	
+	recycle/on ;-- restore GC
 	;--post detection processing
 	;--identified: array of rectangles as vector!
 	identified: make vector! [] 
@@ -1222,8 +1142,10 @@ rcvDetectObjects: func [
 	; rectangles clustering
 	if all [grouping minNeighbors > 0][
 		labels: copy []
+		;--this function creates pb
 		rcvGroupRectangles identified labels minNeighbors groupEPS
 	]
+	
 	identified
 ]
 

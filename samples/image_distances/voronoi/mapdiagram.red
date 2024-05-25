@@ -13,11 +13,11 @@ Red [
 ]
 
 
-; Based on Boleslav Březovský's sample
+; Based on Boleslav Brezovský's sample
 ;it first creates some random points - peaks and 
 ;then it calculates distance from nearest peak from each point in image. 
 ;The shorter the distance is, the brighter the pixel is.
-;This version includes Red/System code for a laster rendering
+;This version includes Red/System code for a faster rendering
 
 ;required libs
 #include %../../../libs/tools/rcvTools.red

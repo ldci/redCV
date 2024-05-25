@@ -25,8 +25,8 @@ loadImage: does [
 
 showImages: does [
 	if isFile [
-		either cb/data 	[rcv2NzRGB/sumsquare img1 dst]
-						[rcv2NzRGB/sum img1 dst]
+		either cb/data 	[rcv2NzRGB img1 dst 0]
+						[rcv2NzRGB img1 dst 1]
 		canvas1/image: img1
 		canvas2/image: dst
 	]

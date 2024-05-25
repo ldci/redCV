@@ -58,8 +58,8 @@ getMax: routine [
 getTempInt16Values: routine [
 "Convert binary data as 16-bit integer values"
 	bin 			[binary!] 
-	l				[integer!]
 	mat				[vector!]
+	l				[integer!]
 	/local
 	head tail 		[byte-ptr!] 
 	lo hi int16 	[integer!]
@@ -73,7 +73,7 @@ getTempInt16Values: routine [
 		hi: as integer! head/value			;--high byte (OK)
 		head: head + 1
 		int16: lo or (hi << 8)				;--16-bit integer value (OK)
-		if int16 > l [int16: int16 and FFh]	;--for some aberrant values (OK)
+		if int16 > l [int16: int16 and FFh]	;--for some outlier values (OK)
 		vector/rs-append-int mat int16
 	]
 ]
@@ -81,8 +81,9 @@ getTempInt16Values: routine [
 getTempLowByte: routine [
 "Get low byte value"
 	bin 			[binary!]
-	l				[integer!]
 	mat				[vector!]
+	l				[integer!]				;--65536 max value
+	nChan			[integer!]				;--Nb of channels for image
 	/local
 	head tail 		[byte-ptr!] 
 	lo hi int16 	[integer!]
@@ -96,10 +97,8 @@ getTempLowByte: routine [
 		hi: as integer! head/value			;--high byte (OK)
 		head: head + 1
 		int16: lo or (hi << 8)				;--16-bit integer value (OK)
-		if int16 > l [int16: int16 and FFh]
-		vector/rs-append-int mat int16 >> 4 and FFh
-		vector/rs-append-int mat int16 >> 4 and FFh
-		vector/rs-append-int mat int16 >> 4 and FFh
+		if int16 > l [int16: int16 and FFh]	;--for some outlier values
+		loop nChan [vector/rs-append-int mat int16 >> 4 and FFh];-- for a grayscale img
 	]
 ]
 
@@ -142,6 +141,7 @@ getCelsiusValues: routine [
 ]
 
 makeColor: routine [
+"Map temperature and  color scale"
 	mat 				[vector!]	;--Float matrix
 	map					[block!]
 	img					[image!]
@@ -187,6 +187,7 @@ makeColor: routine [
 ]
 
 makeColor2: routine [
+"Map temperature and  color scale"
 	mat 					[vector!]	;--Integer matrix
 	map						[block!]
 	img						[image!]
@@ -237,7 +238,7 @@ makeColor2: routine [
 ;--ATTENTION: These routines are zero-based
 
 getBinAddress: routine [
-"Address of binary data  first value"
+"Address of binary data first value"
 	bin		[binary!]
 	return:	[integer!]
 ][

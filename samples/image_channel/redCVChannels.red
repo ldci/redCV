@@ -5,8 +5,9 @@ Red [
 	Needs:	 'View
 ]
 
+;--similar to redChannels.red but uses redCV routines and is faster
+
 ;required libs
-#include %../../libs/tools/rcvTools.red
 #include %../../libs/core/rcvCore.red
 
 fileName: ""
@@ -23,14 +24,13 @@ loadImage: does [
 	canvasB/image: none
 	sb1/text: ""
 	tmp: request-file 
-	if not none? tmp [		
+	unless none? tmp [		
 		fileName: to string! to-local-file tmp	
-		;win/text: fileName
 		rimg: load tmp	
 		canvas/image: rimg
-		imgR: make image! reduce [rimg/size black]
-		imgG: make image! reduce [rimg/size black]
-		imgB: make image! reduce [rimg/size black]
+		imgR: make image! reduce [rimg/size black]	;--r channel image
+		imgG: make image! reduce [rimg/size black]	;--g channel image
+		imgB: make image! reduce [rimg/size black]	;--b channel image
 		isFile: true
 	]
 ]
@@ -38,14 +38,16 @@ loadImage: does [
 splitImage: function[][
 	if isFile [
 		t1: now/time/precise
-		rcvSplit/red rimg imgR
-		rcvSplit/green rimg imgG
-		rcvSplit/blue rimg imgB
-		canvasR/image: imgR
-		canvasG/image: imgG
-		canvasB/image: imgB
+		rcvSplit/red rimg imgR		;--redCV routine r channel
+		rcvSplit/green rimg imgG	;--redCV routine g channel
+		rcvSplit/blue rimg imgB		;--redCV routine b channel
+		canvasR/image: imgR			;--show result
+		canvasG/image: imgG			;--show result
+		canvasB/image: imgB			;--show result		
 		t2: now/time/precise
-		sb1/text: rejoin [ "Rendered in " form rcvElapsed t1 t2  " ms"]
+		t: t2 - t1
+		te:  round (third t * 1000) 0.01
+		sb1/text: rejoin [ "Rendered in " form te  " ms"]
 	]	
 ]
 

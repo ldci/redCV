@@ -20,6 +20,7 @@ rLimit: 512x512 - 6
 lLimit: 0x0
 tp: 0
 canvas: none
+pos: 0x0
 drawRect: compose [line-width 2 pen red circle 8x8 8]
 
 
@@ -32,7 +33,8 @@ loadImage: does [
 		dst: rcvResizeImage img1 512x512 ; force image in 512x512
 		canvas/image: dst
 		p1/draw: drawRect
-		b/color: rcvGetPixel dst pos
+		ppos: rcv2pair pos
+		b/color: rcvGetPixel dst ppos
 		isFile: true
 	]
 ]
@@ -48,10 +50,12 @@ view win: layout [
 		return
 		canvas: base 512x512 dst react [
 					pos: p1/offset - winBorder
+					ppos: rcv2pair pos
 					if all [pos/x >= lLimit/x pos/y >= lLimit/y
 						pos/x < rLimit/x pos/y < rLimit/y
-					] [tp: rcvGetPixelAsInteger dst pos
-						b/color: rcvGetPixel dst pos
+					] [	
+						tp: rcvGetPixelAsInteger dst ppos
+						b/color: rcvGetPixel dst ppos
 					]
 					s: form pos
 					append append s " : " form tp 
@@ -64,4 +68,3 @@ view win: layout [
 		at winBorder p1: rect
 		do [p1/draw: drawRect]
 ]
-;

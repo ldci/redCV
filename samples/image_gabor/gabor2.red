@@ -3,7 +3,7 @@ Red [
 	Title:   "Gabor function test "
 	Author:  "Francois Jouen"
 	File: 	 %gabor2.red
-	Needs:	 'View
+	Needs:	 View
 ]
 
 ;--defaults values

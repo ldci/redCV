@@ -86,7 +86,7 @@ view win: layout [
 	return
 	canvas: base iSize black draw plot
 	return
-	r: area 512x96
+	r: area 512x96 wrap
 ]
 
 		

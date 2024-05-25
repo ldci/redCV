@@ -32,10 +32,11 @@ view win: layout [
 		return
 		canvas: base 512x512 dst react [
 					pos: p1/offset - winBorder
+					ppos: rcv2pair pos
 					if all [pos/x >= lLimit/x pos/y >= lLimit/y
 						pos/x < rLimit/x pos/y < rLimit/y
 					]
-					[rcvSetPixel dst pos green rcvPokePixel dst pos + 5 red
+					[rcvSetPixel dst ppos green rcvPokePixel dst ppos + 5 red
 					canvas/image: dst
 					]
 		]

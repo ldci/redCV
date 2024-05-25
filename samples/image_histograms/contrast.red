@@ -24,7 +24,7 @@ loadImage: does [
 	canvas2/draw: none
 	canvas2/image: none
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
 		img1: rcvLoadImage  tmp
 		img2: rcvCreateImage img1/size
 		mat: matrix/init 2 32 img1/size	;--32-bit matrix
@@ -54,7 +54,8 @@ view win: layout [
 		origin margins space margins
 		button "Load Image" [loadImage]
 		sl: slider 270 		[p: to percent! face/data  
-							v/text: form face/data processMat
+							v/text: form round/to face/data 0.01
+							processMat
 		]
 		v: field 50 "0"
 		button 80 "Quit" 	[rcvReleaseImage img1 Quit]

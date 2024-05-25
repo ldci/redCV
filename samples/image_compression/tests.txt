@@ -1,0 +1,36 @@
+
+Red 0.6.4 for macOS built 7-Oct-2021/13:56:13+02:00  commit #7218fb4
+
+image size: 3155x1963
+
+redCV (Based on Bruno Anselme's Red/System zlib binding)
+default compression
+compression: 650 ms
+decompression: 131 ms
+Compression ratio: 15.45 %
+
+best speed compression
+compression: 549 ms
+decompression: 138 ms
+Compression ratio: 16.96 %
+
+best compression ratio
+compression: 654 ms
+decompression: 132 ms
+Compression ratio: 15.45 %
+
+Red Natives
+default (gZip)
+compression: 954 ms 
+decompression: 2013 ms 
+Compression ratio: 4.05 %
+
+/zlib
+compression: 943 ms
+decompression: 1977 ms 
+Compression ratio: 4.05 %
+
+/deflate
+compression: 863 ms 
+decompression: 1979 ms 
+Compression ratio: 4.05 %

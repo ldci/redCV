@@ -19,8 +19,6 @@ P6: Portable Pixel Map Byte 	16777216 (0–255 for each RGB channel)	;ppm
 for P1, P2 and P3 color maximal value is > 0 and < 65535 
 }
 
-
-
 MAGIC_P1:	#{5031}; "P1"
 MAGIC_P2:	#{5032}; "P2"  
 MAGIC_P3:	#{5033}; "P3" 
@@ -43,10 +41,11 @@ rcvReadPBMAsciiFile: func [
 	magic	[binary!]
 	return: [image!]
 ][	iter: 0 colorMax: 	0.0
-	if magic =  MAGIC_P1 [iter: 3]
-	if magic = 	MAGIC_P2 [iter: 3]
-	if magic = 	MAGIC_P3 [iter: 1]
-	
+	case [
+		magic = MAGIC_P1 [iter: 3]
+		magic = MAGIC_P2 [iter: 3]
+		magic = MAGIC_P3 [iter: 1]
+	]
 	img: read/lines fName
 	i: 2
 	; process comments
@@ -85,6 +84,7 @@ rcvReadPBMAsciiFile: func [
 	]
 	make image! reduce [as-pair w h bin]
 ]
+
 
 rcvWritePBMAsciiFile: func [
 "Write ASCII pbm file"

@@ -36,6 +36,64 @@ rcvGetSystemColors: function [
 	exclude sort sColors [transparent glass]
 ]
 
+; ********** Color Wheel *************
+
+rcvHsb2Rgb: function [
+	hue		[float!]	;--hue [0..1]
+	sat 	[float!]	;--saturation [0..1]
+	bri		[float!] 	;--brightness [0..1]
+	return: [tuple!]
+][
+	color: make tuple! reduce [255 255 255]
+	u: to-integer bri * 255 + 0.5
+	if sat = 0.0 [color/1: color/2: color/3: u]
+	hf: (hue - round/floor hue) * 6 ;--6 quadrants
+	h: to-integer hf
+	f: hf - round/floor hf
+	p: to-integer (bri * (1 - sat) * 255 + 0.5)
+	q: to-integer (bri * (1 - (sat * f)) * 255 + 0.5)
+	t: to-integer (bri * (1 - (sat * (1 - f))) * 255 + 0.5)
+	switch h [
+		0 [color/1: u color/2: t color/3: p]
+		1 [color/1: q color/2: u color/3: p]
+		2 [color/1: p color/2: u color/3: t]
+		3 [color/1: p color/2: q color/3: u]
+		4 [color/1: t color/2: p color/3: u]
+		5 [color/1: u color/2: p color/3: q]
+	]
+	color
+]
+
+rcvColorWheel: function [
+	radius	[integer!]
+	return: [image!]
+][
+	tau: pi * 2.0
+	imsize: as-pair radius * 2 radius * 2
+	imsize: imsize + 40
+	im: make image! imsize
+	cy: to-integer imsize/y / 2
+	cx: to-integer imsize/x / 2
+	y: 0 
+	while [y < imsize/y] [
+		x: 0
+		dy: to-float (y - cy)
+		while [x < imsize/x][
+			dx: to-float (x - cx)
+			distance: sqrt ((dx * dx) + (dy * dy))
+			if distance <= radius [
+				theta: atan2 dy dx
+				hue: theta + pi / tau
+				idx: to-integer (y * imsize/x) + x + 1 ;--Red and Rebol are zero-based
+				im/:idx: rcvHsb2Rgb hue 1.0 1.0
+			]
+			x: x + 1
+		]
+		y: y + 1
+	]
+	im
+]
+
 
 ; ********* image basics **********
 
@@ -199,18 +257,35 @@ rcvRandImage: routine [
 	image/release-buffer dst handleD yes	
 ]
 
-
-rcvRandomImage: function [
-"Create a random uniform or pixel random image"
+;--red 0.6.5
+rcvRandomImage2: function [
+"Create a random uniform color or pixel random image"
 	size 	[pair!] 	
 	value 	[tuple!] 	
+	op		[integer!]		
 	return: [image!]
-	/uniform /alea /fast 
+
+][
+	case [
+		op = 0 [img: make image! reduce [size random value]]
+		op = 1 [img: make image! reduce [size black] forall img [img/1: random value]]
+		op = 2 [img: make image! reduce [size black] rcvRandImage img]
+	] 
+	img
+]
+;--red 0.6.4 and red 0.6.5
+rcvRandomImage: function [
+"Create a random uniform color or pixel random image"
+	size 	[pair!] 	
+	value 	[tuple!] 
+	/uniform /alea /fast ;--attention refinements must be place before return:   	
+	return: [image!]
+	 
 
 ][
 	case [
 		uniform [img: make image! reduce [size random value]]
-		alea 	[img: make image! reduce [size black] forall img [img/1: random value ]]
+		alea 	[img: make image! reduce [size black] forall img [img/1: random value]]
 		fast 	[img: make image! reduce [size black] rcvRandImage img]
 	] 
 	img
@@ -366,6 +441,16 @@ rcvPokePixel: function [
 ] [
 	poke src coordinate val
 ]
+;
+;--new for Red 0.6.5
+rcv2pair: function [
+	point 	[point2D! pair!]
+] [
+	as-pair to integer! point/x to integer! point/y
+]
+
+
+ 
 
 ;***************** IMAGE CONVERSION ROUTINES *****************
 rcvConvert: routine [
@@ -444,12 +529,13 @@ rcvConvert: routine [
 rcv2NzRGB: function [ 
 "Normalizes the RGB values of an image" 
 	src [image!]    
-	dst [image!]    
-	/sum/sumsquare  
+	dst [image!]   
+	op	[integer!]	 
+	;/sum/sumsquare  
 ][
 	case [
-		sum  		[rcvConvert src dst 113]
-		sumsquare 	[rcvConvert src dst 114]
+		op = 0  [rcvConvert src dst 113]
+		op = 1 	[rcvConvert src dst 114]
 	] 
 ]
  
@@ -496,6 +582,36 @@ rcv2WB: function [
 	dst [image!]
 ][
 	rcvConvert src dst 5
+]
+
+rcvNormaliseImage: routine [
+"Copy source image to destination image according to mean ad SD"
+    src 	[image!]
+    dst  	[image!]
+    m sd	[integer!]
+    
+    /local
+        pixS [int-ptr!]
+        pixD [int-ptr!]
+        handleS handleD v i n z[integer!]
+][
+    handleS: 0
+    handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+    i: 0
+    while [i < n] [
+    	v: pixS/value
+    	z: (v - m) / sd
+    	;print-wide [ v m sd z lf]
+    	pixD/value: z 
+        pixS: pixS + 1
+        pixD: pixD + 1
+    	i: i + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
 ]
 
 ;******************** BW Filter Routine ******************

@@ -12,10 +12,11 @@ Red [
 ;#include %../../libs/imgproc/rcvImgProc.red
 #include %../../libs/imgproc/rcvConvolutionMat.red
 
-; laplacian convolution filter for sample
+;--laplacian convolution filter for sample
 mask: [-1.0 0.0 -1.0 0.0 4.0 0.0 -1.0 0.0 -1.0]
 isize: 256x256
 bitSize: 32
+;--create 3 images
 img1: rcvCreateImage isize
 img2: rcvCreateImage isize
 img3: rcvCreateImage isize
@@ -25,23 +26,25 @@ loadImage: does [
     canvas2/image/rgb: black
     canvas3/image/rgb: black
     tmp: request-file
-    if not none? tmp [
+    unless none? tmp [
+    	;--load and update images according to source image size
         img1: rcvLoadImage tmp
         img2: rcvCreateImage img1/size
         img3: rcvCreateImage img1/size
+        ;--create 3 32-bit integer matrices
         mat1: matrix/init 2 bitSize img1/size
         mat2: matrix/init 2 bitSize img1/size
         mat3: matrix/init 2 bitSize img1/size
-        ; Converts to  grayscale image and to 1 Channel matrix [0..255]
+        ;--Converts to  grayscale image and to 1 Channel matrix [0..255]
         rcvImage2Mat img1 mat1
-        ; Standard Laplacian convolution                                    
+        ;--Standard Laplacian convolution                                    
         rcvConvolveMat mat1 mat2 mask 1.0 0.0 
-        ; Normalized Laplacian convolution          
+        ;--Normalized Laplacian convolution          
         rcvConvolveNormalizedMat mat1 mat3 mask 1.0 0.0   
-        ; From matrices to Red images
+        ;--From matrices to Red images
         rcvMat2Image mat2 img2                                     
         rcvMat2Image mat3 img3     
-        ; show results                              
+        ;--show results and release matrices                             
         canvas1/image: img1
         canvas2/image: img2
         canvas3/image: img3

@@ -30,7 +30,7 @@ process: does [
 	rcvConvolve src dst knl 1.0 threshold
 	canvas/image: dst
 	cam/image: none
-	recycle
+	;recycle
 ]
 
 view win: layout [

@@ -16,8 +16,7 @@ loadImage: does [
 	isFile: false
 	canvas/image: none
 	tmp: request-file 
-	if not none? tmp [		
-		fileName: to string! to-local-file tmp	
+	unless none? tmp [		
 		img1: load tmp	
 		dst: rcvCreateImage img1/size
 		canvas/image: img1
@@ -31,7 +30,7 @@ view win: layout [
 		title "RGB Channels Test"
 		origin margins space margins
 		button 60 "load"	[loadImage]
-		button 65 "Source"	[rcvChannel img1 dst 0]	; routine
+		button 65 "Source"	[rcvCopyImage img1 dst]	; routine
 		button 60 "Red"  	[rcvSplit/red img1 dst canvas/image: dst]
 		button 60 "Green"	[rcvSplit/green img1 dst  canvas/image: dst]
 		button 60 "Blue"  	[rcvSplit/blue img1 dst canvas/image: dst]

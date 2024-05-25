@@ -69,7 +69,7 @@ view win: layout [
 		pad 176x0 
 		text "Y"
 		pad 176x0 
-		text "X + Y;"
+		text "X + Y"
 		
 		return
 		canvas1: base isize img1

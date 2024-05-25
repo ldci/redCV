@@ -1,7 +1,7 @@
 Red [
 	Title:   "Test ZLib "
 	Author:  "Francois Jouen"
-	File: 	 %compress.red
+	File: 	 %compress2.red
 	Needs:	 'View
 ]
 
@@ -14,17 +14,17 @@ defSize: 256x256
 imgSize: 0x0
 isFile: false
 isCompressed: false
-
+;--we use Red compression algorithms 
 ; compression type
 cprx: ["GZip" "ZLib" "Deflate"]
 clevel: 1
-n: 	0
-nc: 0
+n: 	0	;--non compressed image size
+nc: 0	;--compressed image size
 
 loadImage: does [
 	isFile: false
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
 		imgSize: rcvGetImageFileSize tmp
 		rgb: rcvLoadImageAsBinary tmp
 		img1: rcvCreateImage imgSize 
@@ -55,29 +55,24 @@ compressImage: does [
 	n: length? rgb
 	t1: now/time/precise
 	case [
-		clevel = 1 [result: compress rgb]
-		clevel = 2 [result: compress/zlib rgb]
-		clevel = 3 [result: compress/deflate rgb]
-	]
-	nc: length? result	
-	compression: 100 - (100 * nc / n)
-	f0/text: rejoin [" Compression: " form compression " %"]
-	f11/text: rejoin [form n " bytes"]
-	f2/text: rejoin [form nc " bytes"]
-	; not useful for compression
-	; only to show image compression and avoid pointer error
-	if cb/data [
-		tresult: copy result
-		i: nc 
-		while [i < n ] [
-			append tresult 0
-			i: i + 1
-		]
-		img2/rgb: copy tresult
-		b2/image: img2
+		clevel = 1 [result: compress rgb 'gzip]
+		clevel = 2 [result: compress rgb 'zlib]
+		clevel = 3 [result: compress rgb 'deflate]
 	]
 	t2: now/time/precise
 	sb/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
+	nc: length? result	
+	;image compression ratio τ 
+	compression: round/to 1.0 - (nc / n) * 100 0.01
+	f0/text: rejoin ["Compression: " form compression " %"]
+	f11/text: rejoin [form n " bytes"]
+	f2/text: rejoin [form nc " bytes"]
+	; not useful for compression
+	; only to show image compression
+	if cb/data [
+		img2/rgb: copy result
+		b2/image: img2
+	]
 	isCompressed: true
 ]
 
@@ -87,9 +82,9 @@ uncompressImage: does [
 	do-events/no-wait
 	t1: now/time/precise
 	case [
-		clevel = 1 [result2: decompress result]
-		clevel = 2 [result2: decompress/zlib result n]
-		clevel = 3 [result2: decompress/deflate result n]
+		clevel = 1 [result2: decompress result 'gzip]
+		clevel = 2 [result2: decompress/size result 'zlib n]
+		clevel = 3 [result2: decompress/size result 'deflate n]
 	]
 	t2: now/time/precise
 	f3/text: rejoin [form length? result2 " bytes"]
@@ -106,17 +101,18 @@ view win: layout [
 	dp: drop-down 140 data cprx 
 	select 1
 	on-change [
-		switch face/selected [
-			1 [clevel: 1]
-			2 [clevel: 2]
-			3 [clevel: 3]
-		]
+		clevel: face/selected
+		isCompressed: false
 	]
-	cb: check 130 "Show compression"
-	button 90 "Compress" [if isFile [compressImage]]
-	f0: field 120
-	button 105 "Uncompress" [if isCompressed [uncompressImage]]
-	button 50  "Quit" [if isFile [rcvReleaseImage img1 rcvReleaseImage img2 rcvReleaseImage img3]
+	cb: check 130 "Show compression" true
+	button 88 "Compress" [if isFile [compressImage]]
+	f0: field 136
+	button 93 "Uncompress" [if isCompressed [uncompressImage]]
+	button 50  "Quit" [if isFile [
+									rcvReleaseImage img1 
+									rcvReleaseImage img2 
+									rcvReleaseImage img3
+								]
 					 quit]
 	return
 	f1: field 125 f11: field 125

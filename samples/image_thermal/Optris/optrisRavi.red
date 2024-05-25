@@ -15,9 +15,12 @@ Red [
 ;--since only the raw sensor data are stored in the file
 
 
-home: select list-env "HOME"
-appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
-change-dir to-file appDir
+;OS: to-string system/platform
+;if any [os = "macOS" os = "Linux" ] [home: select list-env "HOME"] 
+;if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
+
+;appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
+;change-dir to-file appDir
 
 #include %../../../libs/thermal/Optris/optrisriff.red
 #include %../../../libs/thermal/Optris/optrisroutines.red
@@ -37,8 +40,6 @@ matGS: make vector! []							;--low byte matrix
 matTemp: make vector! [float! 64 0]				;--float temperatures matrix 
 minRange: 	0
 maxRange: 	0
-minTemp: 	0.0
-maxTemp: 	0.0	
 tempScale:	0.0
 minV: 65535 
 maxV: 0	
@@ -197,11 +198,11 @@ readFrame: func [
 	fSize: frame/2
 	;--offset from the start of the movi list
 	either hasix00? [
-		fOffset: fOffset							
+		;fOffset: fOffset +  1							
 		fOffset: fOffset + (imgSize/x * 2)	;--correct offset to get pixel values
 		fSize: fSize - (imgSize/x * 2)		;--and the correct size
 	][
-		fOffset: fOffset + 8
+		;fOffset: fOffset + 8
 		if addMovi? [fOffset: fOffset + firstOffset]
 	]
 	
@@ -210,8 +211,8 @@ readFrame: func [
 	v: to-integer reverse copy/part binaryData 2
 	either v < 4095 [l: 4095] [l: 65535]
 	f13/text: rejoin [to-hex/size binaryData/1 2 " " to-hex/size binaryData/2 2 ] 
-	getTempInt16Values binaryData l matV	;--get 16-bit values
-	getTempLowByte binaryData l matGS		;--get low byte values
+	getTempInt16Values binaryData matV l	;--get 16-bit values
+	getTempLowByte binaryData matGS l 3		;--get low byte values
 	img1/rgb: to-binary to-block matGS		;--make grayscale image
 	canvas1/image: img1						;--show image
 	

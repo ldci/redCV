@@ -72,8 +72,9 @@ calculateCanny: func [lowT [integer!]  highT [integer!]] [
 	gradS:  matrix/init 3 64 iSize 			;Non-maximum suppression matrix (float)
 	doubleT:  matrix/init 2 32 iSize		;Double threshold matrix (integer)
 	finalEdges:  matrix/init 2 32 iSize		;Final edges matrix (integer)
+	;--pb here
 	rcvEdgesGradient imgX imgY matG/data	;get gradient matrix
-	rcvEdgesDirection imgX imgY matA/data	;get angle matrix
+	;rcvEdgesDirection imgX imgY matA/data	;get angle matrix
 	;step 3 Non-maximum suppression
 	rcvCopyMat matG gradS
 	rcvEdgesSuppress matA/data matG/data gradS/data iSize

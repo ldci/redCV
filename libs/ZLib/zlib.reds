@@ -16,12 +16,10 @@ Red/System [
 		http://www.zlib.net/
 	}
 ]
-;modification by ldci for Red/system 0.6.4 
-
+;--modification by ldci for Red/system 0.6.4 
 ;#include %../os/definitions.reds
-
 #define file! int-ptr!
-
+;--end modification
 zlib: context [
 	#define gzfile!  integer!
 	#define Z_NULL  0								;-- for initializing zalloc, zfree, opaque

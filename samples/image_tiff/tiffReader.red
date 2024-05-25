@@ -15,7 +15,6 @@ dSize: 512
 gsize: as-pair dSize dSize
 img: make image! reduce [gSize black]
 margins: 10x5
-
 isFile: false
 
 loadImage: does [

@@ -60,27 +60,26 @@ filter: does [
 	matIm: 	matrix/init 3 64 isize			; imaginary matrix
 	rcvImage2Mat img1 matInt				; grayscale image to matrix
 	matRe: rcvMatInt2Float matInt 64 1.0	; real matrix
-	
 	;--we need 2 arrays for FFT
 	arrayR: rcvMat2Array matRe 				; array of real
 	arrayI: rcvMat2Array matIm 				; array of imaginary
 	
 	;--Forward FFT
 	rcvFFT2D arrayR arrayI 1 1						
-	
 	;--Low-Pass Filter on vectors
 	fR: rcvFFTFilter rcvArray2Vector arrayR radius 2			
-	fI: rcvFFTFilter rcvArray2Vector arrayI radius 2			
+	fI: rcvFFTFilter rcvArray2Vector arrayI radius 2	
 	matRe/data: fR							
 	matIm/data: fI							
 	arrayR: rcvMat2Array matRe 				; for the reverse FFT
 	arrayI: rcvMat2Array matIm 				; for the reverse FFT
-	
 	;--Forward FFT amplitude
 	matAm/data: rcvFFTAmplitude fR fI
 	;--Quadrants processing		
-	matAm/data: rcvTransposeArray rcvFFT2DShift rcvMat2Array matAm iSize
-	
+	b1: rcvMat2Array matAm		;--Matrix/data (vector) to block of vectors (Array)
+	b2: rcvFFT2DShift b1		;--a block of vectors
+	matAm/data: rcvTransposeArray b2 ;--get vector
+	;matAm/data: rcvTransposeArray rcvFFT2DShift rcvMat2Array matAm
 	;--scale amplitude  by log is better for FFT
 	matLog: rcvLogMatFloat matAm 1.0
 	matInt: rcvMatFloat2Int matLog 32 255.0	

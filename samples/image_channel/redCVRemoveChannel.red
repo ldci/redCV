@@ -1,5 +1,5 @@
 Red [
-	Title:   "Channel tests "
+	Title:   "Channel tests"
 	Author:  "Francois Jouen"
 	File: 	 %redCVRemoveChannel.red
 	Needs:	 'View
@@ -21,7 +21,7 @@ loadImage: does [
 	isFile: false
 	canvas0/image: canvas1/image: canvas3/image: canvas4/image: none
 	tmp: request-file 
-	if not none? tmp [		
+	unless none? tmp [		
 		simg: load tmp								;--source image	
 		dimg: make image! reduce [simg/size black]	;--destination image
 		mimg: make image! reduce [simg/size black]	;--mask image
@@ -36,14 +36,14 @@ loadImage: does [
 process: does [
 	if isFile[
 		case[
-	 		r1/data [rcvRChannel simg dimg 1]
-	 		r2/data [rcvRChannel simg dimg 2]
-	 		r3/data [rcvRChannel simg dimg 3]
-	 		r4/data [rcvRChannel simg dimg 4]
-	 		r5/data [rcvRChannel simg dimg 5]
-	 		r6/data [rcvRChannel simg dimg 6]
+	 		r1/data [rcvRChannel simg dimg 1] 	;--remove r channel
+	 		r2/data [rcvRChannel simg dimg 2]	;--remove g channel	
+	 		r3/data [rcvRChannel simg dimg 3]	;--remove b channel
+	 		r4/data [rcvRChannel simg dimg 4]	;--keep r channel
+	 		r5/data [rcvRChannel simg dimg 5]	;--keep g channel
+	 		r6/data [rcvRChannel simg dimg 6]	;--keep b channel
 		]
-		canvas1/image: dimg
+		canvas1/image: dimg						;--result
 	]
 ]
 

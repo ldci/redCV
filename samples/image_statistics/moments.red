@@ -37,9 +37,10 @@ loadImage: does [
 	canvas1/image/rgb: black
 	canvas2/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
+		isFile: true
 		img1: rcvLoadImage tmp
-		img2: rcvCreateImage img1/size			
+		img2: rcvCreateImage img1/size		
 		mat1: matrix/init/value 2 bitSize img1/size 0
 		canvas1/image: img1
 		rcvImage2Mat img1 mat1
@@ -53,8 +54,10 @@ loadImage: does [
 		img: draw img2 plot
 		canvas2/image: img2
 		cm/text: form rcvGetMatCentralMoment mat1 0.0 0.0
-		
+		;--there is a problem under Windows in %../../libs/math/rcvMoments.red
+		;--I do not understand why 
 		hu: rcvGetMatHuMoments mat1
+		;probe hu
 		hu1/text: form hu/1
 		hu2/text: form hu/2
 		hu3/text: form hu/3
@@ -62,7 +65,7 @@ loadImage: does [
 		hu5/text: form hu/5
 		hu6/text: form hu/6
 		hu7/text: form hu/7
-		isFile: true
+		
 	]
 ]
 

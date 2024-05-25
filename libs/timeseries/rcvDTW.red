@@ -77,6 +77,8 @@ rcvDTWDistance: routine [
 			dist: (sqrt ((fvx - fvy) * (fvx - fvy)))
 			p: as float-ptr! idxD
 			p/value: dist
+			;print p/value
+			;print lf
 			j: j + 1
 		]
 		i: i + 1

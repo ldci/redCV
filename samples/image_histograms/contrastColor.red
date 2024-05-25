@@ -38,7 +38,7 @@ loadImage: does [
 
 processMat: does [
 	if isFile [
-		b: rcvSplit2Mat img1 bitSize		; split image
+		b: rcvSplit2Mat img1 bitSize					; split image
 		mat0: b/1
 		mat1: b/2
 		mat2: b/3
@@ -56,7 +56,7 @@ view win: layout [
 		title "Color Contrast"
 		origin margins space margins
 		button "Load Image" [loadImage]
-		sl: slider 280 		[p: to percent! face/data  v/data: form face/data processMat]
+		sl: slider 280 		[p: to percent! face/data  v/data: form round/to face/data 0.01 processMat]
 		v: field 60 "0%"
 		button 60 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage img2 Quit]
 		return

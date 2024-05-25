@@ -11,34 +11,34 @@ Red [
 
 ;we use matrix-as-obj
 
-isize: 256x256
-bitSize: 32
-dir: 1
-img1: rcvCreateImage isize
-img2: rcvCreateImage isize
-mx:   matrix/init 2 bitSize isize
+isize: 256x256							;--fix image size
+bitSize: 32								;--for a 32-bit integer matrix
+dir: 1									;--default filter direction
+img1: rcvCreateImage isize				;--create image
+img2: rcvCreateImage isize				;--create image
 
 loadImage: does [
 	f2/text: ""
 	canvas1/image/rgb: black
 	canvas2/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
-		img1: rcvLoadImage tmp
-		img2: rcvCreateImage img1/size
-		mx:   matrix/init 2 bitSize img1/size
-		canvas1/image: img1
-		convert
+	unless none? tmp [
+		img1: rcvLoadImage tmp				;--load image
+		img2: rcvCreateImage img1/size		;--create second image
+		mx: matrix/init 2 bitSize img1/size	;--create 32-bit matrix
+		canvas1/image: img1					;--show first image
+		convert								;--matrix conversion
 	]
 ]
 
 convert: does [
 	f/text: rejoin [form bitSize "-bit"]
-	rcvImage2Mat32 img1 mx		; Converts image to a 32-bit matrix  
-	rcv32Mat2Image mx img2 		; Converts matrix to red image
-	canvas2/image: img2			; Shows converted image
+	rcvImage2Mat32 img1 mx		;--convert image to a 32-bit matrix  
+	rcv32Mat2Image mx img2 		;--convert matrix to red image
+	canvas2/image: img2			;--show converted image
 ]
 
+;--matrix rotation
 rotate: does [
 	t1: now/time/precise
 	matrix/rotate mx dir
@@ -47,7 +47,7 @@ rotate: does [
 	rcv32Mat2Image mx img2
 	canvas2/image: img2
 ]
-
+;--matrix transposition
 transpose: does [
 	t1: now/time/precise
 	matrix/transpose mx

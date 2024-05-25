@@ -21,6 +21,7 @@ rcvRoundInt: func [
     either f > 0.0 [to-integer (f + 0.5)] [to-integer (f - 0.5)] 
 ]
 
+;--pbs with this function 
 rcvPredicate: func [
 "Rectangle clustering"
 	eps		[float!]
@@ -52,7 +53,6 @@ rcvPartition: func [
   		blk: copy [-1 0]
   		append/only nodes blk
   	]
-  	
   	;--The second pass: merge connected components
   	i: 1
   	repeat i n [
@@ -61,6 +61,7 @@ rcvPartition: func [
   		while [nodes/(root1)/1 >= 0] [root1: nodes/(root1)/1]
   		j: 1 
       	repeat j n [
+      		;--pb here
       		pred: rcvPredicate eps array/(i) array/(j)
       		if any [i == j not pred ][continue]
       		root2: j
@@ -146,7 +147,7 @@ rcvGroupRectangles: func [
 		r1/2:  rcvRoundInt r1/2 * s
 		r1/3:  rcvRoundInt r1/3 * s
 		r1/4:  rcvRoundInt r1/4 * s
-		rrects/(i): r1				;--compute rectangle values as a function od weight
+		rrects/(i): r1				;--compute rectangle values as a function of weight
 	]
 	
 	clear array						; clear orginal array and replace by new values

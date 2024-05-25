@@ -1,7 +1,7 @@
 Red [
 	Title:   "Canny Filter "
 	Author:  "Francois Jouen"
-	File: 	 %cannye.red
+	File: 	 %canny2.red
 	Needs:	 'View
 ]
 

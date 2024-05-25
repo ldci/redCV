@@ -18,7 +18,7 @@ imgCopy:  rcvCreateImage 256x256
 edges: rcvCreateImage 256x256
 bw: rcvCreateImage 256x256
 hSpace: rcvCreateImage 360x256
-mat: make vector! 256 * 256
+mat: matrix/init 2 32 256x256
 thresh: 32
 isFile: false
 imgW: imgH: 0
@@ -47,7 +47,7 @@ loadImage: does [
 		dst: rcvCreateImage img/size
 		imgCopy:  rcvCreateImage img/size
 		edges: rcvCreateImage img/size
-		mat: make vector! img/size/x * img/size/y
+		mat: matrix/init 2 32 img/size
 		bw: rcvCreateImage img/size				; for edges detection
 		rcvConvolve img edges knl factor delta	; no filter
 		imgW: bw/size/x 
@@ -67,7 +67,7 @@ filter: does [
 		rcv2BW edges bw									; B&W image [0 255]
 		rcvImage2Mat bw mat 							; B&W image to mat
 		acc: rcvMakeHoughAccumulator imgW imgH			; makes Hough accumulator
-		rcvHoughTransform mat acc imgW imgH 127			; performs Hough transform
+		rcvHoughTransform mat/data acc imgW imgH 127	; performs Hough transform
 		hSpace: rcvCreateImage rcvGetAccumulatorSize acc; creates Hough space image
 		rcvHough2Image acc hSpace contrast				; shows Hough space
 		canvas1/image: img
@@ -106,8 +106,8 @@ view win: layout [
 	button 60 "Load" 		[loadImage]
 	r0: radio 70 "No filter"[rcvCopyImage imgCopy img rcvConvolve img edges knl factor delta filter]
 	r1: radio 60 "Edges"   	[rcvCopyImage imgCopy img rcvConvolve img edges canny factor delta filter]
-	r2: radio 65 "Roberts" 	[rcvCopyImage imgCopy img rcvRoberts img edges img/size 3 filter]
-	r3: radio 60 "Sobel" 	[rcvCopyImage imgCopy img rcvSobel img edges img/size 4 filter]
+	r2: radio 65 "Roberts" 	[rcvCopyImage imgCopy img rcvRoberts img edges 3 filter]
+	r3: radio 60 "Sobel" 	[rcvCopyImage imgCopy img rcvSobel img edges 3 4 filter]
 	button 80 "Get Lines"  	[drawLines]
 	text "Threshold"	
 	sl1: slider 140 		[thresh: 1 + to integer! face/data * 1023 fThresh/text: form thresh drawLines]

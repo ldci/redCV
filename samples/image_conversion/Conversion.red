@@ -10,7 +10,7 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/imgproc/rcvColorSpace.red
 
-mat: make vector! [
+kernel: make vector! [
 	0.1 0.9 0.0 
 	0.3 0.0 0.7
 	0.1 0.1 0.8
@@ -23,7 +23,7 @@ dst:  rcvCreateImage img1/size
 loadImage: does [
 	canvas/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
+	unless none? tmp [
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1
 		canvas/image: dst
@@ -52,14 +52,14 @@ view win: layout [
 		button 80 "BW" 			[rcv2BW img1 dst]
 		button 80 "BW Filter" 	[rcv2BWFilter img1 dst 32]
 		;from colorspace
-		button 80 "RGBXYZ"		[rcvRGB2XYZ img1 dst]
-		button 80 "BGRXYZ"		[rcvBGR2XYZ img1 dst]
-		button 80 "RGBHSV" 		[rcvRGB2HSV img1 dst]
-		button 80 "BGRHSV" 		[rcvBGR2HSV img1 dst]
-		button 80 "RGBHLS"		[rcvRGB2HLS img1 dst]
-		button 80 "BGRHLS"		[rcvBGR2HLS img1 dst]
-		button 80 "RGBYCC"		[rcvRGB2YCrCb img1 dst]
-		button 80 "BGRYCC"		[rcvBGR2YCrCb img1 dst]	
+		button 80 "RGB2XYZ"		[rcvRGB2XYZ img1 dst]
+		button 80 "BGR2XYZ"		[rcvBGR2XYZ img1 dst]
+		button 80 "RGB2HSV" 	[rcvRGB2HSV img1 dst]
+		button 80 "BGR2HSV" 	[rcvBGR2HSV img1 dst]
+		button 80 "RGB2HLS"		[rcvRGB2HLS img1 dst]
+		button 80 "BGR2HLS"		[rcvBGR2HLS img1 dst]
+		button 80 "RGB2YCC"		[rcvRGB2YCrCb img1 dst]
+		button 80 "BGR2YCC"		[rcvBGR2YCrCb img1 dst]	
 		return 
 		pad 0x35
 		button 80 "RGBLab"		[rcvRGB2Lab img1 dst]
@@ -67,5 +67,5 @@ view win: layout [
 		button 80 "RGBLuv"		[rcvRGB2Luv img1 dst]
 		button 80 "BGRLuv"		[rcvBGR2Luv img1 dst]
 		button 80 "IRgBy"		[rcvIRgBy 	img1 dst 1]	
-		button 80 "IR2RGB"		[rcvIR2RGB 	img1 dst mat 1]	
+		button 80 "IR2RGB"		[rcvIR2RGB 	img1 dst kernel 1]	
 ]

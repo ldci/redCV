@@ -4,20 +4,22 @@
 
 ![](images/red.ico) ![](images/redCV.png)
 ### You need a recent Red version. 
-### Compiled with Red 0.6.4 for macOS built 11-Aug-2021/0:56:38+02:00  commit #3124920
+### Compiled with Red-toolchain 0.6.5 for macOS.
 
-### Tested with macOS, Linux Mint 32-bit, Windows XP and Windows 10
+### Tested with macOS.
+
+Code is functional execpt for Haar detection. I'm unable to find the problem. If someone could take a look at the code, it would be very useful.
 
 You must compile samples since red routines are required.
 Most of samples require View.
 
-Use first -u compiler option to create a Red RT library and then just -c option which makes the compilation faster:
+Use first -c compiler option to create a Red RT library and in case of problems use -u compiler option. See [https://www.red-lang.org](https://www.red-lang.org) for details.
 
-*red -u -c FileName -> creates a specific LibRT*
-
-*then just red -c FileName -> Faster compilation*
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
+
+### **UPDATE May 25 2024**
+General update adapted to Red 0.6.5.
 
 ### **UPDATE SEPTEMBER 1 2021**
 Support for Optris Infrared devices added including images and movies samples.

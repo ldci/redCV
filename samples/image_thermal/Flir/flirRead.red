@@ -39,10 +39,14 @@ getTemperatures: does [
 	clear tempList/data
 	tempBlock: rcvGetTemperatureAsBlock flirFile
 	blk: make block! []		
-	repeat i length? tempBlock [append blk form round/to tempBlock/:i 0.01]
+	repeat i length? tempBlock [append blk form round/to tempBlock/:i 0.01 
+		;print [i tempBlock/:i ]
+	]
 	if isSorted? [sort blk]
 	tempList/data: blk
 ]
+
+
 
 view layout [
 	title "Thermal Images Reader"

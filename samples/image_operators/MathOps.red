@@ -10,7 +10,7 @@ Red [
 
 margins: 5x5
 img1: rcvCreateImage 512x512
-img2: rcvRandomImage/uniform img1/size 255.255.255 ;
+img2: rcvRandomImage/uniform img1/size 255.255.255
 
 dst: rcvCreateImage img1/size
 
@@ -18,7 +18,7 @@ loadImage: does [
 	tmp: request-file
 	if not none? tmp [
 		img1: rcvLoadImage  tmp
-		img2: rcvRandomImage/uniform img1/size 255.255.255 ;
+		img2: rcvRandomImage/uniform img1/size 255.255.255
 		dst: rcvCreateImage img1/size
 		rcvCopyImage img1 dst
 		canvas/image: dst

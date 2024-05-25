@@ -60,8 +60,7 @@ showPlot: does [
 	repeat i 256 [ 	append plotr as-pair i 250 - matRC/data/:i
 					append plotg as-pair i 250 - marGC/data/:i
 					append plotb as-pair i 250 - matBC/data/:i
-					i: i + 1
-	]				
+	]	
 	canvas2/draw: reduce [plotr plotg plotb] 
 ]
 

@@ -15,35 +15,35 @@ Red [
 mask: [-1.0 0.0 -1.0 0.0 4.0 0.0 -1.0 0.0 -1.0]
 {mask: [0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0]}
 
-isize: 256x256
-bitSize: 32
+isize: 256x256					;--fix image size
+bitSize: 32						;--for 8-bit integer matrix
 
-img1: rcvCreateImage isize
-img2: rcvCreateImage isize
-img3: rcvCreateImage isize
+img1: rcvCreateImage isize		;--create image
+img2: rcvCreateImage isize		;--create image
+img3: rcvCreateImage isize		;--create image
 
 loadImage: does [
 	canvas1/image/rgb: black
 	canvas2/image/rgb: black
 	tmp: request-file
-	if not none? tmp [
-		img1: rcvLoadImage tmp
-		img2: rcvCreateImage img1/size
-		img3: rcvCreateImage img1/size
+	unless none? tmp [
+		img1: rcvLoadImage tmp					;--load image
+		img2: rcvCreateImage img1/size			;--update according to size
+		img3: rcvCreateImage img1/size			;--update according to size
 		canvas1/image: img1
-		mat1: matrix/init 2 bitSize img1/size
-		mat2: matrix/init 2 bitSize img1/size
-		mat3: matrix/init 2 bitSize img1/size
-		rcvImage2Mat img1 mat1			; Converts to  grayscale image and to 1 Channel matrix [0..255]
-		rcvConvolveMat mat1 mat2 mask 1.0 0.0	; Laplacian convolution
-		rcvConvolveNormalizedMat mat1 mat3 mask 1.0 0.0	; Laplacian convolution
-		rcvMat2Image mat2 img2					; from matrix to red image
-	 	rcvMat2Image mat3 img3				; from matrix to red image
-		canvas2/image: img2
-		canvas3/image: img3
-		rcvReleaseMat mat1
-		rcvReleaseMat mat2
-		rcvReleaseMat mat2
+		mat1: matrix/init 2 bitSize img1/size	;--create integer matrix
+		mat2: matrix/init 2 bitSize img1/size	;--create integer matrix
+		mat3: matrix/init 2 bitSize img1/size	;--create integer matrix
+		rcvImage2Mat img1 mat1					;--Converts to 1 Channel matrix [0..255]
+		rcvConvolveMat mat1 mat2 mask 1.0 0.0	;--Laplacian convolution
+		rcvConvolveNormalizedMat mat1 mat3 mask 1.0 0.0	;--Laplacian normalization 
+		rcvMat2Image mat2 img2					;--from matrix to red image
+	 	rcvMat2Image mat3 img3					;--from matrix to red image
+		canvas2/image: img2						;--show result
+		canvas3/image: img3						;--show result
+		rcvReleaseMat mat1						;--free matrix
+		rcvReleaseMat mat2						;--free matrix
+		rcvReleaseMat mat2						;--free matrix
 	]
 ]
 

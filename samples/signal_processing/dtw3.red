@@ -16,9 +16,8 @@ plot2: copy []
 img: rcvCreateImage 256x256
 img2: rcvCreateImage 256x256
 count: 64
-matsize: count * count
-dMatrix: make vector! reduce ['float! 64 matSize]
-cMatrix: make vector! reduce ['float! 64 matSize]
+dMatrix: matrix/init/value 3 64 as-pair count count 0.0
+cMatrix: matrix/init/value 3 64 as-pair count count 0.0 
 xPath: copy []
 
 random/seed now/time/precise
@@ -50,6 +49,7 @@ generateSeries: does [
 
 calculateDTW: does [
 	rcvDTWDistances x y dMatrix
+	;probe dMatrix
 	rcvDTWCosts x y dMatrix cMatrix
 	dtw: rcvDTWGetDTW cMatrix
 	rcvDTWGetPath x y cMatrix  xPath
@@ -58,21 +58,20 @@ calculateDTW: does [
 	
 	; distance map
 	img: rcvCreateImage as-pair (length? x) (length? y)
-	mat:  make vector! [integer! 32 0]
-	
-	foreach v dMatrix [append mat to-integer v]
-	mx:  rcvMaxMat mat
-	mat * (255 / mx)
+	mat: matrix/create 2 32 as-pair (length? x) (length? y) []
+	foreach v dMatrix/data [append mat/data to-integer v]
+	mx:  matrix/maxi mat
+	mat/data * (255 / mx)
 	rcvMat2Image mat img
 	canvas3/image: img 
 	
 	; cost map
 	img2: rcvCreateImage as-pair (length? x) (length? x)
-	mat2:  make vector! [integer! 32 0]
-	foreach v cMatrix [append mat2 to-integer v]
-	mx:  rcvMaxMat mat2
-	fc:  complement (mx / 255)
-	mat2 / fc
+	mat2: matrix/create 2 32 as-pair (length? x) (length? y) []
+	foreach v cMatrix/data [append mat2/data to-integer v]
+	mx:  matrix/maxi mat2
+	fc:  complement to-integer (mx / 255)
+	mat2/data / fc
 	rcvMat2Image mat2 img2
 	;optimum warping path
 	plot4: compose [line-width 1 pen blue line]

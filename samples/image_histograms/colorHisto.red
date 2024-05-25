@@ -68,7 +68,6 @@ showPlot: does [
 		append plotg as-pair i 250 - histogc/data/:i
 		append plotb as-pair i 250 - histobc/data/:i
 		append plotrgb as-pair i 250 - historgbc/data/:i
-		i: i + 1
 	]		
 	canvas2/draw: reduce [plotr plotg plotb] 
 	canvas3/draw: reduce [plotrgb] 

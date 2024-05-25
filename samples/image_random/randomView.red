@@ -29,7 +29,7 @@ mean: routine [
 		sum: sum + f
 		head: head + 8
 	]	
-	sum / n
+	sum / (as float! n)
 ]
 
 stddev: routine [
@@ -52,7 +52,7 @@ stddev: routine [
 		sum: sum + (fv * fv)
 		head: head + 8
 	]	
-	sqrt (sum / n)
+	sqrt (sum / (as float! n))
 ]
 
 ;Normal random numbers generator - Marsaglia algorithm.
@@ -147,7 +147,7 @@ generateDist: does [
 	random/seed now/time/precise
 	clear stat/data
 	plot: compose [line-width 2 pen green line 320x0 320x405 pen off 
-			line 0x405 640x405 fill-pen red pen red]
+			pen green line 0x405 640x405 fill-pen red pen red]
 	s: rejoin ["Generating " n " random values. Be Patient"]
 	sb/text: s 
 	do-events/no-wait
@@ -190,7 +190,7 @@ generateDist: does [
 view win: layout [
 	title "Gaussian Random Distribution "
 	origin margins space margins
-	text 75 "Sample" f1: field 80 "1000000" [if error? try [n: to-integer face/text] [n: NMAX]]
+	text 75 "Sample" f1: field 80 "1 000 000" [if error? try [n: to-integer face/text] [n: NMAX]]
 	text 50 "STD"	 f2: field 40 "1.0" [if error? try [std: to-float face/text] [std: 1.0]]
 	button "Generate"	[generateDist]
 	button "Clear"		[img: make image! reduce [640x480 black] canvas/image: img 
