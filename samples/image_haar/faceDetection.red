@@ -5,9 +5,9 @@ Red [
 	Needs:	 View
 ]
 
-home: select list-env "HOME"
-appDir: to-file rejoin [home "/Programmation/Red/redCV/samples/image_haar"]
-change-dir to-file appDir
+;home: select list-env "HOME"
+;appDir: to-file rejoin [home "/Programmation/Red/redCV/samples/image_haar"]
+;change-dir to-file appDir
 
 #include %../../libs/objdetect/rcvHaarCascade.red		; for Haar cascade
 
@@ -37,6 +37,7 @@ isFile: false
 viewFlag: 1
 nParameters: 23
 
+
 loadImage: does [
 	tmpF: request-file
 	if not none? tmpF [
@@ -55,9 +56,13 @@ loadImage: does [
 		canvas1/offset/x: to-integer (win/size/x - canvas1/size/x / 2)
 		sb1/offset/y: canvas1/size/y + 130
 		sb2/offset/y: canvas1/size/y + 130
-		sb2/size/x: win/size/x - 150
-		b1/offset/x: win/size/x - 80
-		b2/offset/x: win/size/x - 80
+		;--adaptation for Red 0.6.5
+		w_size: 0x0
+		w_size/x: to integer! win/size/x 
+		w_size/y: to integer! win/size/y
+		sb2/size/x: w_size/x - 150
+		b1/offset/x: w_size/x - 80
+		b2/offset/x: w_size/x - 80
 		canvas1/image: src
 		isFile: true
 		searchFaces
@@ -148,7 +153,7 @@ searchFaces: func [
 			step sThreshold 
 			maxCandidates minNeighbors grouping 
 			flag
-		
+	;probe faces	
 	t2: now/time/precise
 	n: length? faces
 	;--draw result
@@ -293,8 +298,7 @@ view win: layout [
 	select 1
 	on-change [
 		viewFlag: face/selected
-		if viewFlag <  2 [grouping: true]
-		if viewFlag >= 2 [grouping: false]
+		either viewFlag = 1 [grouping: true] [grouping: false]
 		updateFields
 		if isFile [searchFaces]
 	]
