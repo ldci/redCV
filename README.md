@@ -8,7 +8,7 @@
 
 ### Tested with macOS.
 
-Code is functional except for Haar detection. I'm unable to find the problem. If someone could take a look at the code, it would be very useful.
+Code is functional with Red 0.6.5. Errors corrected for Haar detection.
 
 You must compile samples since red routines are required.
 Most of samples require View.
