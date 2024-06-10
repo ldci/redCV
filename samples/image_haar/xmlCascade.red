@@ -10,7 +10,7 @@ Red [
 ;--we need opencv cascade files in xml format
 ;--such as opencv/cascades/haarcascade_eye_tree_eyeglasses.xml
 ;--this code is used to create txt files for a faster access by RedCV
-
+;--use terminal mode
 ; Feature Rectangle
 featureRect: make object! [
 	x: 0					;--x coordinate

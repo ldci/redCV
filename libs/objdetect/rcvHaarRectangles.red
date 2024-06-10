@@ -3,7 +3,7 @@ Red [
 	Author:  "Francois Jouen"
 	File: 	 %rcvHaarRectangles.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2020 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2020-2024 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -13,7 +13,7 @@ Red [
 ;--All these functions give the expected result!
 ;--probably to be transformed to routines, but Red is fast with vector! type
 
-;--To be moved to rcvTools.red
+;--To be moved to rcvTools.red ?
 rcvRoundInt: func [
 	f 		[float!]
 	return: [integer!]
@@ -21,13 +21,12 @@ rcvRoundInt: func [
     either f > 0.0 [to-integer (f + 0.5)] [to-integer (f - 0.5)] 
 ]
 
-;--pbs with this function 
 rcvPredicate: func [
 "Rectangle clustering"
-	eps		[float!]
-	r1		[vector!]
-	r2		[vector!]
-	return:	[logic!]
+	eps		[float!]	;--threshold value
+	r1		[vector!]	;--array 1 of rectangles as vector!
+	r2		[vector!]	;--array 2 of rectangles as vector!
+	return:	[logic!]	
 ][
 	delta: eps * ((min r1/3 r2/3) + (min r1/4 r2/4)) * 0.5
 	either all [
@@ -38,6 +37,7 @@ rcvPredicate: func [
 	] [return true] [return false]
 ]
 
+;--calls rcvPredicate
 rcvPartition: func [
 "Return the number of classes"
 	array	[block!] ;--array of rectangles as vector!
@@ -54,14 +54,11 @@ rcvPartition: func [
   		append/only nodes blk
   	]
   	;--The second pass: merge connected components
-  	i: 1
   	repeat i n [
   		root1: i
-  		;find root1
+  		;--find root1
   		while [nodes/(root1)/1 >= 0] [root1: nodes/(root1)/1]
-  		j: 1 
       	repeat j n [
-      		;--pb here
       		pred: rcvPredicate eps array/(i) array/(j)
       		if any [i == j not pred ][continue]
       		root2: j
@@ -89,13 +86,10 @@ rcvPartition: func [
       				k: parent 
       			]
       		];--end if
-      		j: j + 1
       	];--end j loop
-  		i: i + 1
   	];--end loop i
   	;--The final pass: enumerate classes in labels
   	nclasses: 0
-  	i: 1 
   	repeat i n [
   		root1: i
   		while [nodes/(root1)/1 >= 0] [root1: nodes/(root1)/1]
@@ -110,13 +104,13 @@ rcvPartition: func [
   	nclasses
 ]
 
-
+;--calls rcvPartition
 rcvGroupRectangles: func [
 "Group candidate by classes"
-	array			[block!] 	; array of rectangles as vector!
-	labels			[block!]	; for classes labels	
-	groupThreshold	[integer!]
-	eps				[float!]
+	array			[block!] 	;--array of rectangles as vector!
+	labels			[block!]	;--for classes labels	
+	groupThreshold	[integer!]	;--group thresholding[1 default]
+	eps				[float!]	;--threshold value
 ][
 	n: length? array
 	if any [groupThreshold <= 0  n = 0] [return []]
@@ -130,7 +124,6 @@ rcvGroupRectangles: func [
 	rweights: copy []
 	loop nclasses [append rweights 0]
 	
-	i: 1
 	repeat i nlabels [
 		cls: labels/(i)						;--class number (1..nclasses)
 		r1: rrects/(cls)					;--process rectangles
@@ -139,7 +132,6 @@ rcvGroupRectangles: func [
 		rweights/(cls): rweights/(cls) + 1	;--class weight 
 	]
 	
-	i: 1
 	repeat i nclasses [
 		r1: rrects/(i)
 		s: 1.0 / rweights/(i)
@@ -151,19 +143,16 @@ rcvGroupRectangles: func [
 	]
 	
 	clear array						; clear orginal array and replace by new values
-	i: 1
 	repeat i nclasses [
 		r1: rrects/(i)
 		n1: rweights/(i)
 		if n1 < groupThreshold [continue]
 		;--filter out small face rectangles inside large rectangles
-		j: 1
 		repeat j nclasses [
 			n2: rweights/(j)
 			;--if it is the same rectangle, 
 	   		;--or the number of rectangles in class j is < group threshold, 
 	   		;--do nothing 
-	   		
 			if any [j = i n2 <= groupThreshold] [continue]
 			r2: rrects/(j)
 			dx: to-integer r2/3 * eps			;--calculate delta X

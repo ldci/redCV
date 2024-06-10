@@ -1060,6 +1060,7 @@ _mat2Array: routine [
 ;***************************************************************************************
 ;--Function: rcvDetectObjects
 ;--calls all the major steps
+;--OK
 
 rcvDetectObjects: func [
 "Process image and find objects"
@@ -1084,7 +1085,6 @@ rcvDetectObjects: func [
 		mat3: make vector! img/size/x * img/size/y
 		rcvCannyFilter img imgC mat1 mat2 mat3
 	]
-	
 	;--startPos can be used for limiting search for ROI
 	;--by default we use the whole image (startPos: 0x0)
 	;--window size of the training set
@@ -1132,7 +1132,7 @@ rcvDetectObjects: func [
        	factor: factor * scaleFactor
        	
 	];--end of the factor loop, finish all scales in pyramid
-	recycle/on ;-- restore GC
+	
 	;--post detection processing
 	;--identified: array of rectangles as vector!
 	identified: make vector! [] 
@@ -1145,7 +1145,7 @@ rcvDetectObjects: func [
 		;--this function creates pb
 		rcvGroupRectangles identified labels minNeighbors groupEPS
 	]
-	
+	recycle/on ;-- restore GC
 	identified
 ]
 
