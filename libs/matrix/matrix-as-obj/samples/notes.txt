@@ -1,0 +1,38 @@
+;-- ligne x colonne
+u: matrix 10x10
+u0: matrix 10x10
+u[1:-1, 1:-1] = u0[1:-1, 1:-1] + D * dt * (
+          (u0[2:, 1:-1] - 2*u0[1:-1, 1:-1] + u0[:-2, 1:-1])/dx2
+          + (u0[1:-1, 2:] - 2*u0[1:-1, 1:-1] + u0[1:-1, :-2])/dy2 )
+
+python idx: 0 Red idx 1          
+m0: u[1:-1, 1:-1]:  2x9 2x9		matrix/slice mx 2 9  2 9
+m1: u0[1:-1, 1:-1]: 2x9 2x9 	matrix/slice mx 2 9  2 9
+m12:u0[1:-1, 1:-1]: 2x9 2x9 	matrix/slice mx 2 9  2 9
+m2: u0[2:, 1:-1]:   3x10 2x9	matrix/slice mx 3 10 2 9
+m3: u0[:-2, 1:-1]   1x8 2x9		matrix/slice mx 1 8  2 9
+m4: u0[1:-1, 2:]	2x9 3x10	matrix/slice mx 2 9  3 10
+m5: u0[1:-1, :-2	2x9 1x8		matrix/slice mx 2 9  1 8
+
+m0: matrix/slice mx 2 9  2 9
+m1: matrix/slice mx 2 9  2 9
+m12: matrix/scalarProduct m1 2.0
+m2: matrix/slice mx 3 10 2 9
+m3: matrix/slice mx 1 8  2 9
+m4: matrix/slice mx 2 9  3 10
+m5: matrix/slice mx 2 9  1 8
+
+mx0: matrix/scalarAddition  m1 (d * dt)
+
+mx1: matrix/subtraction m2 m12
+mx2: matrix/addition mx1 m3
+mx3: matrix/division mx3 dx2
+
+mx4: matrix/subtraction m4 m12
+mx5: matrix/addition mx4 m5
+mx6: matrix/division mx5 dy2
+
+mx7: matrix/addition mx3 mx6
+mx8: matrix/standardProduct mx0 mx8
+
+ 
