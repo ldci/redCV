@@ -3,7 +3,7 @@ Red [
 	Author:  "Francois Jouen"
 	File: 	 %rcvDistance.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016-2024 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -12,6 +12,8 @@ Red [
 
 ;******************* absolute distances *****************************
 ;general routines for distance
+;--added point2D! for Red 0.65 support
+
 _rcvDotsDistance: routine [
 	dx		[float!] 	; x distance between 2 dots
 	dy		[float!] 	; y distance between 2 dots
@@ -100,8 +102,8 @@ rcvRadian2xy: function [
 
 rcvGetEuclidianDistance: function [
 "Gets Euclidian distance between 2 points"
-	a [pair!] 
-	b [pair!]
+	a [pair! point2D!] 
+	b [pair! point2D!]
 ][
 	dxy: b - a
 	_rcvDotsDistance to-float dxy/x to-float dxy/y 1 0.0
@@ -109,8 +111,8 @@ rcvGetEuclidianDistance: function [
 
 rcvGetEuclidian2Distance: function [
 "Gets Squared Euclidian distance between 2 points"
-	a [pair!] 
-	b [pair!]
+	a [pair! point2D!] 
+	b [pair! point2D!]
 ][
 	dxy: b - a
 	_rcvDotsDistance to-float dxy/x to-float dxy/y 6 0.0
@@ -118,8 +120,8 @@ rcvGetEuclidian2Distance: function [
 
 rcvGetManhattanDistance: function [
 "Gets Manhattan distance between 2 points"
-	a [pair!] 
-	b [pair!]
+	a [pair! point2D!] 
+	b [pair! point2D!]
 ][
 	dxy: absolute b - a
 	_rcvDotsDistance to-float dxy/x to-float dxy/y 2 0.0
@@ -127,8 +129,8 @@ rcvGetManhattanDistance: function [
 
 rcvGetChessboardDistance: function [
 "Gets Chessboard distance between 2 points"
-	a [pair!] 
-	b [pair!] 
+	a [pair! point2D!] 
+	b [pair! point2D!] 
 ][
 	dxy: absolute b - a
 	_rcvDotsDistance to-float dxy/x to-float dxy/y 3 0.0
@@ -136,8 +138,8 @@ rcvGetChessboardDistance: function [
 
 rcvGetMinkowskiDistance: function [
 "Gets Minkowski distance between 2 points"
-	a [pair!] 
-	b [pair!] 
+	a [pair! point2D!] 
+	b [pair! point2D!] 
 	p [float!]
 ][
 	dxy: absolute b - a
@@ -147,8 +149,8 @@ rcvGetMinkowskiDistance: function [
 
 rcvGetChebyshevDistance: function [
 "Gets Chebyshev distance between 2 points"
-	a [pair!] 
-	b [pair!]
+	a [pair! point2D!] 
+	b [pair! point2D!]
 ][
 	dxy: absolute b - a
 	_rcvDotsDistance to-float dxy/x to-float dxy/y 5 0.0
@@ -157,8 +159,8 @@ rcvGetChebyshevDistance: function [
 ; fractional distances
 rcvGetCamberraDistance: function [
 "Gets Camberra distance between 2 points"
-	a [pair!] 
-	b [pair!]
+	a [pair! point2D!] 
+	b [pair! point2D!]
 ][
 	dx1: to-float a/x - to-float b/x
 	dx2: to-float a/x + to-float b/x
@@ -170,8 +172,8 @@ rcvGetCamberraDistance: function [
 ; Sorensen or Bray Curtis Distance
 rcvGetSorensenDistance: function [
 "Gets Sorensen or Bray Curtis distance between 2 points"
-	a [pair!] 
-	b [pair!]
+	a [pair! point2D!] 
+	b [pair! point2D!]
 ][
 	dx1: to-float a/x - to-float b/x
 	dx2: to-float a/x + to-float b/x
@@ -182,8 +184,8 @@ rcvGetSorensenDistance: function [
 
 rcvGetAngle: function [
 "Gets angle in degrees from points coordinates"
-	p 	[pair!] 
-	cg 	[pair!]
+	p 	[pair! point2D!] 
+	cg 	[pair! point2D!]
 ][		
 	rho: rcvGetEuclidianDistance p cg		; rho
 	uY: to-float p/y - cg/y					; uY ->
@@ -202,7 +204,7 @@ rcvGetAngle: function [
 
 rcvGetAngleRadian: function [
 "Gets angle in radian "
-	p [pair!]
+	p [pair! point2D!]
 ][
 	atan2 p/y p/x
 ]
