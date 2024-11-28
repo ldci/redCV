@@ -1,0 +1,3 @@
+Pandore - A library of image processing operators
+First you have to download and install this very useful library
+See: https://clouard.users.greyc.fr/Pandore/index-en.html
