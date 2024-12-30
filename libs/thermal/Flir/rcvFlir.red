@@ -21,8 +21,10 @@ Red [
 
 ;--this must be adapted according your OS
 ;--for macOS
-;exifTool: "/usr/local/bin/exiftool"
-;convertTool: "/usr/local/bin/convert"
+exifTool: "/usr/local/bin/exiftool"
+;convertTool: "/usr/local/bin/convert";--convert is a macOS app
+convertTool: "/usr/local/bin/magick"
+
 ;--for windows
 ;exifTool: "C:\Users\fjouen\Programmation\exiftool"
 exifTool: "exiftool"

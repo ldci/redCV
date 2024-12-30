@@ -4,7 +4,7 @@ Red [
 	File: 	 %redcv.red
 	Tabs:	 4
 	Version: 2.0.0
-	Rights:  "Copyright (C) 2016-2021 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016-2024 Francois Jouen. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt

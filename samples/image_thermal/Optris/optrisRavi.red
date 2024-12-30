@@ -15,12 +15,12 @@ Red [
 ;--since only the raw sensor data are stored in the file
 
 
-;OS: to-string system/platform
-;if any [os = "macOS" os = "Linux" ] [home: select list-env "HOME"] 
-;if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
+OS: to-string system/platform
+if any [OS = "macOS" OS = "Linux" ] [home: select list-env "HOME"] 
+if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
 
-;appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
-;change-dir to-file appDir
+appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
+change-dir to-file appDir
 
 #include %../../../libs/thermal/Optris/optrisriff.red
 #include %../../../libs/thermal/Optris/optrisroutines.red
