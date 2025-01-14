@@ -4,11 +4,10 @@
 
 ![](images/red.ico) ![](images/redCV.png)
 ### You need a recent Red version. 
-### Compiled with Red-toolchain 0.6.5 for macOS.
 
-### Tested with macOS.
+### Created and tested with macOS 10.14 (Mojave 32-bit on Intel processor).
 
-Code is functional with Red 0.6.5. Errors corrected for Haar detection.
+Code is functional with Red 0.6.5. 
 
 You must compile samples since red routines are required.
 Most of samples require View.
@@ -17,7 +16,9 @@ Use first -c compiler option to create a Red RT library and in case of problems 
 
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
-
+### **UPDATE January 14 2025**
+Many of the libs have been modified to be compatible with the October 2024 Red-Toolchain. 
+All examples work perfectly. For a new toolchain for macOS, you have to compile it yourself, which requires a Rebol 2 SDK and a license. So I'll wait until Red reaches a stable version (0.7.0?) before updating redCV. 
 ### **UPDATE May 25 2024**
 General update adapted to Red 0.6.5.
 
