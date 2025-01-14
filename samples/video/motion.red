@@ -5,6 +5,9 @@ Red [
 	Needs:	 'View
 ]
 
+;--must be compiled with -r option
+
+
 {Based on
 Collins, R., Lipton, A., Kanade, T., Fijiyoshi, H., Duggins, D., Tsin, Y., Tolliver, D., Enomoto,
 N., Hasegawa, O., Burt, P., Wixson, L.: A system for video surveillance and monitoring. Tech.
@@ -16,6 +19,7 @@ rep., Carnegie Mellon University, Pittsburg, PA (2000)}
 #include %../../libs/core/rcvCore.red
 #include %../../libs/math/rcvStats.red	
 #include %../../libs/imgproc/rcvImgProc.red
+
 
 iSize: 320x240
 prevImg: rcvCreateImage iSize

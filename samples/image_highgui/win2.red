@@ -1,3 +1,4 @@
+#! /usr/local/bin/red-view
 Red [
 	Title:   "Red Computer Vision: Highgui tests"
 	Author:  "Francois Jouen"
@@ -9,12 +10,12 @@ Red [
 	}
 	Needs:	 'View
 ]
-;--I do not understand why this code must be executed in terminal mode
-img1: load %../../images/lena.jpg
+img1: load %../../images/mandrill.jpg
+
 margins: 10x10
 
-title: "Resize"
-append title form to-local-file %../../images/lena.jpg
+title: "Resize "
+append title form to-local-file %mandrill.jpg
 win: layout [
 		title title
 		origin margins space margins

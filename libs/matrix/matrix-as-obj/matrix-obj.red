@@ -156,6 +156,7 @@ matrix: context [
 		/local
 			mData [object!]
 	][
+		
 		either _matSimilar? m1 m2 [	
 			switch op [
 				0 [mData: m1/data  +  m2/data]	;--Add
@@ -219,6 +220,7 @@ matrix: context [
 		/local 
 			row  	[vector!]
 			idx  	[integer!]
+		
 		][
 		either mx/cols = length? data [ 
 			row: getRow mx r
@@ -345,11 +347,13 @@ matrix: context [
 		/rand
 		/bias
 			base [scalar!]
-		/local
-			v	 [scalar!]
-			data [block!]
-			wType [word!]
 		return:  [vector!] ;--matrix
+
+		/local
+			v	 	[scalar!]
+			data 	[block!]
+			wType 	[word!]
+			mx		[object!]
 	][
 		wType: pick [char! integer! float!] mType
 		mx: object [
@@ -387,6 +391,7 @@ matrix: context [
 			i	 [integer!]
 			j	 [integer!]
 			data [block!]
+			mx	 [object!]
 	][
 		cols: mSize/x
 		rows: mSize/y
@@ -473,6 +478,7 @@ matrix: context [
 		mx		[object!] "Matrix"
 		/only
 		return: [logic!]
+		
 	][
 		either only [
 			error? try [determinant mx]
@@ -510,6 +516,7 @@ matrix: context [
 		mx		[object!] "Matrix"
 		/only	"Returns false instead of error"
 		return: [logic!]
+		
 	][
 		either only [
 			not singular?/only mx
@@ -1115,7 +1122,7 @@ matrix: context [
 		mx
 	]
 	
-	;Are the following two needed?
+	;'Are the following two needed?
 comment [rotateRow: func [
 	"Row rotation"
 		mx				[object!]  	"Matrix"
@@ -1477,9 +1484,9 @@ comment [rotateRow: func [
 	getIdentity: func [
 	"Get (left or right) identity matrix for a given matrix"
 		mx 			[object!]	"Matrix" 
-		return: 	[object!]	;--matrix
 		/side 				"If not square matrix"
 			d 		[word!] "Side on which identity is used ('l | 'r) (default 'l)"
+		return: 	[object!]	;--matrix
 	][
 		d: either side [
 			switch/default d [l [mx/rows] r [mx/cols]][

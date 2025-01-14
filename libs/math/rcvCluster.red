@@ -154,7 +154,7 @@ rcvKMInit: routine [
 	;unit: rcvGetMatBitSize pvectBlk
 	len: block/rs-length? points
 	nCluster: block/rs-length? centroid
-	int64!:  alias struct! [int1 [integer!] int2 [integer!]]
+	intL64!:  alias struct! [int1 [integer!] int2 [integer!]]
 	d: 0.0
 	; centroid clusters
 	btvalue: block/rs-head tmpblk
@@ -169,7 +169,7 @@ rcvKMInit: routine [
 		while [j < len][
 			pvectBlk: as red-vector! bpvalue
 			d:  rcvKNearest pvectBlk centroid 2 ; distance
-			dd: as int64! :d
+			dd: as intL64! :d
 			sum: sum + d
 			;integer/make-in tmpblk as integer! sum
 			;float/make-in tmpblk dd/int1 dd/int2

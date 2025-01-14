@@ -73,5 +73,5 @@ view win: layout [
 		r4:	radio "Magnitude" 	[param: 4 rcvRoberts currentImage dst param]
 		return
 		canvas: base 512x512 dst	
-		do [r3/data: true]
+		do [r1/data: true]
 ]

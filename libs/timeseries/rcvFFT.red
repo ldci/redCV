@@ -11,9 +11,9 @@ Red [
 ]
 
 ;--stand alone test
-#include %../core/rcvCore.red
-#include %../tools/rcvTools.red
-#include %../matrix/rcvMatrix.red
+;#include %../core/rcvCore.red
+;#include %../tools/rcvTools.red
+;#include %../matrix/rcvMatrix.red
 
 ;************** 1-D Fast Fourier Transform **********************
 ; Thanks to Mel Cepstrum and Toomas Voglaid :)

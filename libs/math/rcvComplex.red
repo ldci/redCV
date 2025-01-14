@@ -113,8 +113,8 @@ complex: context [
 	cArgument: func [
 	"Return z cArgument as an angle in radians or degrees"
 		z		[object!]
-		return: [float!]
 		/degrees
+		return: [float!]		
 	][	
 		either degrees [arctangent z/im / z/re][arctangent/radians z/im / z/re]
 	]
@@ -259,8 +259,9 @@ complex: context [
 	toComplex: func [
 	"Creates a complex number from two values in polar notation"
 		polar	[block!]
+		/rounding
 		return: [object!]
-		/rounding		
+				
 	][
 		_z: copy complexR
 		_z/re: polar/1 * cos polar/2

@@ -1,7 +1,7 @@
 Red [
 	Title:   "Fast Convolution tests "
 	Author:  "Francois Jouen"
-	File: 	 %fastConvolution2.red
+	File: 	 %fastConvolution3.red
 	Needs:	 'View
 ]
 
@@ -31,14 +31,13 @@ bitSize: 32
 loadImage: does [
 	canvas1/image: canvas2/image: canvas3/image: canvas4/image: black
 	tmp: request-file
-	if not none? tmp [
-		isFile: true
+	unless none? tmp [
 		img1: rcvLoadImage tmp
 		imgC1: rcvCreateImage img1/size					; create image for rgb
 		imgC2: rcvCreateImage img1/size
 		imgC3: rcvCreateImage img1/size
 		imgD:  rcvCreateImage img1/size					; and merged image
-		mat0:  matrix/init 2 bitSize img1/size	; create all matrices we need for argb
+		mat0:  matrix/init 2 bitSize img1/size			; create all matrices we need for argb
 		mat1:  matrix/init 2 bitSize img1/size
 		mat2:  matrix/init 2 bitSize img1/size
 		mat3:  matrix/init 2 bitSize img1/size
@@ -47,6 +46,7 @@ loadImage: does [
 		mat31: matrix/init 2 bitSize img1/size
 		canvas1/image: img1
 		sl1/data: 0.0 sl2/data: 0.0
+		isFile: true
 		convolve
 	]
 ]

@@ -70,9 +70,7 @@ makeCanny: function [img [image!] lowT [integer!]  highT [integer!]] [
 	;--Access Error: bad media data (corrupt image, sound, video)
 	;rcvEdgesDirection imgX imgY matA/data 		;get angle matrix as a vector
 	;gradient visualization
-	probe 3
 	gMat: rcvMatFloat2Int matG 32 255.0
-	probe 4
 	rcvMat2Image gMat imgG 
 	canvas1/image: imgG
 	;step 3 Non-maximum suppression

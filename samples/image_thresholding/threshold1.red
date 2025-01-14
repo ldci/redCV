@@ -11,6 +11,12 @@ Red [
 
 margins: 3x10
 ;--I do not understand why this code must be executed in terminal mode
+;--corrected
+OS: system/platform
+if any [os = 'macOS os = 'Linux ] [home: select list-env "HOME"] 
+if any [OS = 'MSDOS OS = 'Windows][home: select list-env "USERPROFILE"]
+appDir: to-red-file rejoin [home "/Programmation/Red/RedCV/samples/image_thresholding/"] 
+change-dir appDir 
 img1: rcvLoadImage %../../images/baboon.jpg
 dst:  rcvCreateImage img1/size
 thresh: 127

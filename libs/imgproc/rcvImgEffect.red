@@ -11,8 +11,8 @@ Red [
 ]
 
 ;--used libs
-;#include %rcvGaussian.red
-;#include %rcvConvolutionImg.red
+#include %rcvGaussian.red
+#include %rcvConvolutionImg.red
 
 ;******************* Image Transformations *****************************
 

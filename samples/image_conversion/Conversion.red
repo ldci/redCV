@@ -61,7 +61,7 @@ view win: layout [
 		button 80 "RGB2YCC"		[rcvRGB2YCrCb img1 dst]
 		button 80 "BGR2YCC"		[rcvBGR2YCrCb img1 dst]	
 		return 
-		pad 0x35
+		pad 0x63
 		button 80 "RGBLab"		[rcvRGB2Lab img1 dst]
 		button 80 "BGRLab"		[rcvBGR2Lab img1 dst]
 		button 80 "RGBLuv"		[rcvRGB2Luv img1 dst]

@@ -278,10 +278,9 @@ rcvRandomImage: function [
 "Create a random uniform color or pixel random image"
 	size 	[pair!] 	
 	value 	[tuple!] 
-	/uniform /alea /fast ;--attention refinements must be place before return:   	
+	/uniform /alea /fast ;--attention refinements must be placed before return: 
 	return: [image!]
-	 
-
+  	
 ][
 	case [
 		uniform [img: make image! reduce [size random value]]
@@ -443,14 +442,19 @@ rcvPokePixel: function [
 ]
 ;
 ;--new for Red 0.6.5
-rcv2pair: function [
+_rcv2pair: function [
 	point 	[point2D! pair!]
 ] [
 	as-pair to integer! point/x to integer! point/y
 ]
-
-
- 
+;--Nenad's suggestion
+rcv2pair: function [
+"Transform a pointD2 value to a pair value"
+	point 	[point2D! pair!]
+	/rounding
+] [
+	either rounding [to-pair round point] [to-pair point]
+]
 
 ;***************** IMAGE CONVERSION ROUTINES *****************
 rcvConvert: routine [
@@ -589,7 +593,6 @@ rcvNormaliseImage: routine [
     src 	[image!]
     dst  	[image!]
     m sd	[integer!]
-    
     /local
         pixS [int-ptr!]
         pixD [int-ptr!]

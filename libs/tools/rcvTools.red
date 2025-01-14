@@ -10,7 +10,7 @@ Red [
 	}
 ]
 
-;general time function
+;general time function, but we can also use Red native dt function
 
 rcvElapsed: function [
 "Calculates elapsed time in ms. Requires time/now/precise"
@@ -132,11 +132,12 @@ rcvSquish: routine [
 ]
 
 randf: routine [
-"returns a decimal value beween 0 and 1"
+"returns a decimal value beween 0.0 and 1.0"
 	m 		[float!]
 	return: [float!]
 ][
 	(m * as float! _random/rand) / 2147483647.0 - 1.0
+	
 ]
 
 randf2: function [

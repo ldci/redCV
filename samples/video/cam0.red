@@ -1,4 +1,4 @@
-#!/usr/local/bin/red
+#!/usr/local/bin/red-view
 Red [
 	Title:   "Test camera Red VID "
 	Author:  "Francois Jouen"

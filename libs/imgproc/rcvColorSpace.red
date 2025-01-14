@@ -57,7 +57,7 @@ rcvRGBXYZ: routine [
     	xyz  	
     	switch op [
     		1 [r: as integer! xf g: as integer! yf b: as integer! zf] ;rgb
-    		2 [r: as integer! zf g: as integer! yf b: as integer! yf] ;bgr
+    		2 [r: as integer! zf g: as integer! yf b: as integer! xf] ;bgr
     	] 	
     	pixD/value: pixel
         pixS: pixS + 1

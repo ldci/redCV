@@ -1,4 +1,4 @@
-#!/usr/local/bin/red
+#!/usr/local/bin/red-view
 Red [
 	Title:   "Red and RIFF Files"
 	Author:  "ldci"
@@ -14,15 +14,21 @@ Red [
 ]
 
 #macro mmioFOURCC: func [c4] [
-	to-hex (((to-integer to-char c4/1) << 24)
-	or ((to-integer to-char c4/2) << 16)
-	or ((to-integer to-char c4/3) << 8)
-	or (to-integer to-char c4/4))
+    to-hex (shift/left (to-integer to-char c4/1) 24)
+        or (shift/left (to-integer to-char c4/2) 16)
+        or (shift/left (to-integer to-char c4/3)  8)
+        or (to-integer to-char c4/4)
 ]
 
+probe mmioFOURCC [10 20 30 40]
+
+
 #macro aviTWOCC: func [c2] [
-	to-hex/size (((to-integer to-char c2/1) << 8)
-	or (to-integer to-char c2/2)) 4
+	;to-hex/size (((to-integer to-char c2/1) << 8)
+	;or (to-integer to-char c2/2)) 4
+	
+	to-hex (shift/left (to-integer to-char c2/1) 8)
+		or (to-integer to-char c2/2)
 ]
 
 ;--Warning: These are nasty macro, and MS C 6.0 compiles some of them
