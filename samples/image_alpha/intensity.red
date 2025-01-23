@@ -13,7 +13,7 @@ defSize: 512x512
 img1: rcvCreateImage defSize
 dst:  rcvCreateImage defSize
 isFile: false
-alpha: 1.0
+alpha: 0.5
 
 
 loadImage: does [
@@ -27,7 +27,7 @@ loadImage: does [
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1
 		isFile: true
-		alpha: 1.0
+		alpha: 0.5
 		sl/data: 0.5
 		rcvSetIntensity img1 dst alpha
 		canvas/image: dst
@@ -40,11 +40,11 @@ view win: layout [
 		button "Load Image" [loadImage] 
 		
 							
-		sl: slider 256 [alpha: face/data * 2.0
+		sl: slider 256 [alpha: face/data * 1.0
 						f1/text: form round/to alpha 0.001
 						rcvSetIntensity img1 dst alpha
 					]
-		f1: field 50 "1.0"
+		f1: field 50 "0.5"
 		button 60 "Quit" [	rcvReleaseImage img1 
 							rcvReleaseImage dst 
 							Quit]
