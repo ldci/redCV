@@ -1,7 +1,7 @@
 Red [
 	Title:   "Statitical tests "
-	Author:  "Francois Jouen"
-	File: 	 %ImageStats.red
+	Author:  "ldci"
+	File: 	 %imageStats.red
 	Needs:	 'View
 ]
 
@@ -33,8 +33,8 @@ view win: layout [
 		return
 		button 80 "NZero" 	[sbar/data: rcvCountNonZero img1 canvas/image: img1]
 		button 80 "Sum" 	[sbar/data: rcvSum img1 canvas/image: img1]
-		button 80 "Mean" 	[sbar/data: rcvMean/argb img1 canvas/image: img1]
-		button 80 "SD"  	[sbar/data: rcvSTD/argb img1 canvas/image: img1]
+		button 80 "Mean" 	[sbar/data: rcvMean img1 canvas/image: img1]
+		button 80 "SD"  	[sbar/data: rcvSTD img1 canvas/image: img1]
 		button 80 "Median"	[sbar/data: rcvMedian img1 canvas/image: img1]
 		return
 		button 80 "Min"		[sbar/data: rcvMinValue img1 canvas/image: img1]

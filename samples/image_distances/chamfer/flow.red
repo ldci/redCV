@@ -1,6 +1,6 @@
 Red [
 	Title:   "Snake tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %gradient.red
 	Needs:	 'View
 ]

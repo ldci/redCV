@@ -1,6 +1,6 @@
 Red [
-	Title:   "Faces Processing"
-	Author:  "Francois Jouen"
+	Title:   "Signal Processing"
+	Author:  "ldci"
 	File: 	 %sgDerivative.red
 	Needs:	 'View
 ]

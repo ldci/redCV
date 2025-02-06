@@ -1,17 +1,17 @@
 Red [
 	Title:   "Red Computer Vision: Red tools"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvTools.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
 	}
 ]
 
-;general time function, but we can also use Red native dt function
-
+;--general time function
+;--Delta Time (dt) can also be used
 rcvElapsed: function [
 "Calculates elapsed time in ms. Requires time/now/precise"
 	t1 [time!] 
@@ -20,8 +20,8 @@ rcvElapsed: function [
 	d: 		t2 - t1
 	h: 		first d * 3600
 	m: 		second d * 60
-	sec: 	(third d) * 1000 	; in ms	
-	to-integer (h + m + sec)	; return in rounded ms 
+	msec: 	(third d) * 1000 	; in ms	
+	to-integer (h + m + msec)	; return in rounded ms 
 ]
 
 

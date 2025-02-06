@@ -1,6 +1,6 @@
 Red [
 	Title:   "Channel tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %SplitChannels.red
 	Needs:	 'View
 ]

@@ -1,7 +1,7 @@
 Red [
 	Title:   "Flip tests "
-	Author:  "Francois Jouen"
-	File: 	 %ImageFlip.red
+	Author:  "ldci"
+	File: 	 %imageFlip.red
 	Needs:	 'View
 ]
 

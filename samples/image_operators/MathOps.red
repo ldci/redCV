@@ -1,7 +1,7 @@
 Red [
 	Title:   "Maths tests "
-	Author:  "Francois Jouen"
-	File: 	 %MathOps.red
+	Author:  "ldci"
+	File: 	 %mathOps.red
 	Needs:	 'View
 ]
 

@@ -1,12 +1,15 @@
 Red [
 	Title:   "Haar Cascade "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %testClassifier.red
 	Needs:	 View
 ]
 
 ;-- must be adapted to your OS and your paths
-home: select list-env "HOME"
+OS: to-string system/platform
+if any [OS = "macOS" OS = "Linux" ] [home: select list-env "HOME"] 
+if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
+
 appDir: to-file rejoin [home "/Programmation/Red/redCV/samples/image_haar"]
 change-dir to-file appDir
 

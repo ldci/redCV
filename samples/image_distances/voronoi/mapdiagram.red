@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Red Computer Vision: Distance Mapping"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %mapdiagram.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2019 Francois Jouen. All rights reserved."

@@ -1,6 +1,6 @@
 Red [
 	Title:   "Fast Convolution tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %fastConvolution1.red
 	Needs:	 'View
 ]

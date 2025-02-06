@@ -1,6 +1,6 @@
 Red [
 	Title:   "Color tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %testColor.red
 	Needs:	 'View
 ]
@@ -27,7 +27,7 @@ view win: layout [
 	button "//"[rcvMod img1 img2 dst color3: rcvGetPixel dst 127x127 f3/text: form color3]
 	button "%" [rcvRem img1 img2 dst color3: rcvGetPixel dst 127x127 f3/text: form color3]
 	
-	pad 180x0
+	pad 280x0
 	button 80 "Quit" 		[rcvReleaseImage img1 
 							rcvReleaseImage img2 
 							rcvReleaseImage dst 

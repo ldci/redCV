@@ -1,12 +1,12 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Resize tests with draw dialect "
-	Author:  "Francois Jouen"
-	File: 	 %resize_draw.red
+	Author:  "ldci"
+	File: 	 %resize_draw2.red
 	Needs:	 'View
 ]
 
-; This example illustrates the use of draw for resizing images without redCV
+;' This example illustrates the use of draw for resizing images without redCV
 
 margins: 10x10
 img1: make image! 512x512

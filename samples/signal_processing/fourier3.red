@@ -1,7 +1,7 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Signal Processing"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %fourier3.red
 	Needs:	 View
 ]

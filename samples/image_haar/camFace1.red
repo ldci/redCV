@@ -1,12 +1,12 @@
 Red [
 	Title:   "Test camera Red VID "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %camFace1.red
 	Needs:	 'View
 ]
 ;-- must be adapted to your OS and your paths
 home: select list-env "HOME"
-appDir: to-file rejoin [home "/Programmation/Red/redCV/samples/image_haar"]
+appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_haar"]
 change-dir to-file appDir
 
 #include %../../libs/core/rcvCore.red

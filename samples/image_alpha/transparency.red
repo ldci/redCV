@@ -1,6 +1,6 @@
 Red [
 	Title:   "Alpha test "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %transparency.red
 	Needs:	 'View
 ]

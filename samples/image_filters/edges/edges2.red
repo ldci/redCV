@@ -1,6 +1,6 @@
 Red [
 	Title:   "Simple Canny Subtraction Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %edges2.red
 	Needs:	 'View
 ]

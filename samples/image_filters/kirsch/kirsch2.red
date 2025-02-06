@@ -1,6 +1,6 @@
 Red [
 	Title:   "Kirsch Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %kirsch2.red
 	Needs:	 'View
 ]

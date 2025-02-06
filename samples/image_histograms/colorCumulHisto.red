@@ -1,7 +1,7 @@
 Red [
 	Title:   "Histogram tests "
-	Author:  "Francois Jouen"
-	File: 	 %ColorHisto.red
+	Author:  "ldci"
+	File: 	 %ColorCumulHisto.red
 	Needs:	 'View
 ]
 

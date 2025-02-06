@@ -1,6 +1,6 @@
 Red [
 	Title:   "ColorErosion "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %colorErosion.red
 	Needs:	 'View
 ]

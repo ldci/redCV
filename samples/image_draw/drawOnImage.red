@@ -1,7 +1,7 @@
 Red [
 	Title:   "Draw tests "
-	Author:  "Francois Jouen"
-	File: 	 %DrawOnImage.red
+	Author:  "ldci"
+	File: 	 %drawOnImage.red
 	Needs:	 'View
 ]
 

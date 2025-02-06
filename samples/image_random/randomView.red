@@ -1,6 +1,6 @@
 Red [
 	Title:   "Random Distribution "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %randomView.red
 	Needs:	 View
 ]

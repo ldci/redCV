@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Flir"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %flirRead.red
 	needs:   view
 ]

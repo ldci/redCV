@@ -1,6 +1,6 @@
 Red [
 	Title:   "Simple Edges Subtraction Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %edges3.red
 	Needs:	 'View
 ]

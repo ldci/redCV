@@ -1,6 +1,6 @@
 Red [
 	Title:   "Colors "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %colorObject.red
 	Needs:	 'View
 ]
@@ -11,6 +11,7 @@ Red [
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/imgproc/rcvImgProc.red
+#include %../../libs/imgproc/rcvColorSpace.red
 
 margins: 10x10
 

@@ -20,9 +20,9 @@ rcvdegree2xy: func [
 
 generate: does [
 	fa/text: form angle
-	fc/text: form round/to cos: cosine  angle 0.0001
-	fs/text: form round/to sin: sine    angle 0.0001
-	ft/text: form round/to tan: tangent angle 0.0001
+	fc/text: form round/to cos: cosine  angle 0.001
+	fs/text: form round/to sin: sine    angle 0.001
+	ft/text: form round/to tan: tangent angle 0.001
 	xy:  center + rcvdegree2xy radius + 6 angle			;--xy distance as pair (c: hypothenuse)
 	cxy: as-pair  xy/x - cos center/y					;--cosine distance only x is changed (b: base)
 	sxy: as-pair cxy/x xy/y								;--sine distance x and y are modified (a: height)

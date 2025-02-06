@@ -1,6 +1,6 @@
 Red [
 	Title:   "in Range Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %inRange.red
 	Needs:	 'View
 ]

@@ -1,6 +1,6 @@
 Red [
 	Title:   "Robinson Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %robinson2.red
 	Needs:	 'View
 ]

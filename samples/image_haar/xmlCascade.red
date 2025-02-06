@@ -1,7 +1,7 @@
 #! /usr/local/bin/red 
 Red [
 	Title:   "Haar Cascade "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %xmlCascade.red
 	Needs:	 View
 ]

@@ -1,7 +1,7 @@
 Red [
 	Title:   "Robinson Filter "
-	Author:  "Francois Jouen"
-	File: 	 %LoG.red
+	Author:  "ldci"
+	File: 	 %LoG1.red
 	Needs:	 'View
 ]
 

@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Draw tests: rcvDegree2xy "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	Needs:	 View
 ]
 
@@ -18,7 +18,7 @@ generate: does [
 	xy: center + rcvDegree2xy 150 angle
 	f/text: rejoin [form angle ": " xy]
 	buffer: compose [line-width 2 pen red  
-			fill-pen aqua circle (center) 156
+			fill-pen green circle (center) 156
 			pen red fill-pen blue circle (center) 3] 
 	repend buffer ['line center xy 'circle xy 6];
 	canvas/draw: buffer

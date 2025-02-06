@@ -1,6 +1,6 @@
 Red [
 	Title:   "Matrix tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %matSobel.red
 	Needs:	 'View
 ]

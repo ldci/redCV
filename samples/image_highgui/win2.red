@@ -1,21 +1,20 @@
-#! /usr/local/bin/red-view
 Red [
 	Title:   "Red Computer Vision: Highgui tests"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %win2.red
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
 	}
 	Needs:	 'View
 ]
-img1: load %../../images/mandrill.jpg
-
+;--I do not understand why this code must be executed in terminal mode
+img1: load %../../images/lena.jpg
 margins: 10x10
 
-title: "Resize "
-append title form to-local-file %mandrill.jpg
+title: "Resize"
+append title form to-local-file %../../images/lena.jpg
 win: layout [
 		title title
 		origin margins space margins

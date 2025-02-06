@@ -1,6 +1,6 @@
 Red [
 	Title:   "FFT2D tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %fftLowPass.red
 	Needs:	 'View
 ]

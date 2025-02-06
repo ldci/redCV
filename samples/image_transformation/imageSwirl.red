@@ -1,7 +1,7 @@
 Red [
 	Title:   "Swirl test "
-	Author:  "Francois Jouen"
-	File: 	 %ImageSwirl.red
+	Author:  "ldci"
+	File: 	 %imageSwirl.red
 	Needs:	 'View
 ]
 

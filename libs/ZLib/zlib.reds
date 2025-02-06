@@ -280,13 +280,19 @@ zlib: context [
 	][
 		out-count/value: z-compressBound in-count
 		out-buf: allocate out-count/value			;-- allocate the size of original buffer
+		print [out-buf " " out-count/value lf]
 		if out-buf = NULL [
 			print [ "Compress Error : Output buffer allocation error." lf ]
 			return NULL
 		]
 		ret: z-compress out-buf out-count in-buf in-count level
+		print [ret lf] ;--waiting for 0
 		either ret = Z_OK [
-			tmp: realloc out-buf out-count/value	;-- Resize output buffer to minimum size
+			print ["OK" lf]
+			print [out-buf " " out-count/value lf]
+			;--error is here realloc
+			tmp: realloc out-buf out-count/value 	;-- Resize output buffer to minimum size
+			print ["OK2" lf]
 			either tmp = NULL [						;-- reallocation failed, uses current output buffer
 			print [ "Compress Warning : Impossible to reallocate output buffer." lf ]
 			][
@@ -324,7 +330,7 @@ zlib: context [
 			ret: z-uncompress out-buf :out-count in-buf in-count
 			if ret = Z_BUF_ERROR [					;-- need to expand output buffer
 			out-count: 2 * out-count				;-- double buffer size
-			tmp: realloc out-buf out-count		;-- Resize output buffer to new size
+			tmp: realloc out-buf out-count			;-- Resize output buffer to new size
 			either tmp = NULL [						;-- reallocation failed, uses current output buffer
 				print [ "Decompress Error : Impossible to reallocate output buffer." lf ]
 				ret: Z_MEM_ERROR

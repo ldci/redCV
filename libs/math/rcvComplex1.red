@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: Complex Number routines"
-	Author:  "Francois Jouen"
-	File: 	 %rcvComplex.red
+	Author:  "ldci"
+	File: 	 %rcvComplex1.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2019 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2019 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt

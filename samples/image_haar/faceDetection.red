@@ -1,76 +1,75 @@
 Red [
 	Title:   "Haar Cascade "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %faceDetection.red
 	Needs:	 View
 ]
+OS: to-string system/platform
+if any [OS = "macOS" OS = "Linux" ] [home: select list-env "HOME"] 
+if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
 
-;-- must be adapted to your OS and your paths
-home: select list-env "HOME"
-appDir: to-file rejoin [home "/Programmation/Red/redCV/samples/image_haar"]
+;-- must be adapted to your directories
+appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_haar"]
 change-dir to-file appDir
 
-#include %../../libs/objdetect/rcvHaarCascade.red		; for Haar cascade
-
-;default classifier
+;--include Haar cascade library
+#include %../../libs/objdetect/rcvHaarCascade.red		
+;--default classifier
 classifierFile: %../../libs/objdetect/cascades/face/face1.txt
 
 screenx: system/view/screens/1/size/x
 screeny: system/view/screens/1/size/y
 margins: 10x10
 
-; default values for classifier
-nStages: 0
-totalNodes: 0
-ws: 0x0
-scale: 1.0	
-
-sThreshold: 0.2
-scaleFactor: 1.3
-step: 3
-minNeighbors: 1
-startPos: 0x0
-
-maxCandidates: 512
-grouping: true
-flag: 0
-isFile: false
-viewFlag: 1
-nParameters: 23
+;--default values for the classifier
+nStages: none		;--from classifier file
+totalNodes: none	;--from classifier file
+ws: none			;--from classifier file
+scale: 1.0			;--default value	
+sThreshold: 0.2		;--default value
+scaleFactor: 1.3	;--default value
+step: 3				;--default value
+minNeighbors: 1		;--default value
+startPos: 0x0		;--default value
+maxCandidates: 512	;--default value	
+grouping?: true		;--default value
+flag: 0				;--default value
+nParameters: 23		;--default value
+;--Red
+isFile?: false		;--not yet file
+viewFlag: 1			;--Haar Scale method by default
 
 
 loadImage: does [
 	tmpF: request-file
-	if not none? tmpF [
+	unless none? tmpF [
 		canvas1/image: none
 		sb1/text: ""
 		sb2/text: ""
 		src: load tmpF
 		clone: copy src
 		sb1/text: rejoin [form src/size " pixels"]
-		_sizex: src/size/x
-		_sizey: src/size/y
-		wscale: max 1 1 + max (2 * margins/x + _sizex) / screenx (4 * margins/y + 110 + _sizey) / screeny
+		;--canvas size update
+		wscale: max 1 1 + max (2 * margins/x + src/size/x) / screenx (4 * margins/y + 110 + src/size/y) / screeny
 		win/size/x: to-integer (2 * margins/x + max 640 src/size/x / to-integer wscale)
 		win/size/y: to-integer (4 * margins/y + 120 + max 150 src/size/y / to-integer wscale)
 		canvas1/size: src/size / to-integer wscale
 		canvas1/offset/x: to-integer (win/size/x - canvas1/size/x / 2)
 		sb1/offset/y: canvas1/size/y + 130
 		sb2/offset/y: canvas1/size/y + 130
-		;--adaptation for Red 0.6.5
-		w_size: 0x0
-		w_size/x: to integer! win/size/x 
-		w_size/y: to integer! win/size/y
+		;--adaptation for Red 0.6.5 with Point2D datatype. redCV libs use pair and not Point2D 
+		w_size: to-pair win/size
 		sb2/size/x: w_size/x - 150
 		b1/offset/x: w_size/x - 80
 		b2/offset/x: w_size/x - 80
 		canvas1/image: src
-		isFile: true
+		isFile?: true
 		searchFaces
 	]
 ]
 
 updateFields: does [
+	;--reading classifier default values
 	f1/text: form nStages
 	f2/text: form totalNodes
 	f22/text: form ws
@@ -79,14 +78,11 @@ updateFields: does [
 	f5/text: form scaleFactor
 	f6/text: form step
 	f7/text: form minNeighbors
-	;f1/enabled?: false
-	;f2/enabled?: false
-	;f22/enabled?: false
 ]
 
 loadClassifier: does [
-	;240 ms for reading, filling arrays, and updating cascade and pointers!
-	b: rcvReadTextClassifier classifierFile nParameters
+	;--reading classifier file, filling arrays, and updating cascade and pointers!
+	b: rcvReadTextClassifier classifierFile nParameters ;--23 parameters
 	nStages: b/1
 	totalNodes: b/2
 	ws: b/3
@@ -97,7 +93,7 @@ drawRects: func [
 	rects	[block!]
 ] [
 	plot: copy [line-width 2 pen green]
-	;--first object
+	;--best objects
 	if viewFlag = 1 [
 		foreach r rects [
 			tl: as-pair r/1 r/2
@@ -122,7 +118,7 @@ drawRects: func [
 		plot: copy [line-width 2 pen yellow]
 		append plot reduce ['box (tl) (br)] ;' biggest rectangle
 	]
-	;--all objects
+	;--all candidates
 	if viewFlag = 3 [
 		foreach r rects [
 			tl: as-pair r/1 r/2
@@ -138,29 +134,29 @@ drawRects: func [
 searchFaces: func [
 ][
 	if error? try [startPos: to-pair f3/text] [startPos: 0x0]
-	if error? try [sThreshold: to-float f4/text] [sThreshold: 0.5] ; > 0.0
-	if error? try [scaleFactor: to-float f5/text] [scaleFactor: 1.2] ; > 1.0
-	if error? try [step: to-integer f6/text] [step: 1]
-	if error? try [minNeighbors: to-integer f7/text] [minNeighbors: 1]
+	if error? try [sThreshold: to-float f4/text] [sThreshold: 0.5] 		;--must be > 0.0
+	if error? try [scaleFactor: to-float f5/text] [scaleFactor: 1.2]	;--must be > 1.0
+	if error? try [step: to-integer f6/text] [step: 1]					;--must be >= 1
+	if error? try [minNeighbors: to-integer f7/text] [minNeighbors: 1]	;--must be >= 1
 
 	sb2/text: "Face detection. Be patient..."
 	src: copy clone
 	canvas1/image: src
-	do-events/no-wait
-	;detect faces
+	;do-events/no-wait
+	;--detect faces
 	t1: now/time/precise
 	faces: rcvDetectObjects 
 			src startPos scaleFactor 
 			step sThreshold 
-			maxCandidates minNeighbors grouping 
+			maxCandidates minNeighbors grouping? 
 			flag
 	t2: now/time/precise
-	n: length? faces
-	;--draw result
-	if n > 0 [drawRects faces]
 	elapsed: round/to third (t2 - t1) 0.02 
 	elapsed: to-integer (1000 * elapsed)
-	sb2/text: rejoin ["Identified: " n " in " elapsed " ms"]
+	n: length? faces
+	sb2/text: rejoin [" Face Identified: " n " in " elapsed " ms"]
+	;--draw result
+	if n > 0 [drawRects faces]
 ]
 
 setParameters: func [
@@ -179,22 +175,25 @@ setParameters: func [
 view win: layout [
 	title "redCV: Haar Cascade Classifier"
 	origin margins space margins
-	button "Load" [loadImage]
-	text 100 " Nb Stages"
-	f1: field 50
-	text 100 " Nb Nodes"
-	f2: field 50
+	button "Load Image" [loadImage]
+	;--these informations come from the classifier files
+	text 80 "Stages"
+	f1: field 50 with [enabled?: false]
+	text 80 " Nodes"
+	f2: field 50 with [enabled?: false]
 	text "Window Size"
-	f22: field 50
+	f22: field 50 with [enabled?: false]
 	pad 5x0
-	b1: button 70 "Quit" [Quit]
+	b1: button 65 "Quit" [Quit]
 	return
-	text 60 "Start Pixel" 	f3: field 60  
+	;--parameters
+	text 60 "Start Pixel" 	f3: field 60 
 	text 60 "Threshold" 	f4: field 40  
 	text 35 "Scale" 		f5: field 40
 	text 35 "Step"			f6: field 40	
 	text 60 "Neighbor"		f7: field 40
-	b2: button 70 "Detect"		[if isFile [searchFaces]]
+	;--search for faces in image
+	b2: button 65 "Detect"	[if isFile? [searchFaces]]
 	return
 	
 	text 70 "Classifier" 
@@ -220,12 +219,11 @@ view win: layout [
 	select 1
 	on-change [
 		idx: face/selected
+		;--classifier parameters can be changed
 		case [
 			idx = 1 [
 				classifierFile: %../../libs/objdetect/cascades/face/face1.txt
-				setParameters 0.2 1.3 3 1 ; for 1 face
-				;setParameters 0.2 1.3 1 1 ; for N faces
-				]
+				setParameters 0.2 1.3 3 1] 	
 			idx = 2 [
 				classifierFile: %../../libs/objdetect/cascades/face/face2.txt
 				setParameters 0.4 1.6 2 1]
@@ -277,7 +275,7 @@ view win: layout [
 		]
 		loadClassifier
 		updateFields
-		if isFile [searchFaces]
+		if isFile? [searchFaces]
 	]
 	
 	text 50 "Method" 
@@ -286,7 +284,7 @@ view win: layout [
 	    on-change [
 	    	flag: face/selected - 1
 	    	updateFields
-	    	if isFile [searchFaces]
+	    	if isFile? [searchFaces]
 	]
 	
 	text 50 "View"
@@ -296,16 +294,17 @@ view win: layout [
 		"All Candidates"
 	]
 	select 1
-	on-change [
+	on-change [	
 		viewFlag: face/selected
-		either viewFlag = 1 [grouping: true] [grouping: false]
+		either viewFlag = 1 [grouping?: true] [grouping?: false]
 		updateFields
-		if isFile [searchFaces]
+		if isFile? [searchFaces]
 	]
 	return
 	canvas1: base 640x480
 	return
-	sb1: field 120
-	sb2: field 510
-	do [loadClassifier updateFields]; automatic classifier reading
+	;--information fields
+	sb1: field 120 with [enabled?: false]
+	sb2: field 510 with [enabled?: false]
+	do [loadClassifier updateFields]; automatic default classifier reading
 ]

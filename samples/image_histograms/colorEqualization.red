@@ -1,6 +1,6 @@
 Red [
 	Title:   "Histogram Equalization "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %ColorEqualization.red
 	Needs:	 'View
 ]

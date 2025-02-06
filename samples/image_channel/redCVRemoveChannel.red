@@ -1,6 +1,6 @@
 Red [
 	Title:   "Channel tests"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %redCVRemoveChannel.red
 	Needs:	 'View
 ]

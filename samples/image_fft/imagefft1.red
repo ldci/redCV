@@ -1,6 +1,6 @@
 Red [
 	Title:   "FFT2D tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %imageFFT1.red
 	Needs:	 'View
 ]
@@ -37,7 +37,7 @@ loadImage: does [
 	]
 ]
 
-fft: does [
+fft: has [] [
 	t1: now/time/precise
 	canvas2/image: rcvFFTImage/forward img1		; show FFT image
 	canvas3/image: rcvFFTImage/backward img1	; show inverse FFT image

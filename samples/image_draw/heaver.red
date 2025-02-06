@@ -1,6 +1,6 @@
 Red [
 	Title:   "Visual Illusion Image"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %heaver.r.red
 	Needs:	 'View
 ]

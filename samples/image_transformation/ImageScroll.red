@@ -1,7 +1,7 @@
 Red [
 	Title:   "Scroll Image"
-	Author:  "Francois Jouen"
-	File: 	 %ImageScroll.red
+	Author:  "ldci"
+	File: 	 %imageScroll.red
 	Needs:	 'View
 ]
 

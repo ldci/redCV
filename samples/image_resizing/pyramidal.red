@@ -1,7 +1,7 @@
 Red [
 	Title:   "Pyramidal test"
-	Author:  "Francois Jouen"
-	File: 	 %pyramidal2.red
+	Author:  "ldci"
+	File: 	 %pyramidal.red
 	Needs:	 'View
 ]
 

@@ -16,12 +16,12 @@ Red [
 ;--if min and max temperatures are not found, we must use a calibration curve
 ;--since only the raw sensor data are stored in the file
 
-;OS: to-string system/platform
-;if any [os = "macOS" os = "Linux" ] [home: select list-env "HOME"] 
-;if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
+OS: to-string system/platform
+if any [os = "macOS" os = "Linux" ] [home: select list-env "HOME"] 
+if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
 
-;appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
-;change-dir to-file appDir
+appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
+change-dir to-file appDir
 
 #include %../../../libs/thermal/Optris/optrisriff.red
 #include %../../../libs/thermal/Optris/optrisroutines.red
@@ -150,15 +150,15 @@ getMinMaxValues: func [
 		if v < 4095 [l: 4095]
 		minV: getMin binaryData l minV
 		maxV: getMax binaryData l maxV
-		p1/data: to percent! (idx / nFrames)
-		pf/text: form round p1/data
+		;p1/data: to percent! (idx / nFrames)
+		;pf/text: form round p1/data
 		do-events/no-wait
 		;--minimal and maximal values are found
 		if all [minV = 0 maxV = l][break]
 		
 	]
 	if all [maxV = 65535 cOffset > 0] [minV: 65536 - 768] ;--for some files
-	p1/data: 0% pf/text: ""
+	;p1/data: 0% pf/text: ""
 ]
 
 ;--color mapping
@@ -266,7 +266,8 @@ mainwin: layout [
 									[face/text: "Stop" canvas1/rate: frate]
 	]
 	return
-	sb: field 450 p1: progress 150 pf: field 40
+	sb: field 645
+	;p1: progress 150 pf: field 40
 	do [makeColorMap]
 ]
 view mainWin

@@ -1,7 +1,7 @@
 Red [
 	Title:   "Image2PGM"
-	Author:  "Francois Jouen"
-	File: 	 %Image2PGM.red
+	Author:  "ldci"
+	File: 	 %image2PGM.red
 	Needs:	 'View
 ]
 

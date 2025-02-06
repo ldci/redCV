@@ -1,7 +1,7 @@
 Red [
-	Title:   "Integral"
-	Author:  "Francois Jouen"
-	File: 	 %testMat.red
+	Title:   "Matrices"
+	Author:  "ldci"
+	File: 	 %copymatF.red
 	Needs:	 'View
 ]
 

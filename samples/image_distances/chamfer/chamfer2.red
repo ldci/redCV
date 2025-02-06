@@ -1,5 +1,8 @@
 Red [
-	Needs: View
+	Title:   "Chamfer tests "
+	Author:  "ldci"
+	File: 	 %chamfer2.red
+	Needs:	 'View
 ]
 
 ; Simple distance transform function using Chamfer metrics

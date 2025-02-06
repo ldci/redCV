@@ -1,7 +1,7 @@
-#!/usr/local/bin/red-view
+#!/usr/local/bin/red
 Red [
 	Title:   "Test camera Red VID "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %cam0.red
 	Needs:	 View
 ]

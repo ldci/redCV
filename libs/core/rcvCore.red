@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: Core functions"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvCore.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -149,11 +149,12 @@ rcvLoadImageAs: function [
 rcvLoadImageAsBinary: function [
 "Load image from file and return image as binary"
 	fileName [file!] 
-	/alpha			 
+	/alpha
+	return: [binary!]			 
 ][
 	tmp: load fileName
 	either alpha [str: tmp/argb] [str: tmp/rgb]
-	rcvReleaseImage tmp
+	;rcvReleaseImage tmp
 	str
 ]
 
@@ -163,7 +164,7 @@ rcvGetImageFileSize: function [
 ][
 	tmp: load fileName
 	isize: tmp/size
-	rcvReleaseImage tmp
+	;rcvReleaseImage tmp
 	isize
 ]
 
@@ -1870,8 +1871,8 @@ rcvBlendWin: function [
 	rcvMathF src1 img1 alpha 3
 	rcvMathF src2 img2 1.0 - alpha 3
 	rcvMath img1 img2 dst 1
-	rcvReleaseImage img1
-	rcvReleaseImage img2
+	;rcvReleaseImage img1
+	;rcvReleaseImage img2
 ]
 
 rcvResizeImage: routine [

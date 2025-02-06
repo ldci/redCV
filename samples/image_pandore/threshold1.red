@@ -1,11 +1,11 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Pandore test"
-	Author:  "Francois Jouen"
-	File: 	 %threshold.red
+	Author:  "ldci"
+	File: 	 %threshold1.red
 	Needs:	 'View
 ]
-
+;'
 status: ""
 isFile: false
 srcImg: none
@@ -16,10 +16,10 @@ highT: 200
 
 ; update according to you OS and directory
 home: select list-env "HOME"
-panhome: rejoin [home "/Programmation/Librairies/pandore_6.6.10/"]
+panhome: rejoin [home "/Programmation/pandore/"]
 sampleDir: rejoin [panhome "examples/"]
 tmpDir: rejoin [sampleDir "tmp/"]
-;panvisu: "bin/pvisu.app/Contents/MacOS/pvisu" ; for macOS users
+;panvisu: "bin/pvisu.app/Contents/MacOS/pvisu" ; for macOS users with Qt
 panvisu: "bin/pvisu" ; for macOS ou  Unix users
 change-dir to-file panhome
 

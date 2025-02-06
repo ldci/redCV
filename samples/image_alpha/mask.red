@@ -1,6 +1,6 @@
 Red [
 	Title:   "Blend Operator "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %mask.red
 	Needs:	 'View
 ]

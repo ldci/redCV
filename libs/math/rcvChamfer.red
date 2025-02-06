@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: Red/System routines"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvChamfer.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt

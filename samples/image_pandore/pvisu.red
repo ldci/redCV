@@ -1,7 +1,7 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Pandore test"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %pvisu.red
 	Needs:	 'View
 ]
@@ -10,8 +10,8 @@ Red [
 You must compile a release version (red -r pvisu.red)
 Uses filename as argument: bin/pvisu test.pan
 }
-
-#include %lib/panlibObj.red
+;'
+#include %../../libs/pandore/panlibObj.red
 isFile: false
 pFile: none
 canvas: none

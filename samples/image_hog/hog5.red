@@ -1,7 +1,7 @@
 Red [
 	Title:   "Histogram of Oriented Gradients "
-	Author:  "Francois Jouen"
-	File: 	 %hog1.red
+	Author:  "ldci"
+	File: 	 %hog5.red
 	Needs:	 'View
 ]
 

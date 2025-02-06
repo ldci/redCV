@@ -1,6 +1,6 @@
 Red [
 	Title:   "Scale image"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %imageSale.red
 	Needs:	 'View
 ]

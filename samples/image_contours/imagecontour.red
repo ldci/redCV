@@ -1,6 +1,6 @@
 Red [
 	Title:   "Matrix tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %ImageContour.red
 	Needs:	 'View
 ]
@@ -118,17 +118,17 @@ getCodes: does [
 	i: 1
 	s: copy ""
 	clear r/text
-	perimeter: 0.0
+	perimeter: 0
 	while [i < count] [
 		d: rcvMatGetChainCode visited p 255
 		rcvSetContourValue visited  p 0 ; pixel is visited
-		if d >= 0 [append s form d]; only external pixels -1: internal pixels
+		if d >= 0 [append s form d perimeter: perimeter + 1]; only external pixels -1: internal pixels
 		;get the next pixel to process
 		p: rcvGetContours p d
 		i: i + 1
 	]
 	r/text: s
-	f7/text: form perimeter 
+	f7/text: rejoin [form perimeter " pixels"]
 ]
 
 setHeight: function [p1 [pair!] p2 [pair!] return: [integer!]][

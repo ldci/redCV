@@ -1,6 +1,6 @@
 Red [
 	Title:   "Red Computer Vision: K Means"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %kmeans.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2019 Francois Jouen. All rights reserved."
@@ -33,10 +33,6 @@ point: object [
 	group: 	0
 ]
 
-randf: function [m [float!]return: [float!]][
-	(m * random RAND_MAX) / RAND_MAX - 1.0
-]
-
 genXY: function [count [integer!] radius [float!] return: [block!]][
 	;Generate random data points
 	random/seed now/time/precise
@@ -45,8 +41,8 @@ genXY: function [count [integer!] radius [float!] return: [block!]][
 	;note: this is not a really uniform 2-d distribution
 	while [i <= count] [
 		pt: copy point
-		ang: randf 2.0 * pi
-		r: randf radius
+		ang: (2.0 * pi * random RAND_MAX) / RAND_MAX - 1.0
+		r:   (radius * random RAND_MAX) / RAND_MAX - 1.0 
 		pt/x: r * cos ang
 		pt/y: r * sin ang
 		pt/group: 0
@@ -60,7 +56,7 @@ showXY: function [points [block!]][
 	H: W: 400
 	map1: make image! reduce [size black]
 	color: red
-	plot: compose [line-width 1 pen (color)  fill-pen (color)]
+	plot: compose [line-width 1 pen (color) fill-pen (color)]
 	minX: FLOAT_MAX
 	minY: FLOAT_MAX
 	maxX: negate FLOAT_MAX
@@ -150,7 +146,7 @@ kpp: function [points [block!] centroid [block!]][
             append blk d
 			j: j + 1
 		]
-		sum: randf(sum)
+		sum: (sum * random RAND_MAX) / RAND_MAX - 1.0 
 		j: 1
 		while [j <= len] [
 			sum: sum - blk/(j)
@@ -292,10 +288,9 @@ showKmeans: function [points [block!] cent [block!] nCluster [integer!]][
 		p/x: p/x + 3 
     	p/y: p/y - 8
     	if cb1/data  [
-    	
-    	append plot reduce ['text p form (i)]];'
-    	i: i + 1
-    ]
+    		append plot reduce ['text p form (i)]];'
+    	    i: i + 1
+    	]
     
     canvas2/text: ""
     canvas2/image: draw map2 plot		

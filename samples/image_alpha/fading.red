@@ -1,6 +1,6 @@
 Red [
 	Title:   "Simple Fading Sample"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %fading.red
 	Needs:	 'View
 ]
@@ -39,7 +39,8 @@ view win: layout [
 							do-events/no-wait	
 						]				 
 		]	
-		vf: field 50 "1.0"								
+		vf: field 50 "1.0"	
+		pad 70x0							
 		button 50 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
 		canvas: base 512x512 dst

@@ -1,6 +1,6 @@
 Red [
 	Title:   "Gradients tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %gradient.red
 	Needs:	 'View
 ]

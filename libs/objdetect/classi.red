@@ -1,7 +1,7 @@
 Red [
 	Title:   "Red Computer Vision: Haar Casacade"
-	Author:  "Francois Jouen"
-	File: 	 %rcvHaarCascade.red
+	Author:  "ldci"
+	File: 	 %classi.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2020 Red Foundation. All rights reserved."
 	License: {

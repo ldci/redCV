@@ -1,7 +1,7 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Resize test"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %resize3.red
 	Needs:	 'View
 ]

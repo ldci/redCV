@@ -1,7 +1,7 @@
 Red [
 	Title:   "Kuwahara Filter "
-	Author:  "Francois Jouen"
-	File: 	 %Kuwahara1.red
+	Author:  "ldci"
+	File: 	 %kuwahara1.red
 	Needs:	 'View
 ]
 

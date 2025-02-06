@@ -1,6 +1,6 @@
 Red [
 	Title:   "Faces Processing"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %sgFilter.red
 	Needs:	 'View
 ]

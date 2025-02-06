@@ -1,6 +1,6 @@
 Red [
 	Title:   "Color tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %colorWheel.red
 	Needs:	 'View
 ]
@@ -32,8 +32,8 @@ win: layout [
 		posct: p2/offset - canvas/offset + 11
 		if all [posct/x >= 0 posct/y >= 0 posct/x <= 256 posct/y <= 256][
 			clear f1/text
-			color: pick img rcv2pair posct	;--red_0.6.5 point2D -> pair
-			f1/text: rejoin ["Coordinates:" form posct " - Color:" color]
+			color: pick img to pair! posct	;--red_0.6.5 point2D -> pair (rcv2pair)
+			f1/text: rejoin ["Coordinates:" form posct " Color:" color]
 		]
 	]
 ]

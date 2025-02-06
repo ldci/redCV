@@ -1,7 +1,7 @@
 Red [
 	Title:   "Fast Convolution tests "
-	Author:  "Francois Jouen"
-	File: 	 %fastConvolution3.red
+	Author:  "ldci"
+	File: 	 %fastConvolution2.red
 	Needs:	 'View
 ]
 
@@ -13,7 +13,7 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/imgproc/rcvImgProc.red
-
+recycle/off
 ;a fast laplacian mask
 mask: [-1.0 0.0 -1.0 0.0 4.0 0.0 -1.0 0.0 -1.0]
 isize: 256x256
@@ -31,13 +31,14 @@ bitSize: 32
 loadImage: does [
 	canvas1/image: canvas2/image: canvas3/image: canvas4/image: black
 	tmp: request-file
-	unless none? tmp [
+	if not none? tmp [
+		isFile: true
 		img1: rcvLoadImage tmp
 		imgC1: rcvCreateImage img1/size					; create image for rgb
 		imgC2: rcvCreateImage img1/size
 		imgC3: rcvCreateImage img1/size
 		imgD:  rcvCreateImage img1/size					; and merged image
-		mat0:  matrix/init 2 bitSize img1/size			; create all matrices we need for argb
+		mat0:  matrix/init 2 bitSize img1/size	; create all matrices we need for argb
 		mat1:  matrix/init 2 bitSize img1/size
 		mat2:  matrix/init 2 bitSize img1/size
 		mat3:  matrix/init 2 bitSize img1/size
@@ -46,7 +47,6 @@ loadImage: does [
 		mat31: matrix/init 2 bitSize img1/size
 		canvas1/image: img1
 		sl1/data: 0.0 sl2/data: 0.0
-		isFile: true
 		convolve
 	]
 ]
@@ -90,7 +90,7 @@ view win: layout [
 	]
 	f2: field 50 "0"
 	pad 430x0
-	button 50  "Quit" [quit]
+	button 50  "Quit" [recycle/on quit]
 	return
 	text 100 "Source"
 	pad 156x0 text "Channel 1: R"

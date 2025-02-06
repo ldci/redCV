@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: FFT"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvFFT.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2019 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2019 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -11,9 +11,9 @@ Red [
 ]
 
 ;--stand alone test
-;#include %../core/rcvCore.red
-;#include %../tools/rcvTools.red
-;#include %../matrix/rcvMatrix.red
+#include %../core/rcvCore.red
+#include %../tools/rcvTools.red
+#include %../matrix/rcvMatrix.red
 
 ;************** 1-D Fast Fourier Transform **********************
 ; Thanks to Mel Cepstrum and Toomas Voglaid :)

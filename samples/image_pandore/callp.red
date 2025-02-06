@@ -1,12 +1,12 @@
-#!/usr/local/bin/red
+#!/usr/local/bin/red-cli
 Red [
 	Title:   "Pandore test"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %callp.red
 ]
 
 home: select list-env "HOME"
-panhome: rejoin [home "/Programmation/Librairies/pandore_6.6.10/"]
+panhome: rejoin [home "/Programmation/pandore/"]
 sampleDir: rejoin [panhome "examples/"]
 tmpDir: rejoin [sampleDir "tmp/"]
 if not exists? to-file tmpDir [make-dir to-file tmpDir]

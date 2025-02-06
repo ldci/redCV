@@ -1,7 +1,7 @@
 Red [
 	Title:   "Glass test "
-	Author:  "Francois Jouen"
-	File: 	 %ImageGlass.red
+	Author:  "ldci"
+	File: 	 %imageGlass.red
 	Needs:	 'View
 ]
 

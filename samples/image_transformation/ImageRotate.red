@@ -1,6 +1,6 @@
 Red [
 	Title:   "Rotate image"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %imageRotate.red
 	Needs:	 'View
 ]

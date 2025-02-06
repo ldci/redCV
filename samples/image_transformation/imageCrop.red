@@ -1,7 +1,7 @@
 Red [
 	Title:   "Crop tests "
-	Author:  "Francois Jouen"
-	File: 	 %ImageCrop.red
+	Author:  "ldci"
+	File: 	 %imageCrop.red
 	Needs:	 'View
 ]
 

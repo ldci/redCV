@@ -1,7 +1,7 @@
 Red [
 	Title:   "Normalized RGB"
-	Author:  "Francois Jouen"
-	File: 	 %normalizedRGB.red
+	Author:  "ldci"
+	File: 	 %normalizedRGB2.red
 	Needs:	 View
 ]
 

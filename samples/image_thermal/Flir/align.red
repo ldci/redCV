@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Virginia"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %align.red
 	needs:   view
 ]

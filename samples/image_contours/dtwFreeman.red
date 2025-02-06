@@ -1,6 +1,6 @@
 Red [
 	Title:   "DTW tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %dtwFreeman.red
 	Needs:	 'View
 ]
@@ -181,7 +181,7 @@ calculateDTW: does [
 	
 	dMatrix: matrix/init 3 64 matsize			;--create a 64-bit float matrix
 	cMatrix: matrix/init 3 64 matsize			;--create a 64-bit float matrix
-	xPath: copy []
+	xPath: copy []								;--for optimal warping path
 	rcvDTWDistances x y	dMatrix					;--calculate distance matrix
 	rcvDTWCosts x y dMatrix cMatrix				;--calculate cost matrix
 	dtw: rcvDTWGetDTW cMatrix					;--calculate DTW value

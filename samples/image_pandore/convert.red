@@ -1,10 +1,11 @@
-#!/usr/local/bin/red
+#!/usr/local/bin/red-view
 Red [
 	Title:   "Pandore test"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %convert.red
 	Needs:	 'View
 ]
+;'
 
 status: ""
 isFile: false
@@ -12,18 +13,21 @@ srcImg: none
 f: ""
 
 ; update according to you OS and directory
-home: select list-env "HOME"
-panhome: rejoin [home "/Programmation/Librairies/pandore_6.6.10"]
+OS: system/platform
+if any [OS = 'macOS OS = 'Linux ] [home: select list-env "HOME"] 
+if any [OS = 'MSDOS OS = 'Windows][home: select list-env "USERPROFILE"]
+
+panhome: rejoin [home "/Programmation/pandore"]
 sampleDir: rejoin [panhome "/examples/"]
 tmpDir: rejoin [sampleDir "tmp/"]
 if not exists? to-file tmpDir [make-dir to-file tmpDir]
 
-;panvisu: "bin/pvisu.app/Contents/MacOS/pvisu" ; for macOS users
+;panvisu: "bin/pvisu.app/Contents/MacOS/pvisu" ; for macOS users with QT support
 panvisu: "bin/pvisu" ; for macOS ou Unix users
-
+;--for macOS compile pvisu/red
 change-dir to-file panhome
 
-; is pandore installed?
+;--is pandore installed?
 prog: "bin/pversion"
 call/output prog status
 
@@ -36,7 +40,7 @@ red2pan: func [img [file!] return: [string!]] [
 	filename: copy/part fName (length? fName) - 4 ;removes .ext
 	append filename ".pan"
 	prog: rejoin  ["bin/pany2pan " to-string img " " tmpDir fileName]
-	call/console prog
+	call/wait prog
 	call/output "bin/pstatus" status
 	sb2/text: "Image conversion: " 
 	filename ; returns filename
@@ -64,7 +68,7 @@ loadImage: does [
 	isFile: false
 	clear sb2/text
 	srcImg: request-file
-	if not none? srcImg [
+	unless none? srcImg [
 		canvas/image: load srcImg
 		isFile: true
 		sb2/text: "Red Image loaded"

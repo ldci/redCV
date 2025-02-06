@@ -1,6 +1,6 @@
 Red [
 	Title:   "Red Computer Vision: TIFF functions "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %tifflib.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
@@ -555,7 +555,7 @@ mat2Image: routine [
     value: vector/rs-head mat ; get pointer address of the matrice
     s: GET_BUFFER(mat)
 	unit: GET_UNIT(s)
-	print unit
+	;print unit
 	y: 0
     while [y < h] [
     	x: 0

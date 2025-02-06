@@ -1,6 +1,6 @@
 Red [
 	Title:   "Freeman tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %freemanregular.red
 	Needs:	 'View
 ]

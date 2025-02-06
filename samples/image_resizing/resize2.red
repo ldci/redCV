@@ -1,6 +1,6 @@
 Red [
 	Title:   "Resize tests with draw dialect "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %resize2.red
 	Needs:	 'View
 ]

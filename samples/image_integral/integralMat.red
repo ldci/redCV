@@ -1,6 +1,6 @@
 Red [
-	Title:   "Integral"
-	Author:  "Francois Jouen"
+	Title:   "Integral Mat"
+	Author:  "ldci"
 	File: 	 %integralMat.red
 	Needs:	 'View
 ]

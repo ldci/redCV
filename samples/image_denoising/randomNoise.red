@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Gaussian Noise"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %randomNoise.red
 	Needs:	 View
 ]

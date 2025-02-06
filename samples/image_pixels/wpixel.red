@@ -1,7 +1,7 @@
 Red [
 	Title:   "Pixels test "
-	Author:  "Francois Jouen"
-	File: 	 %pixel2.red
+	Author:  "ldci"
+	File: 	 %wpixel.red
 	Needs:	 'View
 ]
 

@@ -1,6 +1,6 @@
 Red [
 	Title:   "Simple Edges Detection Filters"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %edges1.red
 	Needs:	 'View
 ]

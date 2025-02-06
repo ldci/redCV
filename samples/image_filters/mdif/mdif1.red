@@ -1,6 +1,6 @@
 Red [
-	Title:   "Prewitt Filter "
-	Author:  "Francois Jouen"
+	Title:   "MDIF Filter "
+	Author:  "ldci"
 	File: 	 %mdif1.red
 	Needs:	 'View
 ]

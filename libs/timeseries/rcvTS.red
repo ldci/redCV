@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: Time Series"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvTS.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016-2019 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016-2019 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -364,8 +364,6 @@ rcvTSMedian: function [
 	val
 ]
 
-
-
 rcvTSMin: function [
 "Minimal value"
 	signal 		[vector!]
@@ -387,42 +385,6 @@ rcvTSMax: function [
 	sorted/:n
 ]
 ;--end NEWS
-;--2024 Added
-rcvTSIQR: function [
-	"Return the sample Interquartile Range"
-	sample [vector!]
-][
-    data: sort copy sample
-    n: length? data
-    Q1: 0.25 * n 		;--(1 / 4)
-    Q2: 0.50 * n		;--(2 / 4)
-    Q3: 0.75 * n		;--(3 / 4)
-    Q4: 1.00 * n		;--(4 / 4)
-    Q3 - Q1				;--IQR
-]
-
-rcvMinMaxNormalization: function [v [vector!]
-"Min Max normalization"
-][
-	;-- use  min-max algorithm (x: x - min / xmax - xmin)
-	_v: copy v
-	xmin: rcvTSMin _v xmax: rcvTSMax _v
-	n: length? v
-	repeat i n [_v/:i: (_v/:i - xmin) / (xmax - xmin)]
-	_v
-]
-
-rcvMedianFilter: func [v [vector!]
-"Median filter"
-][
-	;--use median filter (x: x - med / IRQ)
-	_v: copy v
-	med: rcvTSMedian _v
-	IQR: rcvTSIQR _v
-	n: length? _v
-	repeat i n [_v/:i: (_v/:i - med) / IQR]
-	_v
-]
 
 
 

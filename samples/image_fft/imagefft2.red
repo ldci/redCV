@@ -1,6 +1,6 @@
 Red [
 	Title:   "FFT2D tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %imageFFT2.red
 	Needs:	 'View
 ]

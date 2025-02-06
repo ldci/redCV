@@ -1,6 +1,6 @@
 Red [
 	Title:   "Smoothing filters for image  "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %smoothing.red
 	Needs:	 'View
 ]

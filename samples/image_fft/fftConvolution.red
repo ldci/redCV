@@ -1,7 +1,7 @@
 Red [
 	Title:   "FFT2D tests "
-	Author:  "Francois Jouen"
-	File: 	 %imageFFT1.red
+	Author:  "ldci"
+	File: 	 %fftConvolution.red
 	Needs:	 'View
 ]
 
@@ -11,6 +11,7 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/timeseries/rcvFFT.red	
+recycle/off
 
 ;working with fixed size for simplicity and fast computation
 ; we need 2^N values 
@@ -58,6 +59,7 @@ view win: layout [
 		button "Convolution" [fft]
 		pad 715x0
 		button 60 "Quit" [
+					recycle/on
 					rcvReleaseImage img1 
 					rcvReleaseImage img2 
 					rcvReleaseImage img3 

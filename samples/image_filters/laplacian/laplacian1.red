@@ -1,6 +1,6 @@
 Red [
 	Title:   "Laplacian Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %laplacian1.red
 	Needs:	 'View
 ]

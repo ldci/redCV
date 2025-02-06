@@ -1,6 +1,6 @@
 Red [
 	Title:   "pbm Image Writer "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %pbmImageWriter.red
 	Needs:	 'View
 ]

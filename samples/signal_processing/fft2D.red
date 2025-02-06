@@ -1,6 +1,6 @@
 Red [
 	Title:   "FFT tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %fft2D.red
 	Needs:	 'View
 ]
@@ -14,30 +14,34 @@ Red [
 ; ***** TEST *******
 
 dt: 0.1			
-;re: make vector!  	[1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0]
-re: make vector! 	[3.0 4.0 6.0 2.0 9.0 1.0 7.0 5.0 8.0]
-im: make vector!  	[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+re: 		matrix/create 3 64 3x3 [3.0 4.0 6.0 2.0 9.0 1.0 7.0 5.0 8.0]
+im: 		matrix/create 3 64 3x3 [0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+matAm: 		matrix/init 3 64 3x3
+matPh: 		matrix/init 3 64 3x3
+matFreq: 	matrix/init 3 64 3x3
 
-n: length? re
+n: length? re/data
 t1: now/time/precise
-are: rcvMat2Array re  3x3 			; vector to array
-aim: rcvMat2Array im  3x3 			; vector to array
+are: rcvMat2Array re  				; mat to array
+aim: rcvMat2Array im   				; mat to array
 prin ["Source: " ] probe re
 prin ["Array:  " ] probe are
 
-rcvFFT2D are aim 1	1				; array
+rcvFFT2D are aim 1 1					; FFT on array
 prin ["Forward:"] probe are
-matRe: rcvArray2Mat are				; array to mat
-matIm: rcvArray2Mat aim				; array to mat
-matAm: rcvFFTAmplitude matRe matIm	; FFT amplitude
-matPh: rcvFFTPhase matRe matIm false; FFT Phase
-matFreq: rcvFFTFrequency n dt		; FFT frequency dt: inverse of sampling rate
-prin ["Amplitude:"] probe matAm
-prin ["Phase:    "] probe matPh
-prin ["Frequency:"] probe matFreq
+vecRe: rcvArray2Vector are					; array to vector
+vecIm: rcvArray2Vector aim					; array to vector
+matAm/data: rcvFFTAmplitude vecRe vecIm		; FFT amplitude
+matPh/data: rcvFFTPhase vecRe vecIm false	; FFT Phase
+matFreq/data: rcvFFTFrequency n dt			; FFT frequency dt: inverse of sampling rate
+prin ["Amplitude: "] probe matAm
+prin ["Phase:     "] probe matPh
+prin ["Frequency: "] probe matFreq
 rcvFFT2D are aim -1	1				; array 
 prin ["Inverse:" ] probe are
-matRe: rcvArray2Mat are				; array to mat
-matIm: rcvArray2Mat aim				; array to mat
-prin ["Inverse:" ] probe matRe
+vecRe: rcvArray2Vector are				; array to mat
+vecIm: rcvArray2Vector aim				; array to mat
+re/data: vecRe
+im/data: vecIm
+prin ["Inverse: " ] probe re
 print ["Done in " now/time/precise - t1]

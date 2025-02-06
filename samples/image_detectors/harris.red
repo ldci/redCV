@@ -1,6 +1,6 @@
 Red [
 	Title:   "Harris Detector"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %harris.red
 	Needs:	 'View
 ]
@@ -47,9 +47,9 @@ compute: does [
 	if isFile [
 		canvas0/image: gray
 		switch method [
-			1 [rcvSobel gray imgX iSize 1 1 rcvSobel gray imgY iSize 2 1]
-			2 [rcvDerivative2 gray imgX iSize 1.0 1 rcvDerivative2 gray imgY iSize 1.0 2]
-			3 [rcvLineDetection gray imgX iSize 1 rcvLineDetection gray imgY iSize 2]
+			1 [rcvSobel gray imgX  1 1 rcvSobel gray imgY 2 1]
+			2 [rcvDerivative2 gray imgX 1.0 1 rcvDerivative2 gray imgY 1.0 2]
+			3 [rcvLineDetection gray imgX 1 rcvLineDetection gray imgY 2]
 		]
 		
 		{rcvGaussianFilter imgX imgX 3x3 2.0

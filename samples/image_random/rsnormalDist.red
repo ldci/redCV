@@ -1,6 +1,6 @@
 Red [
 	Title:   "Statistics/Normal distribution"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rsnormalDist.red
 ]
 {*
@@ -11,7 +11,7 @@ Red [
  * This code must be executed in terminal
  *}
 
-NMAX: 10000000
+NMAX: 100000;10000000
 
 ; only with float 
 mean: routine [

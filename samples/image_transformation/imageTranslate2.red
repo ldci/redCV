@@ -1,7 +1,7 @@
 Red [
 	Title:   "Translate Image"
-	Author:  "Francois Jouen"
-	File: 	 %resize.red
+	Author:  "ldci"
+	File: 	 %imageTranslate2.red
 	Needs:	 'View
 ]
 

@@ -1,7 +1,7 @@
 Red [
 	Title:   "Red Computer Vision: K Means"
-	Author:  "Francois Jouen"
-	File: 	 %kmeans.red
+	Author:  "ldci"
+	File: 	 %kMeansRCV2.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2019 Francois Jouen. All rights reserved."
 	License: {

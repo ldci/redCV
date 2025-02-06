@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: Haar Casacade"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvHaarRectangles.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2020-2024 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2020-2024 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -21,6 +21,7 @@ rcvRoundInt: func [
     either f > 0.0 [to-integer (f + 0.5)] [to-integer (f - 0.5)] 
 ]
 
+;--status OK
 rcvPredicate: func [
 "Rectangle clustering"
 	eps		[float!]	;--threshold value
@@ -37,7 +38,7 @@ rcvPredicate: func [
 	] [return true] [return false]
 ]
 
-;--calls rcvPredicate
+;--calls rcvPredicate. Status OK
 rcvPartition: func [
 "Return the number of classes"
 	array	[block!] ;--array of rectangles as vector!
@@ -104,7 +105,7 @@ rcvPartition: func [
   	nclasses
 ]
 
-;--calls rcvPartition
+;--calls rcvPartition. Status OK
 rcvGroupRectangles: func [
 "Group candidate by classes"
 	array			[block!] 	;--array of rectangles as vector!

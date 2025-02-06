@@ -1,7 +1,7 @@
 Red [
 	Title:   "Histogram tests "
-	Author:  "Francois Jouen"
-	File: 	 %GrayHisto.red
+	Author:  "ldci"
+	File: 	 %grayHisto.red
 	Needs:	 'View
 ]
 

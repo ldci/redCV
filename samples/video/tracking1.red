@@ -1,7 +1,7 @@
 Red [
 	Title:   "Test image operators and camera Red VID "
-	Author:  "Francois Jouen"
-	File: 	 %tracking.red
+	Author:  "ldci"
+	File: 	 %tracking1.red
 	Needs:	 'View
 ]
 

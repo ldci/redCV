@@ -1,6 +1,6 @@
 Red [
 	Title:   "TIFF"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %tiffWriter.red
 	Needs:	 View
 ]

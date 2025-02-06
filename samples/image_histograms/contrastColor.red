@@ -1,6 +1,6 @@
 Red [
 	Title:   "Contrast tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %contrastColor.red
 	Needs:	 'View
 ]

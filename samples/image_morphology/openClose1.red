@@ -1,6 +1,6 @@
 Red [
 	Title:   "Morphological operators"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %openClose1.red
 	Needs:	 'View
 ]

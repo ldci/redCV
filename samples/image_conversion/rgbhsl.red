@@ -1,6 +1,6 @@
 Red [
 	Title:   "Conversions Operators "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rgbhsl.red
 	Needs:	 'View
 ]

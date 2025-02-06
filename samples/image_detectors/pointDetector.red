@@ -1,6 +1,6 @@
 Red [
 	Title:   "Point Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %pointDetector.red
 	Needs:	 'View
 ]
@@ -17,8 +17,6 @@ margins: 10x10
 defSize: 512x512
 img1: rcvCreateImage defSize
 dst:  rcvCreateImage defSize
-lumMat: rcvCreateMat 'integer! 32 defSize
-binMat: rcvCreateMat 'integer! 32 defSize
 isFile: false
 
 multi: 1.0
@@ -34,8 +32,7 @@ loadImage: does [
 		either cb/data [img1: rcvLoadImage/grayscale tmp]
 					   [img1: rcvLoadImage tmp]
 		dst:  rcvLoadImage/grayscale tmp
-		lumMat: rcvCreateMat 'integer! 32 img1/size
-		binMat: rcvCreateMat 'integer! 32 img1/size
+		lumMat: matrix/init 2 32 img1/size
 		either (img1/size/x = img1/size/y) [bb/size: 120x120] [bb/size: 160x120]
 		bb/image: img1
 		isFile: true
@@ -47,8 +44,8 @@ compute: does [
 	cPoints: copy []
 	rcvPointDetector img1 dst multi bias
 	rcvImage2Mat dst lumMat 
-	rcvMakeBinaryMat lumMat binMat
-	rcvGetPairs binMat img1/size cPoints
+	binMat: rcvMakeBinaryMat lumMat
+	rcvGetPairs binMat cPoints
 	chull: rcvQuickHull/cw cPoints
 	; we need 3 points or more for polygon drawing 
 	n: length? chull

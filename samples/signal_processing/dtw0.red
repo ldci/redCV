@@ -1,7 +1,7 @@
 Red [
 	Title:   "DTW tests "
-	Author:  "Francois Jouen"
-	File: 	 %dtw.red
+	Author:  "ldci"
+	File: 	 %dtw0.red
 	Needs:	 'View
 ]
 

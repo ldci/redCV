@@ -1,7 +1,7 @@
 Red [
 	Title:   "Gramian Angular Field"
-	Author:  "Francois Jouen"
-	File: 	 %Gramian.red
+	Author:  "ldci"
+	File: 	 %gramian2.red
 	Needs:	 View
 ]
 
@@ -12,10 +12,11 @@ Red [
 
 imgSize: 360x180
 img2Size: 360x360
-sSize: imgSize/x
+sSize: imgSize/x 
 img: rcvCreateImage imgSize
 signal: none
 op: 1
+
 
 generateSignal: function [op [integer!] return: [vector!] ] [
 	random/seed now/time/precise
@@ -26,9 +27,14 @@ generateSignal: function [op [integer!] return: [vector!] ] [
 	case [
 		op = 1 [forall x [x/1: 64.0 * sine i  append plot as-pair i  90 - x/1 i: i + 1]]
 		op = 2 [forall x [x/1: 64.0 * cosine i  append plot as-pair i  90 - x/1 i: i + 1]]
-		;--a pb here that I can't understand: -1.#INF error
-		op = 3 [forall x [if error? try [x/1: 64.0 * tangent i] [x/1: 0.0] 
-						append plot as-pair i  90 - x/1 i: i + 1]]
+		op = 3 [
+			;--we use radians
+			repeat i sSize [
+				theta:  to-float i * (to-float i / 180.0)
+				x/:i: tan theta / 180.0 append plot as-pair i  90 - x/:i
+			]
+		]
+		
 		op = 4 [forall x [x/1: random 180.0   append plot as-pair i  x/1 i: i + 1]]
 	]
 	canvas1/image: draw img plot

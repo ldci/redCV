@@ -1,8 +1,8 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Test camera Red VID "
-	Author:  "Francois Jouen"
-	File: 	 %camera.red
+	Author:  "ldci"
+	File: 	 %camConv.red
 	Needs:	 'View
 ]
 ;'we need RedCV

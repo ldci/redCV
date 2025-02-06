@@ -1,6 +1,6 @@
 Red [
 	Title:   "Signal Processing"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %timeSeries.red
 	Needs:	 'View
 ]

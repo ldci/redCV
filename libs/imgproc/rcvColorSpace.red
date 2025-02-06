@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: Image Processing"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvColorSpace.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016-2020 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016-2020 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -57,7 +57,7 @@ rcvRGBXYZ: routine [
     	xyz  	
     	switch op [
     		1 [r: as integer! xf g: as integer! yf b: as integer! zf] ;rgb
-    		2 [r: as integer! zf g: as integer! yf b: as integer! xf] ;bgr
+    		2 [r: as integer! zf g: as integer! yf b: as integer! yf] ;bgr
     	] 	
     	pixD/value: pixel
         pixS: pixS + 1

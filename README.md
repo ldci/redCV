@@ -16,6 +16,9 @@ Use first -c compiler option to create a Red RT library and in case of problems 
 
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
+### **UPDATE February 6 2025**
+I spent a lot of time adapting redCV to the new version of the Red compiler, which introduced the nodes-gc version in the master branch. The code is compatible in 99.61% of cases. But, in some cases, I had to deactivate the GC (with recycle/off).
+So, I'm waiting for Red Team fix for memory allocation.
 ### **UPDATE January 14 2025**
 Many of the libs have been modified to be compatible with the October 2024 Red-Toolchain. 
 All examples work perfectly. For a new toolchain for macOS, you have to compile it yourself, which requires a Rebol 2 SDK and a license. So I'll wait until Red reaches a stable version (0.7.0?) before updating redCV. 

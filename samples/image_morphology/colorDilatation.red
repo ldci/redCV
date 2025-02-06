@@ -1,6 +1,6 @@
 Red [
 	Title:   "ColorDilatation "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %colorDilatation.red
 	Needs:	 'View
 ]

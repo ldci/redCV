@@ -1,6 +1,6 @@
 Red [
 	Title:   "Sort test "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %sortImage1.red
 	Needs:	 'View
 ]

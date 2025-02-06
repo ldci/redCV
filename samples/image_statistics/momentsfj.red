@@ -2,7 +2,7 @@
 Red [
 	Title: "Hu Invariant Moments of 2D Image"
 	File: %moments.r
-	Author: "Erika Pillu and Francois Jouen"
+	Author: "Erika Pillu and ldci"
 ]
 
 

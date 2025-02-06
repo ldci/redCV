@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "rcvFlir"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvFlir.red
 	needs:   view
 ]
@@ -21,14 +21,15 @@ Red [
 
 ;--this must be adapted according your OS
 ;--for macOS
-exifTool: "/usr/local/bin/exiftool"
-;convertTool: "/usr/local/bin/convert";--convert is a macOS app
-convertTool: "/usr/local/bin/magick"
+exifTool: "/usr/local/bin/exiftool"		;--native installation with no conflicts
+;convertTool: "/usr/local/bin/convert"  ;--convert is a macOS program
+convertTool: "/usr/local/bin/magick"	;--use ImageMagick	
 
 ;--for windows
 ;exifTool: "C:\Users\fjouen\Programmation\exiftool"
-exifTool: "exiftool"
-convertTool: "magick"	
+;exifTool: "exiftool"
+;convertTool: "magick"	
+
 SourceFile: ""
 tmpDir: %.				
 

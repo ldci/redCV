@@ -1,7 +1,7 @@
 Red [
 	Title:   "Wave test "
-	Author:  "Francois Jouen"
-	File: 	 %ImageWave1.red
+	Author:  "ldci"
+	File: 	 %imageWave1.red
 	Needs:	 'View
 ]
 

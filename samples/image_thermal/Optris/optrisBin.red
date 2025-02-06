@@ -13,12 +13,12 @@ Red [
 ;--(two bytes per pixel, low byte first) related to the temperature
 ;--temperature =  high byte * 256 + low byte  * 0.1  - 100
 
-;OS: to-string system/platform
-;if any [os = "macOS" os = "Linux" ] [home: select list-env "HOME"] 
-;if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
+OS: to-string system/platform
+if any [os = "macOS" OS = "Linux" ] [home: select list-env "HOME"] 
+if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
 
-;appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
-;change-dir to-file appDir
+appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_thermal/Optris/"]
+change-dir to-file appDir
 
 imageSize: 160x120								;--default image size PI-160
 imageLength: imageSize/x * imageSize/y * 2		;--size * 2 for low and high values

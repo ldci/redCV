@@ -1,10 +1,10 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Red Computer Vision: K Means Segmentation"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %skin1.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2019 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2019 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt

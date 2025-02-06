@@ -1,6 +1,6 @@
 Red [
 	Title:   "Blend Operator "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %blendImages1.red
 	Needs:	 'View
 ]
@@ -49,7 +49,8 @@ view win: layout [
 		button 60 "Quit" [	rcvReleaseImage img1 
 							rcvReleaseImage img2 
 							rcvReleaseImage dst 
-							Quit]
+							Quit
+		]
 		return
 		pad 120x0
 		f1: field 64 "0.5"

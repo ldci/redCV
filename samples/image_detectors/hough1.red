@@ -1,9 +1,10 @@
 Red [
 	Title:   "Hough Transform"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %hough1.red
 	Needs:	 View
 ]
+;--see https://www.keymolen.com/2013/05/hough-transformation-c-implementation.html
 
 ;required libs
 #include %../../libs/core/rcvCore.red

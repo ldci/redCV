@@ -1,6 +1,6 @@
 Red [
-	Title:   "Convolution tests "
-	Author:  "Francois Jouen"
+	Title:   "Thresholding Operations"
+	Author:  "ldci"
 	File: 	 %threshold1.red
 	Needs:	 'View
 ]

@@ -1,5 +1,10 @@
 #!/usr/local/bin/red-view
-Red [] 
+Red [
+	Title:   "Test image operators and camera Red VID "
+	Author:  "ldci"
+	File: 	 %testCam2.red
+	Needs:	 'View
+] 
 maxSize: 	1280x720; 1920x1080	;--camera max resolution (iMac M1)
 cSize: 		maxSize / 3 ;--camera max resolution / n for visualization
 
@@ -20,11 +25,11 @@ mainWin: layout [
 	]																;--start or stop the selected camera	
 	button "Take snapshot" [														
 		if cam/selected [
-			img: to-image cam										;--get camera image
-			reducedImg: rcvResizeImage img  to pair! cSize					;--downsize camera image
-			canvas/draw: reduce ['image (reducedImg) 0x0 canvas/size] ;--show the reduced snapshot
-			save/as %sample.jpg reducedImg 'jpeg					;--save reduced resolution image
-			save/as %samplefull.jpg img 'jpeg						;--save full resolution image
+			img: to-image cam											;--get camera image
+			reducedImg: rcvResizeImage img  to pair! cSize				;--downsize camera image
+			canvas/draw: reduce ['image (reducedImg) 0x0 canvas/size] 	;--show the reduced snapshot
+			save/as %sample.jpg reducedImg 'jpeg						;--save reduced resolution image
+			save/as %samplefull.jpg img 'jpeg							;--save full resolution image
 		]
 	]
 	button "Quit" [quit]

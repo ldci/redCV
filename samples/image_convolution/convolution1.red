@@ -1,6 +1,6 @@
 Red [
 	Title:   "Test images convolution Red VID "
-	Author:  "Francois Jouen - Didier Cadieu"
+	Author:  "ldci - DidC"
 	File: 	 %convolution.red
 	Needs:	 'View
 ]
@@ -90,14 +90,12 @@ loadImage: does [
 	sb1/data: ""
 	isFile: false
 	canvas/image/rgb: black
-	;canvas/size: 0x0
 	tmp: request-file
 	if not none? tmp [
 		fileName: to string! to-file tmp
 		win/text: rejoin ["redCV Convolution: " fileName]
 		rimg: rcvLoadImage tmp
 		dst: rcvCloneImage rimg
-		;dst: rcvLoadImage tmp
 		; update faces
 		if rimg/size/x >= 512 [
 			win/size/x: rimg/size/x + 20

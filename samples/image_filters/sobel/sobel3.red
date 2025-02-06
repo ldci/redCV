@@ -1,6 +1,6 @@
 Red [
 	Title:   "Sobel Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %sobel3.red
 	Needs:	 'View
 ]

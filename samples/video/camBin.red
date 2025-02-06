@@ -1,7 +1,7 @@
 Red [
 	Title:   "Test camera Red VID "
-	Author:  "Francois Jouen"
-	File: 	 %camera.red
+	Author:  "ldci"
+	File: 	 %camBin.red
 	Needs:	 'View
 ]
 ;'we need RedCV

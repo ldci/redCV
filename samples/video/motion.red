@@ -1,6 +1,6 @@
 Red [
 	Title:   "Test image operators and camera Red VID "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %motion.red
 	Needs:	 'View
 ]

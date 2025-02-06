@@ -1,11 +1,12 @@
 Red [
-	Title:   "Test ZLib "
-	Author:  "Francois Jouen"
+	Title:   "Compression tests"
+	Author:  "ldci"
 	File: 	 %compress2.red
 	Needs:	 'View
 ]
 
-;required libs
+;--similar to compress1.red but using word! for methods
+;--required libs
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/core/rcvCore.red
 
@@ -14,10 +15,11 @@ defSize: 256x256
 imgSize: 0x0
 isFile: false
 isCompressed: false
-;--we use Red compression algorithms 
+
 ; compression type
-cprx: ["GZip" "ZLib" "Deflate"]
-clevel: 1
+cprx: ["gzip" "zLib" "deflate"]
+method: to-word "gzip"
+
 n: 	0	;--non compressed image size
 nc: 0	;--compressed image size
 
@@ -54,11 +56,7 @@ compressImage: does [
 	do-events/no-wait
 	n: length? rgb
 	t1: now/time/precise
-	case [
-		clevel = 1 [result: compress rgb 'gzip]
-		clevel = 2 [result: compress rgb 'zlib]
-		clevel = 3 [result: compress rgb 'deflate]
-	]
+	result: compress rgb method
 	t2: now/time/precise
 	sb/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
 	nc: length? result	
@@ -81,11 +79,7 @@ uncompressImage: does [
 	f3/text: ""
 	do-events/no-wait
 	t1: now/time/precise
-	case [
-		clevel = 1 [result2: decompress result 'gzip]
-		clevel = 2 [result2: decompress/size result 'zlib n]
-		clevel = 3 [result2: decompress/size result 'deflate n]
-	]
+	result2: decompress/size result method n
 	t2: now/time/precise
 	f3/text: rejoin [form length? result2 " bytes"]
 	img3/rgb: copy result2
@@ -101,7 +95,7 @@ view win: layout [
 	dp: drop-down 140 data cprx 
 	select 1
 	on-change [
-		clevel: face/selected
+		method: to-word face/text
 		isCompressed: false
 	]
 	cb: check 130 "Show compression" true

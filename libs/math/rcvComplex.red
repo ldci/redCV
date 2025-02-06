@@ -1,7 +1,7 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Red Computer Vision: Complex Number"
-	Author:  "Francois Jouen and Toomas Vooglaid"
+	Author:  "ldci and Toomas Vooglaid"
 	File: 	 %rcvComplex.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2020 Red Foundation. All rights reserved."

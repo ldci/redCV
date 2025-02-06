@@ -1,8 +1,8 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Gradient Filter "
-	Author:  "Francois Jouen"
-	File: 	 %prewitt.red
+	Author:  "ldci"
+	File: 	 %gradientsMask.red
 	Needs:	 View
 ]
 
@@ -16,7 +16,6 @@ Red [
 
 isFile: false
 dir: 1
-iSize: 0x0
 gdir: ["North" "Northeast" "East" "Southeast" "South" "Southwest" "West" "Northwest"]
 loadImage: does [
 	isFile: false
@@ -29,7 +28,6 @@ loadImage: does [
 		currentImage: rcvCreateImage rimg1/size
 		either cb/data [currentImage: rcvCloneImage gray]
 					   [currentImage: rcvCloneImage rimg1]
-		iSize: currentImage/size
 		rimg2:  rcvCloneImage currentImage
 		canvas1/image: rimg1
 		f1/text: form rimg1/size
@@ -42,7 +40,7 @@ loadImage: does [
 
 process: does [
 	t1: now/time/precise
-	rcvGradientMasks currentImage rimg2 iSize dir
+	rcvGradientMasks currentImage rimg2 dir
 	canvas2/image: rimg2
 	t2: now/time/precise
 	f2/text: rejoin ["Rendered in : " form round/to ((third t2 - t1) * 1000.0) 0.01 " msec"]

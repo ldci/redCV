@@ -1,6 +1,7 @@
 Red [
 	Description: 	"Discrete Fourier Transform"
-	Author:  		"Francois Jouen"
+	Author:  		"ldci"
+	file:			%rosetta.red
 	Date: 			"14-Sept-2019"
 	Needs:			'View
 ]
@@ -15,8 +16,8 @@ process: does [
 	result/text: copy ""
 	re: make vector!  	[1.0 1.0 1.0 1.0 0.0 0.0 0.0 0.0]
 	im: make vector!  	[0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0]
-	either cb/data 	  	[rcvFFT re im -1 rcvFFT re im 1] 
-						[rcvFFT re im -1]
+	either cb/data 	  	[rcvFFT re im -1 1 rcvFFT re im 1 1] 
+						[rcvFFT re im -1 1]
 	n: length? re
 	i: 1
 	repeat i n [

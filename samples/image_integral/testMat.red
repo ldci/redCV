@@ -1,6 +1,6 @@
 Red [
 	Title:   "Integral"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %testMat.red
 	Needs:	 'View
 ]

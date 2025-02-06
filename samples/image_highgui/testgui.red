@@ -1,16 +1,15 @@
 Red [
 	Title:   "Highgui test"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %testgui.red
 	Needs:	 'View
 ]
 
-;--required libs
+; last Red Master required!
 #include %../../libs/core/rcvCore.red
 #include %../../libs/highgui/rcvHighGui.red
-
-
-img1: load %../../images/mandrill.jpg
+;--I do not understand why this code must be executed in terminal mode
+img1: rcvLoadImage %../../images/lena.jpg
 img2: rcvCreateImage img1/size ;512x512 
 
 s1: rcvNamedWindow "Source" 
@@ -37,7 +36,6 @@ wait 2
 print ["Destination = Not Source"]
 rcvNot img1 img2
 rcvShowImage dst img2
-wait 2
+
 print ["Done"]
-wait 2 Quit
 do-events

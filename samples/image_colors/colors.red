@@ -1,6 +1,6 @@
 Red [
 	Title:   "System Colors"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %colors.red
 	Needs:	 View
 ]

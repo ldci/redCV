@@ -1,12 +1,12 @@
 #!/usr/local/bin/red
 Red [
 	Title:		"Pandore library Object"
-	Author:		"F. Jouen"
-	Rights:		"Copyright (c) 2021 F. Jouen. All rights reserved."
+	Author:		"Ldci"
+	Rights:		"Copyright (c) 2021-2024 ldci. All rights reserved."
 	License:    "BSD-3 - https://github.com/dockimbel/Red/blob/master/BSD-3-License.txt"
 ]
 
-
+;'
 set 'PO_MAGIC "PANDORE04"
 set 'PLOAD 0
 set 'PSAVE 1

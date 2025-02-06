@@ -1,6 +1,6 @@
 Red [
 	Title:   "Test images operators Red VID "
-	Author:  "Francois Jouen - Didier Cadieu"
+	Author:  "ldci - DidC"
 	File: 	 %opimage.red
 	Version: 2.0.0
 	Needs:	 'View

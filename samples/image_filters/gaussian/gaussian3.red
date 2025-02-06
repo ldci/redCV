@@ -1,6 +1,6 @@
 Red [
 	Title:   "Gaussian Filter tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %Gaussian3.red
 	Needs:	 'View
 ]

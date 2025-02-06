@@ -1,7 +1,7 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Gabor function test "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %gabor2.red
 	Needs:	 View
 ]

@@ -1,7 +1,7 @@
 Red [
 	Title:   "Statitical tests "
-	Author:  "Francois Jouen"
-	File: 	 %MatStats.red
+	Author:  "ldci"
+	File: 	 %matStats.red
 	Needs:	 'View
 ]
 

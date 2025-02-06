@@ -1,6 +1,6 @@
 Red [
 	Title:   "Red Computer Vision: Haar Casacade"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvHaarCascade.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2020 Red Foundation. All rights reserved."
@@ -124,7 +124,7 @@ rcvReadTextClassifier: func [
 {Process classifier file and return number of stages, total number of nodes 
 and original win size}
 	f			[file!]
-	nParameters	[integer!]
+	nParameters	[integer!] ;--default 23
 	return: 	[block!]
 ][
 	;--clear arrays for each reading!
@@ -143,33 +143,37 @@ and original win size}
 	clear tiltedArray
 	isTilted: 0
 	
-	; header section ligne 1
 	blk: read/lines f
+	; header section ligne 1
+	;probe blk/1
 	line: 2
-	nStages: to-integer blk/:line; (trim blk/:line)
+	nStages: to-integer blk/2 ;blk/:line
 	line: 3
 	totalNodes: 0
 	until [
-		v: to-integer blk/:line; (trim blk/:line)
+		v: to-integer blk/:line
 		append stagesArray v
 		totalNodes: totalNodes + v
 		line: line + 1
 		blk/:line = "[Nodes]"
 	]
 	; Nodes section
+	;print blk/:line
 	line: line + 1					;--window training size
 	ws0: to-pair (trim blk/:line)
+	;--first part is OK	
 	line: line + 1
 	i: 1
 	while [i <= nStages] [
-		nFilters: stagesArray/:i		
+		nFilters: stagesArray/:i
 		j: 1
 		;loop over n of tree of filters
 		while [j <= nFilters][
 			k: 1 
 			;loop filter parameters
 			while [k <= nParameters][
-				vf: to-float blk/:line
+				;--for unset value
+				if error? try [vf: to float! blk/:line] [vf: 0.0]
 				v: to-integer vf
 				;--rectangles 1 2 3
 				if any [
@@ -271,6 +275,8 @@ rcvNearestNeighbor: routine [
 		while [j < w2] [
 			x2: ((j * xRatio) >> 16) 
             y2: ((i * yRatio) >> 16)
+            ;print-line x2
+            ;print-line y2
             idxS: pixS + (y2 * w1) + x2
             idxD: pixD + (i * w2) + j 
             idxD/value: idxS/value
@@ -368,7 +374,7 @@ rcvHaarIntegralImage1: routine [
 ;--Similar to rcvIntegralImg in redCV lib rcvIntegral.red
 ;--source image is automatically converted to grayscale image
 ;--we use fixed-point gray-scale transform, close to openCV transform
-;--but we calculate 3 integral images for Lienhart et al. 
+;--but we calculate 3 integral images from Lienhart et al. 
 ;--extension using tilted features 
 
 rcvHaarIntegralImage2: routine [
@@ -442,7 +448,7 @@ rcvHaarIntegralImage2: routine [
 ]
 
 rcvCannyFilter: routine [
-"Canny filtering for object detection"
+"Canny filtering for faster object detection"
 	src		[image!]
 	dst		[image!]
 	gray	[vector!]
@@ -453,33 +459,37 @@ rcvCannyFilter: routine [
 	w h i j k sum sum2 gradX gradY	[integer!]
 	ind0 ind1 ind2 ind_1 ind_2		[integer!]
 	handleS handleD 				[integer!]
-	count r g b rgb 				[integer!]
+	count a r g b rgb 				[integer!]
 ][
 	handleS: 0
 	handleD: 0
     pixS:   image/acquire-buffer src :handleS 	;--source image
-    pixD:   image/acquire-buffer dst :handleD 	;--source image
+    pixD:   image/acquire-buffer dst :handleD 	;--destination image
     
     w: IMAGE_WIDTH(src/size)					;--image width
     h: IMAGE_HEIGHT(src/size)					;--image height
-	count: w * h
+	count: w * h								;--image size
 	ptrG: 	as int-ptr! vector/rs-head gray		;--grayscale matrix
 	ptrLP:  as int-ptr! vector/rs-head lowPass	;--Gaussian low pass matrix
-	ptrC: 	as int-ptr! vector/rs-head canny	;--Canny image
+	ptrC: 	as int-ptr! vector/rs-head canny	;--Canny matrix
 	
-	;--grayscale matrix
+	;--grayscale matrix OK
 	i: 0 
 	while [i < count][
-		r: pixS/value and 00FF0000h >> 16 
+		a: pixS/value >>> 24
+		r: pixS/value and FF0000h >> 16 
         g: pixS/value and FF00h >> 8 
-        b: pixS/value and FFh      
+        b: pixS/value and FFh 
         rgb: ((4899 * r) + (9617 * g) + (1868 * b) + 8192) >>> 14 and FFh
+        ;--this is what matlab uses but fails with Red
+        ;rgb:  ((0.2989 * r) + (0.587 * g)  + (0.114 * b)) >> 0	
+        ;rgb: (r + g + b) / 3	;simple way 
         ptrG/i: rgb
         i: i + 1
         pixS: pixS + 1
 	]
 	
-	;--gaussian lowpass filtering
+	;--gaussian lowpass filtering OK
 	i: 2
 	while [i < (w - 2)][
 		sum: 0
@@ -492,7 +502,7 @@ rcvCannyFilter: routine [
             ind_1: ind0 - w
             ind_2: ind_1 - w
             ;--use as simple fixed-point arithmetic as possible (only addition/subtraction and binary shifts)
-            sum: 0 
+            sum: (0 
             + (ptrG/ind_2 - 2 << 1) + (ptrG/ind_1 - 2 << 2) + (ptrG/ind0 - 2 << 2) + (ptrG/ind0 - 2) 
             + (ptrG/ind1 - 2 << 2) + (ptrG/ind2 - 2 << 1) + (ptrG/ind_2 - 1 << 2) + (ptrG/ind_1 - 1 << 3)
  			+ (ptrG/ind_1 - 1) + (ptrG/ind0 - 1 << 4) - (ptrG/ind0 - 1 << 2) + (ptrG/ind1 - 1 << 3)
@@ -502,13 +512,14 @@ rcvCannyFilter: routine [
  			+ (ptrG/ind0 + 1 << 4) - (ptrG/ind0 + 1 << 2) + (ptrG/ind1 + 1 << 3) + (ptrG/ind1 + 1) + (ptrG/ind2 + 1 << 2)
  			+ (ptrG/ind_2 + 2 << 1) + (ptrG/ind_1 + 2 << 2) + (ptrG/ind0 + 2 << 2) + (ptrG/ind0 + 2)
  			+ (ptrG/ind1 + 2 << 2) + (ptrG/ind2 + 2 << 1)
-            ptrLP/ind0: ((((103 * sum + 8192) and FFFFFFFFh) >>> 14) and FFh) >>> 0;
+ 			)
+            ptrLP/ind0: ((((103 * sum + 8192) and FFFFFFFFh) >>> 14) and FFh) >>> 0
 			k: k + w
 			j: j + 1
 		]
 		i: i + 1
 	]
-	;--sobel gradient edge detection
+	;--sobel gradient edge detection OK
 	i: 1
 	while [i < (w - 1)][
 		j: 1
@@ -524,7 +535,8 @@ rcvCannyFilter: routine [
 			- (ptrLP/ind0 - 1) - (ptrLP/ind0 - 1)
 			+ (ptrLP/ind0 + 1) + (ptrLP/ind0 + 1)
 			- (ptrLP/ind1 - 1)
-			+ (ptrLP/ind1 + 1))
+			+ (ptrLP/ind1 + 1)
+			)
 			gradY: (0
 			+ ptrLP/ind_1 - 1 
 			+ ptrLP/ind_1 + ptrLP/ind_1
@@ -542,7 +554,7 @@ rcvCannyFilter: routine [
 		]
 		i: i + 1
 	]
-	;--make Canny image
+	;--make Canny image OK
 	i: 0
 	while [i < count][
 		pixD/value: (255 << 24) OR (ptrC/i << 16 ) OR (ptrC/i << 8) OR ptrC/i
@@ -841,7 +853,7 @@ rcvRunCascadeClassifier: routine [
  	idx: cascade/*pq2 + pqOffset r3: idx/value
  	idx: cascade/*pq3 + pqOffset r4: idx/value
  	v: r1 - r2 - r3 + r4 
- 	
+
  	idx: cascade/*p0 + pqOffset r1: idx/value
   	idx: cascade/*p1 + pqOffset r2: idx/value
  	idx: cascade/*p2 + pqOffset r3: idx/value
@@ -850,7 +862,7 @@ rcvRunCascadeClassifier: routine [
  	
  	v: v * cascade/invWindowArea
   	v: v - (mean * mean)
-  	
+
   	;unsigned int automatic casting in c/c++ 
 	; we have to cast as an unsigned integer!
   	either v > 0 [variance: sqrt as float! v][
@@ -1065,12 +1077,12 @@ _mat2Array: routine [
 rcvDetectObjects: func [
 "Process image and find objects"
 	img				[image!]	;--red image
-	startPos		[pair!]		;--0x0
-	scaleFactor		[float!]	;--1.2
-	step			[integer!]	;--1
+	startPos		[pair!]		;--0x0 whole image
+	scaleFactor		[float!]	;--1.2 initial ratio between the window size and the Haar classifier size
+	step			[integer!]	;--1 shift of the window at each sub-step
 	stageThreshold	[float!]	;--0.5
 	maxCandidates	[integer!]	;--max candidates number
-	minNeighbors	[integer!]	;--1
+	minNeighbors	[integer!]	;--1 The minimum numbers of similar rectangles needed for the region to be considered as a feature (avoid noise)
 	grouping		[logic!]	;--true
 	method			[integer!]	;--0 no Canny 1 Canny pruning
 	return:			[vector!]	;--found objects
@@ -1079,7 +1091,7 @@ rcvDetectObjects: func [
 	clear allCandidates
 	;--use Canny filtering?
 	if method = 1 [
-		imgC: make image! img/size
+		imgC: copy img;make image! img/size
 		mat1: make vector! img/size/x * img/size/y
 		mat2: make vector! img/size/x * img/size/y
 		mat3: make vector! img/size/x * img/size/y
@@ -1113,12 +1125,10 @@ rcvDetectObjects: func [
 			method = 0 [rcvNearestNeighbor img img1]	;--default 
 			method = 1 [rcvNearestNeighbor imgC img1]	;--Canny pruning
 		]
-		
 		;--update integral images in cascade structure
        	_setSumImage sz/x sz/y sum1
        	_setSqSumImage sz/x sz/y sqsum1
        	_setTiltedSumImage sz/x sz/y stsum1
-       	
        	;--at each scale of the image pyramid, compute integral images
        	 case [
        	 	isTilted = 0 [rcvHaarIntegralImage1 img1 sum1 sqsum1]
@@ -1128,11 +1138,10 @@ rcvDetectObjects: func [
        	;--set integral images for Haar classifier cascade
        	rcvSetImageForCascadeClassifier
        	;--process the current scale with the cascaded filter
+       	
         rcvScaleImageInvoker factor step sz startPos allCandidates maxCandidates stageThreshold
        	factor: factor * scaleFactor
-       	
 	];--end of the factor loop, finish all scales in pyramid
-	
 	;--post detection processing
 	;--identified: array of rectangles as vector!
 	identified: make vector! [] 

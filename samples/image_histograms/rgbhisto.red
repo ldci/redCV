@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Histogram tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rgbHisto.red
 	Needs:	 View
 ]

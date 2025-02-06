@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Line Detector "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %lineDetector.red
 	Needs:	 View
 ]
@@ -40,7 +40,7 @@ loadImage: does [
 
 process: does [
 	t1: now/time/precise
-	rcvLineDetection currentImage rimg2 iSize dir
+	rcvLineDetection currentImage rimg2 dir
 	canvas2/image: rimg2
 	t2: now/time/precise
 	f2/text: rejoin ["Rendered in : " form round/to ((third t2 - t1) * 1000.0) 0.01 " msec"]

@@ -1,6 +1,6 @@
 Red [
 	Title:   "Histogram tests"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %meanShift.red
 	Needs:	 View
 ]

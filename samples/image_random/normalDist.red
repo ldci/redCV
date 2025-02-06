@@ -1,6 +1,6 @@
 Red [
 	Title:   "Statistics/Normal distribution"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %normalDist.red
 ]
 {*

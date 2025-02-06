@@ -1,7 +1,7 @@
 Red [
 	Title:   "Matrix tests "
-	Author:  "Francois Jouen"
-	File: 	 %Image2TXT.red
+	Author:  "ldci"
+	File: 	 %image2TXT.red
 	Needs:	 'View
 ]
 

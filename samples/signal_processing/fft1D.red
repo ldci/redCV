@@ -1,6 +1,6 @@
 Red [
 	Title:   "FFT tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %fft1D.red
 	Needs:	 'View
 ]

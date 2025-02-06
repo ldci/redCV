@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Test image operators Red VID "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %redChannels.red
 	Needs:	 'View
 ]

@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "TIFF"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %tiffReader.red
 	Needs:	 View
 ]

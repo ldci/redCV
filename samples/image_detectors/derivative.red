@@ -1,6 +1,6 @@
 Red [
 	Title:   "Derivative Filter "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %derivative.red
 	Needs:	 'View
 ]
@@ -15,7 +15,6 @@ Red [
 
 margins: 10x10
 defSize: 512x512
-iSize: 0x0
 img1: rcvCreateImage defSize
 gray: rcvCreateImage defSize
 dst:  rcvCreateImage defSize
@@ -37,8 +36,7 @@ loadImage: does [
 		gray: rcvLoadImage/grayscale tmp
 		either cb/data [cImg: rcvCloneImage gray]
 					   [cImg: rcvCloneImage img1]
-		iSize: cImg/size
-		dst: rcvCreateImage iSize
+		dst: rcvCreateImage img1/size
 		bb/image: img1
 		delta: 0.0
 		sl/data: 0%
@@ -53,7 +51,7 @@ loadImage: does [
 ]
 
 process: does [
-	rcvDerivative2 cImg dst iSize delta direction
+	rcvDerivative2 cImg dst delta direction
 	canvas/image: dst
 ]
 
@@ -69,9 +67,7 @@ view win: layout [
 					either cb/data  [cImg: rcvCloneImage gray]
 					[cImg: rcvCloneImage img1]
 					process
-		]
-		
-					
+		]			
 		button 60 "Quit" 		[rcvReleaseImage img1 
 								rcvReleaseImage dst 
 								rcvReleaseImage gray

@@ -1,7 +1,7 @@
 #! /usr/local/bin/red
 Red [
 	Title:   "Red Computer Vision: Voronoï Diagram"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %voronoi.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2019 Francois Jouen. All rights reserved."

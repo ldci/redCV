@@ -1,7 +1,7 @@
 Red [
 	Title:   "Logical Operators "
-	Author:  "Francois Jouen"
-	File: 	 %LogicalOps.red
+	Author:  "ldci"
+	File: 	 %logicalOps.red
 	Needs:	 'View
 ]
 

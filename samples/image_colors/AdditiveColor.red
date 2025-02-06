@@ -1,6 +1,6 @@
 Red [
 	Title:   "Color tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %AdditiveColor.red
 	Needs:	 'View
 ]

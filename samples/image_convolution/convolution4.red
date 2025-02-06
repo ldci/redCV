@@ -1,6 +1,6 @@
 Red [
 	Title:   "Test images convolution Red VID "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %convolution4.red
 	Needs:	 'View
 ]

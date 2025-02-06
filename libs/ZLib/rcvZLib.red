@@ -1,9 +1,9 @@
 Red [
 	Title:   "Red Computer Vision: ZLib"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rcvZLib.red
 	Tabs:	 4
-	Rights:  "Copyright (C) 2016 Francois Jouen. All rights reserved."
+	Rights:  "Copyright (C) 2016 ldci. All rights reserved."
 	License: {
 		Distributed under the Boost Software License, Version 1.0.
 		See https://github.com/red/red/blob/master/BSL-License.txt
@@ -21,7 +21,7 @@ rcvCompressRGB: routine [rgb [binary!] level [integer!] return: [binary!]
 	/local 
 	byte-count	[integer!]
 	data		[byte-ptr!]
-	buffer		[byte-ptr!] 		
+	buffer		[byte-ptr!] 
 ][
 	byte-count: 0 ;--for integer pointer that returns output buffer size
 	data: binary/rs-head as red-binary! rgb

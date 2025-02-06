@@ -1,25 +1,26 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Signal Processing"
-	Author:  "Francois Jouen and Oldes"
+	Author:  "ldci and Oldes"
 	File: 	 %peaks.red
 	Needs:	 View
 	Note: https://stackoverflow.com/questions/22583391/peak-signal-detection-in-realtime-timeseries-data
 ]
 
-lag: 30
-threshold: 5.0
-influence: 0.0
+;--using z-scores
+lag: 30			;--The lag of the moving window that calculates the mean and standard deviation of data
+threshold: 5.0	;--The z-score at which the algorithm signals.
+influence: 0.0	;--The influence (between 0 and 1) of new signals on the calculation of the moving mean and moving standard deviation.
 
-
-input: [1 1.1 1 1 0.9 1 1 1.1 1 1 1 1 1.1 0.9 1 1.1 1 1 0.9
+input: [1 1 1.1 1 0.9 1 1 1.1 1 0.9 1 1.1 1 1 0.9 1 1 1.1 1 1 1 1 1.1 0.9 1 1.1 1 1 0.9
      1 1.1 1 1 1.1 1 0.8 0.9 1 1.2 0.9 1 1 1.1 1.2 1 1.5 1 3 2 5 3 2 1 1 1 0.9 1 1 
-     3 2.6 4 3 3.2 2 1 1 0.8 4 4 2 2.5 1 1 1 1 1 1.1 1 0.9 1 1 1.1 1 0.9 
-     1 1.1 1 1 0.9 1 1 1.1 1 1 1.1 1 0.9 1 1 1.1 1 1 1.1 1 0.9 1 1 1.1 1 0.9]
-
+     3 2.6 4 3 3.2 2 1 1 0.8 4 4 2 2.5 1 1 1 1 0.9 1 1 1.1 1 1 1 1 1.1 0.9 4 4 1 1 1 1 1 1 0.9 1
+     1 1 1 1 1 1 0.9 1 1 1 1 1 1 1 0.9 1
+]
+     
 sampleLenght: length? input
 
-output: make vector! reduce ['integer! 8 sampleLenght]
+output: make vector! reduce ['integer! 8 sampleLenght];'8-bit values
 imgSize: 512x128
 xx: 5
 img1: make image! imgSize
@@ -42,25 +43,26 @@ stddev: function [
 	_mean: mean data len
 	sd: 0.0
 	repeat i len [sd: sd + power (data/:i - _mean) 2]
-	sqrt (sd / (len - 1))
+	sqrt (sd / len)
 ]
 
-zThresholding: function [
+thresholding: function [
 	data      [block! vector!]
 	output    [block! vector!]
 	lag       [integer!]
 	threshold [float!]
 	influence [float!]
 ][
-	sLength: length? data	
+	sLenght: length? data	
 	filteredY: copy data
-	avgFilter: make vector! reduce ['float! 64 sLength]
-	stdFilter: make vector! reduce ['float! 64 sLength]
+	avgFilter: make vector! reduce ['float! 64 sLenght]
+	stdFilter: make vector! reduce ['float! 64 sLenght]
 	avgFilter/:lag: mean data lag
 	stdFilter/:lag: stddev data lag
-	
+	;avgFilter/1: mean data lag
+	;stdFilter/1: stddev data lag
 	i: lag
-	while [i < sLength][
+	while [i < sLenght][
 		n:   i + 1          ;-- index of the next value
 		y:   data/:n
 		avg: avgFilter/:i
@@ -100,7 +102,7 @@ showOutPut: does [
 ]
 
 process: does [ 
-	filtered: zThresholding :input :output :lag :threshold :influence
+	filtered: thresholding :input :output :lag :threshold :influence
 	showInput showOutPut
 	;write %result.txt output
 ]

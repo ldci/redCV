@@ -1,6 +1,6 @@
 Red [
 	Title:   "Gabor function test "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %gabor1.red
 	Needs:	 'View
 ]

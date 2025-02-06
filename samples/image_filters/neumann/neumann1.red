@@ -1,7 +1,7 @@
 Red [
 	Title:   "Neumann Filter "
-	Author:  "Francois Jouen"
-	File: 	 %Neumann1.red
+	Author:  "ldci"
+	File: 	 %neumann1.red
 	Needs:	 'View
 ]
 

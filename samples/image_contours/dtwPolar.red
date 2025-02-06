@@ -1,6 +1,6 @@
 Red [
 	Title:   "DTW tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %dtwPolar.red
 	Needs:	 'View
 ]
@@ -58,7 +58,7 @@ loadImage: func [n [integer!] return: [logic!]][
 			cg1: rcvGetMatCentroid bmat1
 			canvas1/image: img11
 			w1: img1/size/x
-			f3/text: form img1/size
+			f3/text: form img1/size append f3/text " pixels"
 		]
 		2 [ img2: rcvLoadImage tmp
 			img21: rcvCreateImage img2/size
@@ -71,7 +71,7 @@ loadImage: func [n [integer!] return: [logic!]][
 			cg2: rcvGetMatCentroid bmat2 
 			canvas2/image: img21
 			w2: img2/size/x
-			f4/text: form img2/size
+			f4/text: form img2/size append f4/text " pixels"
 		]
 	]
 		isLoad: true
@@ -134,7 +134,7 @@ getSignature: func [n [integer!]][
 		append/only polar bloc
 	]
 	
-	; y normalization [0.0 .. 1.0]
+	; y normalization [0.0 .. 1.0] to process image size differences
 	normf: 1.0 / maxRho
 	; for signature visualization
 	plot: compose [line-width 1 pen (color) line]
@@ -162,8 +162,8 @@ calculateDTW: does [
 	canvas4/image: none
 	getSignature 1
 	getSignature 2
-	f1/text: form length? x
-	f2/text: form length? y
+	f1/text: form length? x append f1/text " pixels"
+	f2/text: form length? y append f2/text " pixels"
 	append plot1 plot2
 	canvas3/draw: reduce [plot1]
 	matsize: as-pair (length? x) (length? y)
@@ -193,7 +193,7 @@ view win: layout [
 	r1: radio 30 "1" [fgVal: 1 bgVal: 0]
 	r2: radio 30 "0" [fgVal: 0 bgVal: 1]
 	button "Compare Images"		[if all [isLoad1 isLoad2] [calculateDTW]]
-	cb: check 100 "Normalize" 	[if all [isLoad1 isLoad2] [calculateDTW]]			
+	cb: check 100 "Normalize" true	[if all [isLoad1 isLoad2] [calculateDTW]]			
 	fDTW: field 200
 	pad 220x0
 	button "Quit" [Quit]

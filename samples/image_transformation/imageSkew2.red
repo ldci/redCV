@@ -1,7 +1,7 @@
 #!/usr/local/bin/red
 Red [
 	Title:   "Rotate image"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %imageSkew2.red
 	Needs:	 View
 ]

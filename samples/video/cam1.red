@@ -1,19 +1,19 @@
-#!/usr/local/bin/red
+#!/usr/local/bin/red-view
 Red [
 	Title:   "Test camera Red VID "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %cam1.red
 	Needs:	 'View
 ]
 
 iSize: 320x240
 margins: 10x10
-cam: none ; for camera object
+cam: none ; 'for camera object
 
 view win: layout [
 		title "Red Camera"
 		origin margins space margins
-		tF: field 100 on-time [face/text: form now/time ] 		
+		tF: field 100 on-time [face/text: form now/time] 		
 		pad 160x0 button "Quit" 50 [quit]
 		return
 		cam: camera iSize  

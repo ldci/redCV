@@ -1,6 +1,6 @@
 Red [
 	Title:   "Rotations"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %rotations.r.red
 	Needs:	 'View
 ]

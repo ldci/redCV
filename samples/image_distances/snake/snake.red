@@ -1,7 +1,7 @@
 
 Red [
 	Title:   "Red Computer Vision: Snake Active Contour"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %snake.red
 	Tabs:	 4
 	Rights:  "Copyright (C) 2017 Francois Jouen. All rights reserved."

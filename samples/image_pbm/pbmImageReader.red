@@ -1,6 +1,6 @@
 Red [
 	Title:   "pbm Image Reader "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %pbmImageReader.red
 	Needs:	 'View
 ]

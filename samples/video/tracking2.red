@@ -1,7 +1,7 @@
 Red [
 	Title:   "Test image operators and camera Red VID "
-	Author:  "Francois Jouen"
-	File: 	 %tracking.red
+	Author:  "ldcin"
+	File: 	 %tracking2.red
 	Needs:	 'View
 ]
 
@@ -13,6 +13,7 @@ Red [
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/imgproc/rcvImgProc.red
 #include %../../libs/imgproc/rcvMorphology.red
+#include %../../libs/imgproc/rcvColorSpace.red
 
 iSize: 320x240
 rimg: rcvCreateImage iSize

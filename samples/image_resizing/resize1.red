@@ -1,6 +1,6 @@
 Red [
 	Title:   "Pyramidal test"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %resize1.red
 	Needs:	 'View
 ]
