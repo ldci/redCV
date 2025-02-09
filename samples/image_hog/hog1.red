@@ -48,7 +48,8 @@ process: does [
 	matInt: rcvMatFloat2Int matHog 32 200.0
 	x: 10
 	repeat i (nHog - 2) [
-		tL: as-pair (x) 240 - matInt/data/:i
+		unless none? matInt/data/:i [v: matInt/data/:i]
+		tL: as-pair (x) 240 - v
 		bR: as-pair (x + 4) 240
 		append plot 'box
 		append plot tl 
@@ -70,7 +71,7 @@ win: layout [
 	f3: field 50		[if error? try [nBins: to-integer f3/text] [nBins: 16]
 						process]
 	button "Process" 	[if isFile [process]] 
-	pad 220x0
+	pad 260x0
 	button "Quit" 		[quit]
 	return
 	canvas1: base gSize black

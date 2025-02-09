@@ -4,13 +4,12 @@ Red [
 	File: 	 %faceDetection.red
 	Needs:	 View
 ]
-OS: to-string system/platform
-if any [OS = "macOS" OS = "Linux" ] [home: select list-env "HOME"] 
-if any [OS = "MSDOS" OS = "Windows"][home: select list-env "USERPROFILE"]
-
+OS: system/platform
+if any [OS = 'macOS OS = 'Linux] [home: select list-env "HOME"] 
+if any [OS = 'MSDOS OS = 'Windows][home: select list-env "USERPROFILE"]
 ;-- must be adapted to your directories
-appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_haar"]
-change-dir to-file appDir
+appDir: to-red-file rejoin [home "/Programmation/Red/RedCV/samples/image_haar"]
+change-dir appDir
 
 ;--include Haar cascade library
 #include %../../libs/objdetect/rcvHaarCascade.red		

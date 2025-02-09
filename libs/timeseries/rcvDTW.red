@@ -47,7 +47,8 @@ rcvDTWDistance: routine [
 	vxf vyf 				[red-float!]
 	dist fvx fvy			[float!]
 	xLength yLength 		[integer!]
-	i j 					[integer!]
+	i j unit				[integer!]
+	s						[series!]
 ][
 	fvx: 0.0
 	fvy: 0.0
@@ -58,13 +59,15 @@ rcvDTWDistance: routine [
 	yLength:  block/rs-length? y
 	vec: mat/get-data dmat
 	headD: vector/rs-head vec
+	s: GET_BUFFER(vec)
+	unit: GET_UNIT(s)
 	i: 0
 	while [i < yLength] [
 		j: 0
 		while [j < xLength][
 			idxx: xHead + j
 			idxy: yHead + i
-			idxD: headD + ((i * xLength + j) * 8)
+			idxD: headD + ((i * xLength + j) * unit)
 			switch op [
 				0 [ vxi: as red-integer! idxx vyi: as red-integer! idxy
 					fvx: as float! vxi/value
@@ -76,9 +79,9 @@ rcvDTWDistance: routine [
 			]
 			dist: (sqrt ((fvx - fvy) * (fvx - fvy)))
 			p: as float-ptr! idxD
+			;probe as integer! p
 			p/value: dist
-			;print p/value
-			;print lf
+			;print [as integer! idxD " " p/value lf]
 			j: j + 1
 		]
 		i: i + 1
@@ -95,48 +98,51 @@ rcvDTWRun: routine [
 	headD headC idxD idxC	[byte-ptr!]
 	v u						[float!]
 	v1 v2 v3				[float!]
-	i j						[integer!] 
+	i j	unit				[integer!] 
 	p						[float-ptr!]
+	s						[series!]
 ][
 	vecD: mat/get-data dMat
 	vecC: mat/get-data cMat
 	headD: vector/rs-head vecD
 	headC: vector/rs-head vecC
+	s: GET_BUFFER(vecD)
+	unit: GET_UNIT(s)
 	i: 0
 	while [i < h] [
 		j: 0
 		while [j < w][
-			idxD: headD + ((i * w + j) * 8)
-			idxC: headC + ((i * w + j) * 8)
+			idxD: headD + ((i * w + j) * unit)
+			idxC: headC + ((i * w + j) * unit)
 			p: as float-ptr! idxC
-			v: vector/get-value-float  idxD 8
+			v: vector/get-value-float idxD unit
 			; first value
 			if all [i = 0 j = 0] [p/value: v]
 			; first line
 			if (i = 0) and (j > 0) [
-				idxC: headC + ((i * w + j - 1) * 8)
-				u: vector/get-value-float idxC 8
-				idxC: headC + ((i * w + j) * 8)
+				idxC: headC + ((i * w + j - 1) * unit)
+				u: vector/get-value-float idxC unit
+				idxC: headC + ((i * w + j) * unit)
 				p: as float-ptr! idxC
 				p/value: v + u
 			]
 			; first column
 			if (i > 0) and (j = 0) [
-				idxC: headC + ((i - 1 * w + j) * 8)
-				u: vector/get-value-float idxC 8
-				idxC: headC + ((i * w + j) * 8)
+				idxC: headC + ((i - 1 * w + j) * unit)
+				u: vector/get-value-float idxC unit
+				idxC: headC + ((i * w + j) * unit)
 				p: as float-ptr! idxC
 				p/value: v + u
 			]
 			; other values
 			if (i > 0) and (j > 0) [
-				idxC: headC + ((i - 1 * w + j - 1) * 8)
-				v1: vector/get-value-float idxC 8
-				idxC: headC + ((i - 1 * w + j) * 8)
-				v2: vector/get-value-float  idxC 8
-				idxC: headC + ((i * w + j - 1) * 8)
-				v3: vector/get-value-float  idxC 8
-				idxC: headC + ((i * w + j) * 8)
+				idxC: headC + ((i - 1 * w + j - 1) * unit)
+				v1: vector/get-value-float idxC unit
+				idxC: headC + ((i - 1 * w + j) * unit)
+				v2: vector/get-value-float  idxC unit
+				idxC: headC + ((i * w + j - 1) * unit)
+				v3: vector/get-value-float  idxC unit
+				idxC: headC + ((i * w + j) * unit)
 				p: as float-ptr! idxC
 				p/value: v  + rcvDTWMin v1 v2 V3
 			]
@@ -153,31 +159,34 @@ rcvDTWPath: routine [
 	xPath 	[block!]
 	/local
 	vec						[red-vector!]
-	i j w					[integer!]
+	i j w unit				[integer!]
 	minD v1 v2 v3			[float!]
 	headC idxC idx1 idx2	[byte-ptr!]
+	s						[series!]
 ][
 	i: (block/rs-length? y) - 1
 	j: (block/rs-length? x) - 1
 	w: block/rs-length? x 
 	vec: mat/get-data cMat
+	s: GET_BUFFER(vec)
+	unit: GET_UNIT(s)
 	headC: vector/rs-head vec
 	block/rs-clear xPath
 	pair/make-in xPath j i
 	while [all [i > 0 j > 0]] [
 		if i = 0 [j: j - 1] 
 		if j = 0 [print ["yes" lf] i: i - 1]	
-		idxC: headC + ((i - 1 * w + j - 1) * 8)
-		v1: vector/get-value-float idxC 8
-		idxC: headC + ((i - 1 * w + j) * 8)
-		v2: vector/get-value-float  idxC 8
-		idxC: headC + ((i * w + j - 1) * 8)
-		v3: vector/get-value-float  idxC 8
+		idxC: headC + ((i - 1 * w + j - 1) * unit)
+		v1: vector/get-value-float idxC unit
+		idxC: headC + ((i - 1 * w + j) * unit)
+		v2: vector/get-value-float  idxC unit
+		idxC: headC + ((i * w + j - 1) * unit)
+		v3: vector/get-value-float  idxC unit
 		minD: rcvDTWMin v1 v2 v3
-		idx1: headC + ((i - 1 * w + j) * 8)
-		v1: vector/get-value-float idx1 8
-		idx2: headC + ((i * w + j - 1) * 8)
-		v2: vector/get-value-float idx2 8
+		idx1: headC + ((i - 1 * w + j) * unit)
+		v1: vector/get-value-float idx1 unit
+		idx2: headC + ((i * w + j - 1) * unit)
+		v2: vector/get-value-float idx2 unit
 		either  any [v1 = minD v2 = minD][
 			if v1 = minD [i: i - 1]
 			if v2 = minD [j: j - 1]

@@ -7,9 +7,11 @@ Red [
 
 {similar to camFace1, but add grayscale transform}
 ;-- must be adapted to your OS and your paths
-home: select list-env "HOME"
-appDir: to-file rejoin [home "/Programmation/Red/RedCV/samples/image_haar"]
-change-dir to-file appDir
+OS: system/platform
+if any [OS = 'macOS OS = 'Linux] [home: select list-env "HOME"] 
+if any [OS = 'MSDOS OS = 'Windows][home: select list-env "USERPROFILE"]
+appDir: to-red-file rejoin [home "/Programmation/Red/RedCV/samples/image_haar"]
+change-dir appDir
 #include %../../libs/core/rcvCore.red
 #include %../../libs/objdetect/rcvHaarCascade.red ;--for Haar cascade
 

@@ -22,20 +22,25 @@ rep., Carnegie Mellon University, Pittsburg, PA (2000)}
 
 
 iSize: 320x240
-prevImg: rcvCreateImage iSize
-currImg: rcvCreateImage iSize
-nextImg: rcvCreateImage iSize
-d1: rcvCreateImage iSize
-d2: rcvCreateImage iSize
-r1: rcvCreateImage iSize
-r2: rcvCreateImage iSize
-
-
 margins: 10x10
 threshold: 32
-cam: none ; for camera object
+cam: none						;--for camera object
+camImg: none					;--cam image
+prevImg: currImg: nextImg: none ;--successive images
+d1: d2: none					;--filter images
+r1: r2: none					;--result images
 
 to-text: function [val][form to integer! 0.5 + 128 * any [val 0]]
+
+createImages: does [
+	currImg: rcvResizeImage camImg iSize; 
+	prevImg: rcvCreateImage iSize 
+	nextImg: rcvCreateImage iSize
+	d1: rcvCreateImage iSize
+	d2: rcvCreateImage iSize
+	r1: rcvCreateImage iSize
+	r2: rcvCreateImage iSize
+]
 
 
 processCam: does [
@@ -46,12 +51,12 @@ processCam: does [
 	rcv2BWFilter r1 r2 threshold 		; Applies B&W Filter to ANDed image
 	prevImg: currImg					; previous image contains now the current image
 	currImg: nextImg					; current image contains the next image				
-	camImg: cam/image					; should work in red future version
+	;camImg: cam/image					; works in red macOS
+	camImg: to-image cam				; OK
 	nextImg: rcvResizeImage camImg iSize; resize camera image ;cam/image
 	; Gaussian blurring
 	rcvGaussianFilter nextImg nextImg 3x3 1.0
 	cam/image: none						; it's works				
-	recycle
 ]
 
 
@@ -74,19 +79,13 @@ view win: layout [
 					canvas/image: black
 				][
 					cam/selected: cam-list/selected
-					camImg: to-image cam
-					currImg: rcvResizeImage camImg iSize; 
-					prevImg: rcvCreateImage iSize 
-					nextImg: rcvCreateImage iSize
-					d1: rcvCreateImage iSize
-					d2: rcvCreateImage iSize
-					r1: rcvCreateImage iSize
-					r2: rcvCreateImage iSize
-					canvas/image: r2
-					canvas/rate: 0:0:0.04;  max 1/25 fps in ms
-					motion/rate: 0:0:0.04
+					camImg: to-image cam		;--read cam
+					createImages				;--all images we need for processing
+					canvas/image: r2			;--show result
+					canvas/rate: 0:0:0.04		;--max 1/25 fps in ms
+					motion/rate: 0:0:0.04		;--max 1/25 fps in ms		
 					cSize/text: form currImg/size
-					]
+				]
 			]
 		pad 160x0
 		btnQuit: button "Quit" 60x24 on-click [

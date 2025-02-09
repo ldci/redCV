@@ -49,8 +49,10 @@ getHistograms: does [
 		sum: 0
 		repeat j nBins [
 			pos: (i - 1 * nBins + j - 1) + 1
-			append blk matInt/data/:pos
-			sum: sum + matInt/data/:pos
+			unless none? matInt/data/:pos [
+				append blk matInt/data/:pos
+				sum: sum + matInt/data/:pos
+			]
 		]
 		append/only blkH blk
 	]
