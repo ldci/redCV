@@ -21,14 +21,19 @@ Red [
 
 ;--this must be adapted according your OS
 ;--for macOS
-exifTool: "/usr/local/bin/exiftool"		;--native installation with no conflicts
+;exifTool: "/usr/local/bin/exiftool"		;--native installation with no conflicts
 ;convertTool: "/usr/local/bin/convert"  ;--convert is a macOS program
-convertTool: "/usr/local/bin/magick"	;--use ImageMagick	
+;convertTool: "/usr/local/bin/magick"	;--use ImageMagick	
 
 ;--for windows
 ;exifTool: "C:\Users\fjouen\Programmation\exiftool"
 ;exifTool: "exiftool"
 ;convertTool: "magick"	
+
+OS:  system/platform
+if any [OS = 'macOS OS = 'Linux] [exifTool: "/usr/local/bin/exiftool" convertTool: "/usr/local/bin/magick"] 
+if any [OS = 'MSDOS OS = 'Windows][exifTool: "exiftool" convertTool: "magick"]
+
 
 SourceFile: ""
 tmpDir: %.				
@@ -50,10 +55,10 @@ rcvGetFlirMetaData: func [
 "Get all Flir file metadata values as red words"
 	fileName	[string!]
 ][
-	tmpDir: to-file rejoin [first split-path to-file filename "irtmp/"]
+	tmpDir: to-red-file rejoin [first split-path to-file filename "irtmp/"]
 	if not exists? tmpDir [make-dir tmpDir]
-	exifFile: to-file rejoin [tmpDir "exif.txt"]
-	exifFile2: to-file rejoin [tmpDir "exif.red"]
+	exifFile: to-red-file rejoin [tmpDir "exif.txt"]
+	exifFile2: to-red-file rejoin [tmpDir "exif.red"]
 	rgbjpg:  rejoin [tmpDir "rgb.jpg"]
 	rgbpng:  rejoin [tmpDir "rgb.png"]
 	irimg:   rejoin [tmpDir "irimg.png"]	
@@ -90,6 +95,7 @@ rcvGetVisibleImage: function [
 	binstr: copy #{}
 	prog: copy rejoin [exifTool " -EmbeddedImage -b " to-local-file fileName]
 	ret: call/wait/output prog binstr
+	print ["Get visible image: " ret]
 	switch EmbeddedImageType [ 
 		"PNG"  [write/binary to-file rgbpng binstr]
 		"JPG"  [write/binary to-file rgbjpg binstr]			
@@ -121,7 +127,8 @@ rcvGetFlirPalette: function [
 		to-local-file palimg
 	]
 	ret: call/shell/wait prog 
-	load to-file palimg
+	print ["Palette extraction: " ret]
+	load to-red-file palimg
 ]
 
 rcvMakeRedPalette: function [
@@ -158,8 +165,9 @@ rcvGetFlirRawData: function [
 			]
 	]
 	ret: call/shell/wait prog
+	print ["Raw data reading: " ret]
 	extracted?: true
-	load to-file rawimg
+	load to-red-file rawimg
 ]
 ;--Red Files
 rcvGetPlanckValues: func [
@@ -212,11 +220,12 @@ rcvGetImageTemperatures: function [
 	;--convert linear gray IR image to pgm format for temperature reading
 	prog: rejoin [convertTool " " to-local-file irimg " -compress none " to-local-file tempimg]
 	ret: call/shell/wait prog
-	load to-file irimg
+	print ["Image temperatures: " ret]
+	load to-red-file irimg
 ]
 
 _getTemperatures: routine [
-	img				[block!]
+	img				[block!] ;--a pgm image 
 	minTemp			[float!]
 	delta			[float!]
 	return:			[block!]
@@ -257,7 +266,7 @@ rcvGetTemperatureAsBlock: function [
 	unless extracted? [rcvGetFlirRawData fileName]		;--we need raw data
 	rcvGetPlanckValues									;--and constants
 	delta: imgMaxTemp - imgMinTemp
-	img: load to-file tempimg
+	img: load to-red-file tempimg						;--a pgm image which is just a block 
 	_getTemperatures img imgMinTemp delta
 ]
 
@@ -269,16 +278,17 @@ rcvAlignImages: function [
 	fileName	[string!]
 	return:		[image!]
 ][
-	thermal: load to-file fileName								;--Original Flir Image
+	thermal: load to-red-file fileName							;--Original Flir Image
 	visible: rcvGetVisibleImage fileName						;--Embbedded RGB Image	
 	imgRatio: 1.0 - (1.0 / Real2IR)								;--Image ratio OK
 	either imgRatio > 0.0 [
 		cropXY: visible/size * imgRatio							;--ROI Size
 		offSetXY: as-pair to-integer OffsetX to-integer OffsetY	;--Flir Offset as pair!
 		imgOffset: cropXY / 2 + offSetXY						;--ROI Offset
+		imgPoffset: as-pair imgOffset/x imgOffset/y 
 		imgSize: cropXY +  thermal/size							;--ROI Size	
 		img: rcvResizeImage visible imgSize						;--Resize destination image
-		rcvCropImage visible img imgOffset						;--Crop ROI to destination
+		rcvCropImage visible img imgPoffset						;--Crop ROI to destination
 	][
 		dec: visible/size % thermal/size
 		factor: 0.85
@@ -313,13 +323,13 @@ rcvGetPIPImage: func [
 ]
 
 rcvCleanThermal: does [
-	if exists? to-file rgbjpg 		[delete to-file rgbjpg]
-	if exists? to-file rgbpng 		[delete to-file rgbpng]
-	if exists? to-file irimg  		[delete to-file irimg]
-	if exists? to-file palimg 		[delete to-file palimg]
-	if exists? to-file rawimg 		[delete to-file rawimg]
-	if exists? to-file tempimg 		[delete to-file tempimg]
-	if exists? to-file exifFile 	[delete to-file exifFile]
-	if exists? to-file exifFile2 	[delete to-file exifFile2]
-	if exists? to-file tmpDir 		[delete to-file tmpDir]
+	if exists? to-red-file rgbjpg 		[delete to-file rgbjpg]
+	if exists? to-red-file rgbpng 		[delete to-file rgbpng]
+	if exists? to-red-file irimg  		[delete to-file irimg]
+	if exists? to-red-file palimg 		[delete to-file palimg]
+	if exists? to-red-file rawimg 		[delete to-file rawimg]
+	if exists? to-red-file tempimg 		[delete to-file tempimg]
+	if exists? to-red-file exifFile 	[delete to-file exifFile]
+	if exists? to-red-file exifFile2 	[delete to-file exifFile2]
+	if exists? to-red-file tmpDir 		[delete to-file tmpDir]
 ]
