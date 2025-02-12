@@ -11,9 +11,9 @@ Red [
 ]
 
 ;--stand alone test
-#include %../core/rcvCore.red
-#include %../tools/rcvTools.red
-#include %../matrix/rcvMatrix.red
+;#include %../core/rcvCore.red
+;#include %../tools/rcvTools.red
+;#include %../matrix/rcvMatrix.red
 
 ;************** 1-D Fast Fourier Transform **********************
 ; Thanks to Mel Cepstrum and Toomas Voglaid :)
@@ -130,12 +130,12 @@ rcvFFTAmplitude: routine [
 	n		[integer!]
 	px*		[float-ptr!]
 ][
-	;s: GET_BUFFER(re)	
-	;unit: GET_UNIT(s)
+	s: GET_BUFFER(re)	
+	unit: GET_UNIT(s)
 	ptrRe: as float-ptr! vector/rs-head re
 	ptrIm: as float-ptr! vector/rs-head im
 	n: vector/rs-length? re 
-	x*: vector/make-at stack/push* n TYPE_FLOAT 8
+	x*: vector/make-at stack/push* n TYPE_FLOAT unit
 	px*: as float-ptr! vector/rs-head x*
 	i: 1
 	while [i <= n] [
@@ -165,14 +165,14 @@ rcvFFTPhase: routine [
 	px*		[float-ptr!]
 	f		[float!]
 ][
-	;s: GET_BUFFER(re)			
-	;unit: GET_UNIT(s)
+	s: GET_BUFFER(re)			
+	unit: GET_UNIT(s)
 	f: 1.0
 	if degree [f: 180.0 / pi]
 	ptrRe: as float-ptr! vector/rs-head re
 	ptrIm: as float-ptr! vector/rs-head im
 	n: vector/rs-length? re 
-	x*: vector/make-at stack/push* n TYPE_FLOAT 8
+	x*: vector/make-at stack/push* n TYPE_FLOAT unit
 	px*: as float-ptr! vector/rs-head x*
 	i: 1
 	while [i <= n] [
@@ -243,9 +243,8 @@ rcvFFTShift: routine [
 ][
 	n: vector/rs-length? x		; length
 	head: vector/rs-head x		; head
-	;s: GET_BUFFER(x)			; series
-	;unit: GET_UNIT(s)			; unit
-	unit: 8
+	s: GET_BUFFER(x)			; series
+	unit: GET_UNIT(s)			; unit
 	xx: vector/make-at stack/push* n TYPE_FLOAT unit
 	x*: vector/rs-head xx		; head
 	either n % 2 = 0 [n*: n / 2 - 1][n*: (n - 1) / 2]

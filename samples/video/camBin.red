@@ -32,14 +32,14 @@ view win: layout [
 		cam: camera iSize
 		canvas: base 320x240 white on-time [ 
 					tf/text: form now/time/precise
-					camImg: to-image cam
-					src: rcvResizeImage camImg iSize
+					;camImg: to-image cam
+					src: rcvResizeImage to-image cam iSize
 					;rcv2gray/average to-image cam d1
 					rcv2gray/average src d1
 					rcvThreshold/binary d1 d2 threshold 255
 					canvas/image: d2
 					cam/image: none
-					recycle
+					;recycle
 				] font-color red font-size 12
 		return
 		text 60 "Camera" 
@@ -54,10 +54,10 @@ view win: layout [
 					canvas/text: ""
 				][
 					cam/selected: cam-list/selected
-					camImg: to-image cam
-					src: rcvResizeImage camImg iSize
-					cSize/text: form src/size
-					d1: d2: src
+					;camImg: to-image cam
+					;src: rcvResizeImage camImg iSize
+					;cSize/text: form src/size
+					;d1: d2: src
 					canvas/rate: 0:0:0.04;  max 1/25 fps in ms
 				]
 		]
@@ -65,6 +65,6 @@ view win: layout [
 		do [cam-list/selected: 1 canvas/rate: none 
 			canvas/para: make para! [align: 'right v-align: 'bottom]
 			sl1/data: 0.5
-			filter/text: form threshold
+			filter/text: form threshold cSize/text: form iSize
 		]
 ]
