@@ -30,16 +30,18 @@ view win: layout [
 		btnQuit: button "Quit" 60x24 on-click [quit]
 		return
 		cam: camera iSize
-		canvas: base 320x240 white on-time [ 
-					tf/text: form now/time/precise
-					;camImg: to-image cam
+		canvas: base 320x240 black on-time [ 
+					;cImg: cam/image
+					;cImg: to-image cam
+					;src: rcvResizeImage cImg iSize
 					src: rcvResizeImage to-image cam iSize
-					;rcv2gray/average to-image cam d1
 					rcv2gray/average src d1
 					rcvThreshold/binary d1 d2 threshold 255
 					canvas/image: d2
 					cam/image: none
-					;recycle
+					tf/text: form now/time/precise
+					canvas/text: tf/text
+					recycle
 				] font-color red font-size 12
 		return
 		text 60 "Camera" 

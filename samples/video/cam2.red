@@ -5,7 +5,7 @@ Red [
 	File: 	 %cam2.red
 	Needs:	 'View
 ]
-
+;'
 iSize: 320x240
 margins: 10x10
 ;cam: none ; for camera object
@@ -21,9 +21,9 @@ view win: layout [
 		return
 		canvas: base iSize black on-time [
 			canvas/text: form now/time 
-			;rcanvas/image: cam/image		;--macOS
-			canvas/image: to image! cam		;--other
-			cam/image: none	
+			canvas/image: cam/image			;--macOS
+			;canvas/image: to image! cam	;--other
+			cam/image: none					;--required when using cam/image	
 			if cb/data [recycle]
 			f/text: form stats
 		] font-color green font-size 12

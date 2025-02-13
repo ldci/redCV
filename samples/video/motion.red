@@ -51,15 +51,13 @@ processCam: does [
 	rcv2BWFilter r1 r2 threshold 		; Applies B&W Filter to ANDed image
 	prevImg: currImg					; previous image contains now the current image
 	currImg: nextImg					; current image contains the next image				
-	;camImg: cam/image					; works in red macOS
-	camImg: to-image cam				; OK
+	camImg: cam/image					; works in red macOS
+	;camImg: to-image cam				; OK for all
 	nextImg: rcvResizeImage camImg iSize; resize camera image ;cam/image
 	; Gaussian blurring
 	rcvGaussianFilter nextImg nextImg 3x3 1.0
-	cam/image: none						; it's works				
+	cam/image: none						; it's works macOS required when using 	cam/image		
 ]
-
-
 
 view win: layout [
 		title "Motion Detection"
@@ -99,7 +97,7 @@ view win: layout [
 			quit]
 		return
 		cam: camera iSize
-		canvas: base iSize rate 0:0:1 on-time [processCam]
+		canvas: base black iSize rate 0:0:1 on-time [processCam]
 		return
 		text 40 "Select" 
 		cam-list: drop-list 270 on-create [face/data: cam/data]

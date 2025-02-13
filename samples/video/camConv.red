@@ -29,8 +29,6 @@ process: does [
 	src: rcvResizeImage camImg iSize
 	rcvConvolve src dst knl 1.0 threshold
 	canvas/image: dst
-	cam/image: none
-	;recycle
 ]
 
 view win: layout [
@@ -45,7 +43,7 @@ view win: layout [
 		btnQuit: button "Quit" 60x24 on-click [quit]
 		return
 		cam: camera iSize
-		canvas: base 320x240 white on-time [process] 
+		canvas: base 320x240 black on-time [process] 
 		return
 		text 60 "Camera" 
 		cam-list: drop-list 250 on-create [
@@ -59,16 +57,13 @@ view win: layout [
 					canvas/text: ""
 				][
 					cam/selected: cam-list/selected
-					camImg: to-image cam
-					src: rcvResizeImage camImg iSize
-					dst: rcvCloneImage src
-					cSize/text: form src/size
+					;camImg: to-image cam
 					canvas/rate: 0:0:0.04;  max 1/25 fps in ms
 				]
 		]
 		tf: field 220
 		do [cam-list/selected: 1 canvas/rate: none 
 			sl1/data: 0.0
-			filter/text: form threshold
+			filter/text: form threshold cSize/text: form iSize
 		]
 ]

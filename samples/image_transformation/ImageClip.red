@@ -18,9 +18,6 @@ img1: 	rcvCreateImage iSize
 dst: 	rcvCreateImage iSize
 rLimit: 0x0
 lLimit: 512x512
-start: 0x0
-end: start + 200
-poffset: negate start
 
 canvas: none
 
@@ -30,8 +27,12 @@ loadImage: does [
 	if not none? tmp [
 		img1: rcvLoadImage tmp
 		dst:  rcvCloneImage img1
-		canvas/image: dst
 		dst: rcvResizeImage img1 iSize ; force image in 512x512
+		canvas/image: dst
+		;--for ROI
+		start: 0x0
+		end: start + 200
+		poffset: negate start
 		drawBlk: rcvClipImage poffset start end dst
 		drawRect: compose [line-width 2 pen green box 0x0 200x200]
 		p1/draw: [] ROI/draw: []
@@ -56,7 +57,7 @@ view/tight [
 					start: p1/offset - winBorder
 					end: start + 200
 					poffset: negate start
-					sb/text: form start		
+					sb/text: rejoin [" Roi Offset " form start	]	
 					drawBlk/2: poffset 
 					drawBlk/4: start
 					drawBlk/5: end

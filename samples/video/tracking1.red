@@ -83,8 +83,8 @@ view win: layout [
 		text 320 "Source" text 320 "HSV transform" text 250 "Object tracking"
 		return
 		cam: camera iSize
-		cmask: base 320x240 mask
-		canvas: base 320x240 rimg on-time [processImage]
+		cmask: base black 320x240 mask
+		canvas: base black 320x240 rimg on-time [processImage]
 		return
 		text 100 "Select camera" 
 		cam-list: drop-list 220 on-create [face/data: cam/data]
