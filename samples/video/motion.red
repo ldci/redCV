@@ -21,7 +21,8 @@ rep., Carnegie Mellon University, Pittsburg, PA (2000)}
 #include %../../libs/imgproc/rcvImgProc.red
 
 
-iSize: 320x240
+camSize: 1280x720 			;default Apple FaceTime Camera size
+iSize: camSize / 4
 margins: 10x10
 threshold: 32
 cam: none						;--for camera object

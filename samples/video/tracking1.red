@@ -14,7 +14,8 @@ Red [
 #include %../../libs/imgproc/rcvColorSpace.red
 
 
-iSize: 320x240
+camSize: 1280x720 			;default Apple FaceTime Camera size
+iSize: camSize / 4
 rimg: rcvCreateImage iSize
 hsv: rcvCloneImage rimg
 mask: rcvCloneImage rimg
@@ -83,8 +84,8 @@ view win: layout [
 		text 320 "Source" text 320 "HSV transform" text 250 "Object tracking"
 		return
 		cam: camera iSize
-		cmask: base black 320x240 mask
-		canvas: base black 320x240 rimg on-time [processImage]
+		cmask: base black iSize mask
+		canvas: base black iSize rimg on-time [processImage]
 		return
 		text 100 "Select camera" 
 		cam-list: drop-list 220 on-create [face/data: cam/data]
@@ -103,7 +104,7 @@ view win: layout [
 					canvas/rate: 0:0:0.4;  max 1/25 fps in ms			
 				]
 		]
-		pad 475x0	
+		pad 470x0	
 		btnQuit: button "Quit" 60x24 on-click [
 			rcvReleaseImage rimg
 			rcvReleaseImage hsv

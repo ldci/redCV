@@ -1,0 +1,2 @@
+This code does not require redCV libs. matrix-obj.red and routines-obj.red are independant modules
+that can be used without redCV. But rcvMatrix.red add routines and functions adapted to image processing. 

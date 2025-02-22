@@ -347,7 +347,7 @@ matrix: context [
 		/rand
 		/bias
 			base [scalar!]
-		return:  [vector!] ;--matrix
+		return:  [object!] ;--matrix
 
 		/local
 			v	 	[scalar!]

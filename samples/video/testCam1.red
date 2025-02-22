@@ -6,7 +6,8 @@ Red [
 	Needs:	 'View
 ]
 
-iSize: 320x240
+camSize: 1280x720 			;default Apple FaceTime Camera size
+iSize: camSize / 4
 margins: 10x10
 cam: none ; for camera
 
@@ -20,7 +21,7 @@ view win: layout [
 		btnQuit: button "Quit" 60x24 on-click [quit]
 		return
 		cam: camera iSize
-		canvas: base 320x240 black on-time [ 
+		canvas: base iSize black on-time [ 
 					tf/text: form now/time/precise
 					;camImg: to-image cam 	;--OK
 					camImg: cam/image		;--macOS

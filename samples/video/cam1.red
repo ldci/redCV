@@ -5,8 +5,8 @@ Red [
 	File: 	 %cam1.red
 	Needs:	 'View
 ]
-
-iSize: 320x240
+camSize: 1280x720 			;default Apple FaceTime Camera size
+iSize: camSize / 4
 margins: 10x10
 cam: none ; 'for camera object
 

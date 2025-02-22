@@ -1,4 +1,4 @@
-#!/usr/local/bin/red
+#!/usr/local/bin/red-view
 Red [
 	Title:   "Test camera Red VID "
 	Author:  "ldci"
@@ -6,7 +6,8 @@ Red [
 	Needs:	 View
 ]
 
-iSize: 320x240 * 2
+camSize: 1280x720 			;default Apple FaceTime Camera size
+iSize: camSize / 2
 margins: 10x10
 cam: none ; for camera object
 
