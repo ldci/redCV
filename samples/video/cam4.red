@@ -30,7 +30,7 @@ view win: layout [
 		render cam4 camList4
 	]
 	
-	pad 480x0 btnQuit: button "Quit" [quit]
+	pad 460x0 btnQuit: button "Quit" [quit]
 	return
 	cam1: camera iSize
 	cam2: camera iSize

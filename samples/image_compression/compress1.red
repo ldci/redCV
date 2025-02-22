@@ -5,6 +5,7 @@ Red [
 	Needs:	 'View
 ]
 
+;--uses red compress and decompress functions
 ;required libs
 #include %../../libs/tools/rcvTools.red
 #include %../../libs/core/rcvCore.red
@@ -34,7 +35,7 @@ loadImage: does [
 		b1/image: img1
 		b2/image: img2
 		b3/image: img3
-		f0/text: f1/text: f11/text: f2/text: f3/text: sb/text: ""
+		f0/text: f1/text: f11/text: f2/text: f3/text: sb1/text: sb2/text: ""
 		f1/text: form imgSize
 		result: copy #{}
 		result2: copy #{}
@@ -45,7 +46,7 @@ loadImage: does [
 
 
 compressImage: does [
-	sb/text: "Compressing image..."
+	sb1/text: "Compressing image..."
 	f0/text: f2/text:  ""
 	img2/rgb: 0.0.0
 	b2/image: img2
@@ -53,15 +54,15 @@ compressImage: does [
 	b3/image: img3
 	do-events/no-wait
 	n: length? rgb
-	t1: now/time/precise
-	case [
-		clevel = 1 [result: compress rgb 'gzip]
-		clevel = 2 [result: compress rgb 'zlib]
-		clevel = 3 [result: compress rgb 'deflate]
+	switch  clevel [
+		1 [method: 'gzip]
+		2 [method: 'zlib]
+		3 [method: 'deflate]
 	]
-
+	t1: now/time/precise
+	result: compress rgb method
 	t2: now/time/precise
-	sb/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
+	sb1/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
 	nc: length? result	
 	;image compression ratio τ 
 	compression: round/to 1.0 - (nc / n) * 100 0.01
@@ -78,20 +79,21 @@ compressImage: does [
 ]
 
 uncompressImage: does [
-	sb/text: ""
+	sb2/text: "Uncompressing image..."
 	f3/text: ""
 	do-events/no-wait
-	t1: now/time/precise
-	case [
-		clevel = 1 [result2: decompress result 'gzip]
-		clevel = 2 [result2: decompress/size result 'zlib n]
-		clevel = 3 [result2: decompress/size result 'deflate n]
+	switch  clevel [
+		1 [method: 'gzip]
+		2 [method: 'zlib]
+		3 [method: 'deflate]
 	]
+	t1: now/time/precise
+	result2: decompress/size result method n
 	t2: now/time/precise
 	f3/text: rejoin [form length? result2 " bytes"]
 	img3/rgb: copy result2
 	b3/image: img3
-	sb/text: rejoin ["Uncompressed in " rcvElapsed t1 t2 " ms"]
+	sb2/text: rejoin ["Uncompressed in " rcvElapsed t1 t2 " ms"]
 ]
 
 
@@ -109,12 +111,13 @@ view win: layout [
 	button 88 "Compress" [if isFile [compressImage]]
 	f0: field 136
 	button 93 "Uncompress" [if isCompressed [uncompressImage]]
-	button 50  "Quit" [if isFile [
-									rcvReleaseImage img1 
-									rcvReleaseImage img2 
-									rcvReleaseImage img3
-								]
-					 quit]
+	button 50  "Quit" [if isFile 
+		[
+			rcvReleaseImage img1 
+			rcvReleaseImage img2 
+			rcvReleaseImage img3
+		]
+		quit]
 	return
 	f1: field 125 f11: field 125
 	text 125 "Compressed" f2: field 125
@@ -124,7 +127,7 @@ view win: layout [
 	b2: base defSize black
 	b3: base defSize black
 	return
-	sb: field 778
+	pad 260x0 sb1: field 256 sb2: field 256
 ]
 
 

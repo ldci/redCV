@@ -34,7 +34,7 @@ loadImage: does [
 		b1/image: img1						;--show image
 		b2/image: img2						;--show image
 		b3/image: img3						;--show image
-		f0/text: f1/text: f11/text: f2/text: f3/text: sb/text: sb2/text: ""
+		f0/text: f1/text: f11/text: f2/text: f3/text: sb1/text: sb2/text: ""
 		result: copy #{}					;--create binary string
 		result2: copy #{}					;--create binary string
 		f1/text: form imgSize
@@ -45,7 +45,7 @@ loadImage: does [
 
 
 compressImage: does [
-	sb/text: "Compressing image..."
+	sb1/text: "Compressing image..."
 	sb2/text: ""
 	f0/text: f2/text:  ""
 	img2/rgb: 0.0.0
@@ -57,7 +57,7 @@ compressImage: does [
 	t1: now/time/precise
 	result: rcvCompressRGB rgb clevel	;--compress image according level
 	t2: now/time/precise
-	sb/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
+	sb1/text: rejoin ["Compressed in " rcvElapsed t1 t2 " ms"]
 	nC: length? result	
 	;image compression ratio τ 
 	compression: round/to 1.0 - (nC / n) * 100 0.01
@@ -89,7 +89,7 @@ uncompressImage: does [
 
 
 view win: layout [
-	title "Compress/Uncompress Images with Red and ZLib"
+	title "Compress/Uncompress Images with Red and Bruno Anselme's ZLib"
 	origin margins space margins
 	button 90 "Load image" [loadImage]
 	dp: drop-down 140 data cprx 
@@ -106,12 +106,13 @@ view win: layout [
 	button 88 "Compress" [if isFile [compressImage]]
 	f0: field 137
 	button 93 "Uncompress" [if isCompressed [uncompressImage]]
-	button 50 "Quit" [if isFile [
-									rcvReleaseImage img1 
-									rcvReleaseImage img2 
-									rcvReleaseImage img3
-								]
-					 quit]
+	button 50 "Quit" [if isFile 
+		[
+			rcvReleaseImage img1 
+			rcvReleaseImage img2 
+			rcvReleaseImage img3
+		]
+		quit]
 	return
 	f1: field 125 f11: field 125
 	text 125 "Compressed" f2: field 125
@@ -121,8 +122,8 @@ view win: layout [
 	b2: base defSize black
 	b3: base defSize black
 	return
-	sb: field 256
 	pad 261x0
+	sb1: field 256
 	sb2: field 256
 ]
 

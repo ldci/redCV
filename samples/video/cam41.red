@@ -34,7 +34,7 @@ view win: layout [
 	button 100 "All Cameras" [renderAll]
 	b: base 20x20 black
 	
-	pad 460x0 btnQuit: button "Quit" [quit]
+	pad 440x0 btnQuit: button "Quit" [quit]
 	return
 	cam1: camera iSize
 	cam2: camera iSize

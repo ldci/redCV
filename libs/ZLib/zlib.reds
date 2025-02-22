@@ -16,9 +16,11 @@ Red/System [
 		http://www.zlib.net/
 	}
 ]
-;--modification by ldci for Red/system 0.6.4 
-;#include %../os/definitions.reds
-#define file! int-ptr!
+;--modification by ldci for Red/system 0.6.4 and 0.6.5 
+;--#include %../os/definitions.reds (obsolete)
+;--file! is replaced by byte-ptr! to avoid conflict with red file! datatype
+;--rename realloc as _realloc to avoid conflict realloc in red runtime/libc.reds
+
 ;--end modification
 zlib: context [
 	#define gzfile!  integer!
@@ -144,7 +146,7 @@ zlib: context [
 	] ; cdecl
 
 	LIBC-file cdecl [
-		realloc: "realloc" [
+		_realloc: "realloc" [
 			"Resize and return allocated memory."
 			memory			[byte-ptr!]
 			size			[integer!]
@@ -154,21 +156,21 @@ zlib: context [
 			"Open file."
 			name			[c-string!]
 			mode			[c-string!]
-			return:			[file!]
+			return:			[byte-ptr!] ;--file!
 		]
 		fclose: "fclose" [
 			"Close file."
-			file			[file!]
+			file			[byte-ptr!] ;--file!
 			return:			[integer!] "0 or EOF"
 		]
 		feof: "feof" [						
 			"End-of-file status."
-			file			[file!]
+			file			[byte-ptr!] ;--file!
 			return:			[logic!]
 		]
 		ferror: "ferror" [
 			"File status."
-			file			[file!]
+			file			[byte-ptr!] ;--file
 			return:			[logic!]
 		]
 		fwrite: "fwrite" [
@@ -176,7 +178,7 @@ zlib: context [
 			array			[byte-ptr!]
 			size			[integer!]
 			entries			[integer!]
-			file			[file!]
+			file			[byte-ptr!] ;--file
 			return:			[integer!]	"Chunks written"
 		]
 		fread: "fread" [
@@ -184,7 +186,7 @@ zlib: context [
 			array			[byte-ptr!]
 			size			[integer!]
 			entries			[integer!]
-			file			[file!]
+			file			[byte-ptr!] ;--file!
 			return:			[integer!]	"Chunks read"
 		]
 	] ; LIBC-file
@@ -197,7 +199,7 @@ zlib: context [
 		file-out     [c-string!] "Name of the output unzipped file"
 		return:      [integer!]
 		/local
-			file       [file!]
+			file       [byte-ptr!] ;--file!
 			zfile      [gzfile!]
 			error      [integer!]
 			buffer     [byte-ptr!]
@@ -235,7 +237,7 @@ zlib: context [
 		file-out     [c-string!] "Name of the output zipped file"
 		return:      [integer!]
 		/local
-			file       [file!]
+			file       [byte-ptr!] ;--file!
 			zfile      [gzfile!]
 			error      [integer!]
 			buffer     [byte-ptr!]
@@ -280,19 +282,13 @@ zlib: context [
 	][
 		out-count/value: z-compressBound in-count
 		out-buf: allocate out-count/value			;-- allocate the size of original buffer
-		print [out-buf " " out-count/value lf]
 		if out-buf = NULL [
 			print [ "Compress Error : Output buffer allocation error." lf ]
 			return NULL
 		]
 		ret: z-compress out-buf out-count in-buf in-count level
-		print [ret lf] ;--waiting for 0
 		either ret = Z_OK [
-			print ["OK" lf]
-			print [out-buf " " out-count/value lf]
-			;--error is here realloc
 			tmp: realloc out-buf out-count/value 	;-- Resize output buffer to minimum size
-			print ["OK2" lf]
 			either tmp = NULL [						;-- reallocation failed, uses current output buffer
 			print [ "Compress Warning : Impossible to reallocate output buffer." lf ]
 			][
