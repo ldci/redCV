@@ -1,26 +1,41 @@
 Red [
 	Title:   "Channel tests "
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %SplitChannels.red
 	Needs:	 'View
 ]
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+;required libs
+#include %../../libs/core/rcvCore.red
+
 margins: 10x10
-img1: rcvLoadImage %../../images/baboon.jpg
-dst: rcvCreateImage img1/size
+img1: make image! reduce [margins black]
+dst: make image! reduce [margins black]
+
+
+loadImage: does [	
+	isFile: false
+	canvas/image: none
+	tmp: request-file 
+	unless none? tmp [		
+		img1: load tmp	
+		dst: rcvCreateImage img1/size
+		canvas/image: img1
+		isFile: true
+	]
+]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
 		title "RGB Channels Test"
 		origin margins space margins
-		button 80 "Source"	[_rcvChannel img1 dst 0]	; routine
-		button 70 "Red"  	[rcvSplit/red img1 dst]
-		button 70 "Green"	[rcvSplit/green img1 dst]
-		button 70 "Blue"  	[rcvSplit/blue img1 dst]
-		button 70 "Alpha"  	[rcvSplit/alpha img1 dst]
-		button 80 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]
+		button 60 "load"	[loadImage]
+		button 65 "Source"	[rcvCopyImage img1 dst]	; routine
+		button 60 "Red"  	[rcvSplit/red img1 dst canvas/image: dst]
+		button 60 "Green"	[rcvSplit/green img1 dst  canvas/image: dst]
+		button 60 "Blue"  	[rcvSplit/blue img1 dst canvas/image: dst]
+		button 60 "Alpha"  	[rcvSplit/alpha img1 dst canvas/image: dst]
+		button 60 "Quit" 	[rcvReleaseImage img1 rcvReleaseImage dst Quit]
 		return 
-		canvas: base 512x512 dst	
-		do [_rcvChannel img1 dst 0]
+		canvas: base 512x512 black
 ]

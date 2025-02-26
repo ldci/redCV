@@ -1,0 +1,6 @@
+notes
+Some colorspace conversions in pure Red Language.
+Use 256x256 or smaller images for fast rendering.
+To be updated in Red/System language
+ 
+
