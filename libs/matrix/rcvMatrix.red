@@ -44,6 +44,14 @@ rcvGetMatUnit: routine [
 	mat/get-unit mObj
 ]
 
+rcvGetMatData: routine [
+"Returns matrice data"
+	mObj  	[object!] ;--replace [vector!]
+	return: [vector!]
+][
+	mat/get-data mObj
+]
+
 ; gets and sets integer matrix element value
 ; p address must be passed as integer! since red routine doesn't know byte-ptr!
 rcvGetIntValue: routine [
