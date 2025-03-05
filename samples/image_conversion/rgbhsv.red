@@ -8,39 +8,64 @@ Red [
 
 ;required libs
 #include %../../libs/core/rcvCore.red
-#include %../../libs/imgproc/rcvColorSpace2.red
+#include %../../libs/imgproc/rcvColorSpace.red
+
+;************************* Test Program ****************************
 
 margins: 5x5
-img1: rcvCreateImage 512x512
-img2: rcvCreateImage 512x512
-dst:  rcvCreateImage img1/size
+size: 512x512
+isFile?: false
+m1: copy []
+img: none!
+
+RGB2HSV: does [
+	tt: dt [m1: rcvRGB2HSVb img]
+	canvas/image: rcvRGB2HSVImage img
+	msec:  (round/to third tt 0.01) * 1000 	
+	f/text: rejoin ["Image Size: "  form img/size " in: " msec " msec"]
+	bt3/enabled?: true
+]
+
+BGR2HSV: does [
+	tt: dt [m1: rcvBGR2HSVb img]
+	canvas/image: rcvBGR2HSVImage img
+	msec: (round/to third tt 0.01) * 1000
+	f/text: rejoin ["Image Size: "  form img/size " in: " msec " msec"]
+	bt3/enabled?: true
+]
+
+HSV2BGR: does [
+	tt: dt [canvas/image: rcvHSV2RGBb img m1]
+	msec: (round/to third tt 0.01) * 1000
+	f/text: rejoin ["Image Size: "  form img/size " in: " msec " msec"]
+]
+
 
 loadImage: does [
-	canvas/image/rgb: black
+	canvas/image: black
 	tmp: request-file
 	unless none? tmp [
-		img1: rcvLoadImage tmp
-		img2: rcvCloneImage img1
-		dst:  rcvCloneImage img1
-		canvas/image: dst
+		img: load tmp
+		canvas/image: img
+		f/text: rejoin ["Image Size: "  form img/size]
+		isFile?: true 
+		bt1/enabled?: bt2/enabled?: true
 	]
 ]
-	
 
-
-; ***************** Test Program ****************************
 view win: layout [
 		title "RGB <-> HSV"
 		origin margins space margins
 		across
-		button 100 "Load RGB"		[loadImage]
-		button 100 "Source"			[rcvCopyImage img1 dst]
-		button 100 "RGB -> HSV"		[rcvRGB2HSV img1 dst]
-		button 100 "HSV -> RGB"		[rcvRGB2HSV img1 dst rcvCopyImage dst img2
-									 rcvHSV2RGB img2 dst ;--incorrect conversion
-									 ]
-		;pad 80x0
-		button 70 "Quit" 		[rcvReleaseImage img1 rcvReleaseImage dst Quit]
+		bt0: button 100 "Load RGB"		[loadImage]
+		bt1: button 100 "RGB -> HSV"	[if isfile? [RGB2HSV]]
+		bt2: button 100 "BGR -> HSV"	[if isfile? [BGR2HSV]]
+		bt3: button 100 "HSV -> Color"	[if isfile? [HSV2BGR]]
+		pad 10x0
+		button 60 "Quit" 				[Quit]
 		return
-		canvas: base 512x512 dst
+		canvas: base size
+		return 
+		f: field 512
+		do [bt1/enabled?: bt2/enabled?: bt3/enabled?: false]
 ]

@@ -127,6 +127,63 @@ rcvXYZRGB: routine [
     image/release-buffer dst handleD yes
 ]
 
+rcvXYZADOBE: routine [
+"CIE XYZ to RBG/RGB color conversion"
+    src 	[image!]
+    dst  	[image!]
+    op	 	[integer!]
+    /local
+    	rgba			[subroutine!]
+        pixS 			[int-ptr!]
+        pixD 			[int-ptr!]
+        handleS handleD	[integer!] 
+        i n				[integer!] 
+        r g b a 		[integer!] 
+        rf gf bf 		[float!]
+        x y z			[float!]
+][
+    handleS: 0 handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+    r: g: b: a: 0
+    x: y: z: 0.0
+    rf: gf: bf: 0.0
+    ;--subroutines
+    rgba: [
+    	a: pixS/value >>> 24
+       	r: pixS/value and FF0000h >> 16 
+        g: pixS/value and FF00h >> 8 
+        b: pixS/value and FFh 
+        x: (as float! r) / 100.0
+		y: (as float! g) / 100.0
+		z: (as float! b) / 100.0
+        rf: (x * 2.04137) + (y * -0.56495) + (z * -0.34469)
+		gf: (x * -0.96927) + (y * 1.87601) + (z * 0.04156)
+		bf: (x *  0.01345) + (y * -0.11839) + (z * 1.01541)
+		rf: pow rf (1.0 / 2.19921875)
+		gf: pow gf (1.0 / 2.19921875)
+		bf: pow bf (1.0 / 2.19921875)
+        r: as integer! rf * 255.0 
+		g: as integer! gf * 255.0 
+		b: as integer! bf * 255.0 
+    ]
+    i: 0
+    while [i < n] [
+    	rgba
+    	switch op [
+    		1 [pixD/value: (a << 24) OR (r << 16) OR (g << 8) OR b] ;rgb
+    		2 [pixD/value: (a << 24) OR (b << 16) OR (g << 8) OR r] ;bgr
+    	] 
+        pixS: pixS + 1
+        pixD: pixD + 1
+       	i: i + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
+]
+
+
 ;RGB<=>CIE XYZ.Rec 709 functions
 
 rcvRGB2XYZ: function [
@@ -161,10 +218,23 @@ rcvXYZ2BGR: function [
 	rcvXYZRGB src dst 2
 ] 
 
+rcvXYZ2AdobeRGB: function [
+"XYZ to RGB color conversion"
+	src [image!] 
+	dst [image!]
+][
+	rcvXYZADOBE src dst 1
+] 
 
-;RGB<=>HSV
-;R, G and B input range = 0..255
-;H, S and V output range = 0..1.0
+rcvXYZ2AdobeBGR: function [
+"XYZ to RGB color conversion"
+	src [image!] 
+	dst [image!]
+][
+	rcvXYZADOBE src dst 2
+] 
+
+;********************************* RGB <> HSV ****************************
 
 rcvRGBHSV: routine [
     src 	[image!]
@@ -296,8 +366,6 @@ rcvHSVRGB: routine [
     image/release-buffer dst handleD yes
 ]
 
-
-
 rcvRGB2HSV: function [
 "RBG color to HSV conversion"
 	src [image!] 
@@ -330,7 +398,169 @@ rcvHSV2BGR: function [
 	rcvHSVRGB src dst 2
 ] 
 
-;RGB<=>HLS
+;--new fonctions with blocks
+;--R, G and B input range = 0..255
+;--H output range (0..359) S and V output range = 0..1.0
+;--https://www.cs.rit.edu/~ncs/color/t_convert.html
+;--to be documented
+
+rgbToHSVb: routine [
+    r 				[integer!]
+	g 				[integer!]
+	b 				[integer!]
+    /local
+    rf gf bf 	 	[float!]
+    mini maxi delta	[float!]
+    h s v 			[float!]
+    ff				[red-float!]
+    blk  			[red-block!]				
+][
+	blk: as red-block! stack/push*	;--create a block in memory	
+	block/make-at blk 3				;--3 values (for h s v) in block
+    rf: (as float! r) / 255.0		;--we need float value
+    gf: (as float! g) / 255.0		;--we need float value
+    bf: (as float! b) / 255.0		;--we need float value
+	either rf < gf [mini: rf] [mini: gf] if bf < mini [mini: bf]
+	either rf > gf [maxi: rf] [maxi: gf] if bf > maxi [maxi: bf]
+	v: maxi	
+	delta: maxi - mini
+	;--Compute Hue 
+	;--modulo is not supported for float values by Red/System, so we use C-lib fmod
+	either delta = 0.0 [h: 0.0] ;--grayscale image
+	[	 case [
+			maxi = rf [h: fmod (60.0 * ((gf - bf) / delta) + 360.0) 360.0]
+			maxi = gf [h: fmod (60.0 * ((bf - rf) / delta) + 120.0) 360.0]
+			maxi = bf [h: fmod (60.0 * ((rf - gf) / delta) + 240.0) 360.0]
+		]
+	]
+	either maxi = 0.0 [s: 0.0][s: delta / maxi]	;--Compute Saturation
+	v: maxi										;--Compute Value
+	;--update block with h s v values
+    ff: float/box h
+    block/rs-append blk as red-value! ff		;--h value
+    ff: float/box s
+    block/rs-append blk as red-value! ff		;--s value
+    ff: float/box v
+    block/rs-append blk as red-value! ff  		;--v value
+    as red-block! stack/set-last as cell! blk	;--return block
+]
+
+
+;--With  H [0..359], S [0..1] and V [0..1] (float values) as input
+hsvToRGBb: routine [
+	h			[float!]
+	s			[float!]
+	v			[float!]
+	/local
+	r g b  		[integer!]
+	rf gf bf	[float!]
+	c x m 		[float!]
+	int			[red-integer!]	
+	blk  		[red-block!]
+][
+	blk: as red-block! stack/push*	;--create a block	
+	block/make-at blk 3				;--3 values (for h s v) in block
+	c: v * s
+	x: c * (1.0 - fabs (fmod (h / 60.0) 2.0) - 1.0)			
+	m: v - c
+	if all [h >=   0.0 h <  60.0][rf: c gf: x bf: 0.0]
+	if all [h >=  60.0 h < 120.0][rf: x gf: c bf: 0.0]
+	if all [h >= 120.0 h < 180.0][rf: 0.0 gf: c bf: x]
+	if all [h >= 180.0 h < 240.0][rf: 0.0 gf: x bf: c]
+	if all [h >= 240.0 h < 300.0][rf: x gf: 0.0 bf: c]
+	if all [h >= 300.0 h < 360.0][rf: c gf: 0.0 bf: x]
+	;--as integer! rounds values towards zero
+	rf: rf + m r: as integer! (rf * 255.0) 
+	gf: gf + m g: as integer! (gf * 255.0) 
+	bf: bf + m b: as integer! (bf * 255.0)
+	int: integer/box r
+    block/rs-append blk as red-value! int
+    int: integer/box g
+    block/rs-append blk as red-value! int
+    int: integer/box b
+    block/rs-append blk as red-value! int  
+    as red-block! stack/set-last as cell! blk
+]
+
+rcvRGB2HSVb: function [
+"RBG color to HSV conversion"
+	src 	[image!] 	;--RGB Image
+	return:	[block!]	;--HSV Values
+][
+	hsv: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [append hsv rgbToHSVb r g b] ;--HSV Values	
+	hsv
+] 
+
+rcvRGB2HSVImage: function [
+"RBG color to HSV image conversion"
+	src 	[image!] 	;--RGB Image
+	return:	[image!]	;--HSV Image
+][
+	hsv: copy []
+	crgb: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [
+		blk: rgbToHSVb r g b 
+		r: to integer! blk/1 / 360 * 255  
+		g: to integer! blk/2 * 255 
+		b: to integer! blk/3 * 255 
+		if r > 255 [r: 255]
+		if g > 255 [g: 255] 
+		if b > 255 [b: 255]
+		append crgb to-tuple reduce [r g b] ;--RGB value for pseudo visualisation	
+	]
+	make image! reduce [src/size to binary! crgb]	;--RGB image
+] 
+
+rcvBGR2HSVb: function [
+"BGR color to HSV conversion"
+	src 	[image!] 	;--BGR Image
+	return:	[block!]	;--HSV Values
+][
+	hsv: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [append hsv rgbToHSVb b g r] ;--HSV Values
+	hsv
+] 
+
+rcvBGR2HSVImage: function [
+"BGR color to HSV image conversion"
+	src 	[image!] 	;--BGR Image
+	return:	[image!]	;--HSV Image
+][
+	hsv: copy []
+	crgb: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [
+		blk: rgbToHSVb r g b 
+		r: to integer! blk/1 / 360 * 255 
+		g: to integer! blk/2 * 255 
+		b: to integer! blk/3 * 255 
+		if r > 255 [r: 255]
+		if g > 255 [g: 255]
+		if b > 255 [b: 255]
+		append crgb to-tuple reduce [b g r] ;--BGR value for pseudo visualisation	
+	]
+	make image! reduce [src/size to binary! crgb]	;--BGR image
+] 
+
+
+;--HSV->RGB or BGR
+rcvHSV2RGBb: function [
+"HSV color to RGB conversion"
+	src		[image!]
+	hsv		[block!]
+	return: [image!]
+] [
+	m: copy []
+	foreach [h s v] hsv [append m hsvToRGBb h s v]
+	make image! reduce [src/size to binary! m]	;--RGB image
+]
+
+;***************************** RGB<=>HLS *****************************
+
 rcvRGBHLS: routine [
     src [image!]
     dst  [image!]
@@ -501,7 +731,166 @@ rcvHLS2BGR: function [
 	rcvHLSRGB src dst 2
 ]
 
-;RGB<=>YCrCb JPEG (a.k.a. YCC)
+;--new
+;--R, G and B input range = 0..255
+;--H output range (0..359) S and L output range = 0..1.0
+;--https://www.cs.rit.edu/~ncs/color/t_convert.html
+
+rgbToHSLb: routine [
+    r 				[integer!]
+	g 				[integer!]
+	b 				[integer!]
+    /local
+    rf gf bf 	 	[float!]
+    mini maxi delta	[float!]
+    h s l x 		[float!]
+    ff				[red-float!]
+    blk  			[red-block!]				
+][
+	blk: as red-block! stack/push*	;--create a block in memory	
+	block/make-at blk 3				;--3 values (for h s v) in block
+    rf: (as float! r) / 255.0		;--we need float value
+    gf: (as float! g) / 255.0		;--we need float value
+    bf: (as float! b) / 255.0		;--we need float value
+	either rf < gf [mini: rf] [mini: gf] if bf < mini [mini: bf]
+	either rf > gf [maxi: rf] [maxi: gf] if bf > maxi [maxi: bf]
+	delta: maxi - mini
+	l: (maxi + mini) / 2.0
+	;--Compute Hue 
+	;--modulo is not supported for float values by Red/System, so we use C-lib fmod
+	either delta = 0.0 [h: 0.0]
+	[	 case [
+			maxi = rf [h: fmod (60.0 * ((gf - bf) / delta) + 360.0) 360.0]
+			maxi = gf [h: fmod (60.0 * ((bf - rf) / delta) + 120.0) 360.0]
+			maxi = bf [h: fmod (60.0 * ((rf - gf) / delta) + 240.0) 360.0]
+		]
+	]
+	;--Compute Saturation
+	x: fabs (2.0 * l - 1.0)
+	either delta = 0.0 [s: 0.0][s: delta / (1.0 - x)]
+	;--update block with h s l values
+    ff: float/box h
+    block/rs-append blk as red-value! ff		;--h value
+    ff: float/box s
+    block/rs-append blk as red-value! ff		;--s value
+    ff: float/box l
+    block/rs-append blk as red-value! ff  		;--l value
+    as red-block! stack/set-last as cell! blk	;--return block
+]
+
+;--With  H [0..359], S [0..1] and L [0..1] (float values)
+hslToRGBb: routine [
+	h			[float!]
+	s			[float!]
+	l			[float!]
+	/local
+	r g b  		[integer!]
+	rf gf bf	[float!]
+	c x m 		[float!]
+	int			[red-integer!]	
+	blk  		[red-block!]
+][
+	blk: as red-block! stack/push*	;--create a block	
+	block/make-at blk 3				;--3 values (for h s l) in block
+	c: (1.0 - fabs (2.0 * l - 1.0)) * s
+	x: c * (1.0 - fabs (fmod (h / 60.0) 2.0) - 1.0)
+	m: l - (c / 2.0)		
+	if all [h >=   0.0 h <  60.0][rf: c gf: x bf: 0.0]
+	if all [h >=  60.0 h < 120.0][rf: x gf: c bf: 0.0]
+	if all [h >= 120.0 h < 180.0][rf: 0.0 gf: c bf: x]
+	if all [h >= 180.0 h < 240.0][rf: 0.0 gf: x bf: c]
+	if all [h >= 240.0 h < 300.0][rf: x gf: 0.0 bf: c]
+	if all [h >= 300.0 h < 360.0][rf: c gf: 0.0 bf: x]
+	;--as integer! rounds values towards zero
+	rf: rf + m r: as integer! (rf * 255.0) 
+	gf: gf + m g: as integer! (gf * 255.0) 
+	bf: bf + m b: as integer! (bf * 255.0)
+	int: integer/box r
+    block/rs-append blk as red-value! int
+    int: integer/box g
+    block/rs-append blk as red-value! int
+    int: integer/box b
+    block/rs-append blk as red-value! int  
+    as red-block! stack/set-last as cell! blk
+]
+
+rcvRGB2HSLb: function [
+"RBG color to HSV conversion"
+	src 	[image!] 	;--RGB Image
+	return:	[block!]	;--HSV Values
+][
+	hsv: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [append hsv rgbToHSLb r g b] ;--HSV Values	
+	hsv
+] 
+
+rcvRGB2HSLImage: function [
+"RBG color to HSV image conversion"
+	src 	[image!] 	;--RGB Image
+	return:	[image!]	;--HSL Image
+][
+	;hsl: copy []
+	crgb: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [
+		blk: rgbToHSLb r g b 
+		r: to integer! blk/1 / 360 * 255  
+		g: to integer! blk/2 * 255 
+		b: to integer! blk/3 * 255 
+		if r > 255 [r: 255]
+		if g > 255 [g: 255] 
+		if b > 255 [b: 255]
+		append crgb to-tuple reduce [r g b] ;--RGB value for pseudo visualisation	
+	]
+	make image! reduce [src/size to binary! crgb]	;--RGB image
+] 
+
+rcvBGR2HSLb: function [
+"BGR color to HSV conversion"
+	src 	[image!] 	;--BGR Image
+	return:	[block!]	;--HSV Values
+][
+	hsl: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [append hsl rgbToHSLb b g r] ;--HSV Values
+	hsl
+] 
+
+rcvBGR2HSLImage: function [
+"BGR color to HSV image conversion"
+	src 	[image!] 	;--BGR Image
+	return:	[image!]	;--Output
+][
+	;hsv: copy []
+	crgb: copy []
+	rgb: src/rgb
+	foreach [r g b] rgb [
+		blk: rgbToHSLb r g b 
+		r: to integer! blk/1 / 360 * 255 
+		g: to integer! blk/2 * 255 
+		b: to integer! blk/3 * 255 
+		if r > 255 [r: 255]
+		if g > 255 [g: 255]
+		if b > 255 [b: 255]
+		append crgb to-tuple reduce [b g r] ;--BGR value for pseudo visualisation	
+	]
+	make image! reduce [src/size to binary! crgb]	;--BGR image
+] 
+
+;--HSL->RGB or BGR
+rcvHSL2RGBb: function [
+"HSL color to RGB conversion"
+	src		[image!]
+	hsl		[block!]
+	return: [image!]
+] [
+	m: copy []
+	foreach [h s l] hsl [append m hsvToRGBb h s l]
+	make image! reduce [src/size to binary! m]	;--RGB image
+]
+
+;************************* RGB<=>YCrCb JPEG (a.k.a. YCC) *****************
 rcvYCrCb: routine [
     src [image!]
     dst  [image!]
@@ -521,7 +910,7 @@ rcvYCrCb: routine [
     pixD: image/acquire-buffer dst :handleD
     n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
     r: g: b: a: 0
-    pixel: [(a << 24) OR (b << 16) OR (g << 8) OR r]
+    pixel: [(a << 24) OR (r << 16) OR (g << 8) OR b]
     rgba: [
     	a: pixS/value >>> 24
        	r: pixS/value and FF0000h >> 16 
@@ -554,6 +943,55 @@ rcvYCrCb: routine [
     image/release-buffer dst handleD yes
 ]
 
+rcvYCrCbRGB: routine [
+    src [image!]
+    dst  [image!]
+    op	 [integer!]
+    /local
+    	pixel rgba		[subroutine!]
+        pixS pixD 		[int-ptr!]
+        handleS handleD	[integer!] 
+        n i				[integer!]
+        r g b a 		[integer!]
+        rf gf bf 		[float!]
+        yy cr cb		[float!]
+        delta			[float!]
+][
+	delta: 128.0; for 8-bit image 
+    handleS: handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+    r: g: b: a: 0
+    pixel: [(a << 24) OR (r << 16) OR (g << 8) OR b]
+    rgba: [
+    	a: pixS/value >>> 24
+       	r: pixS/value and FF0000h >> 16 
+        g: pixS/value and FF00h >> 8 
+        b: pixS/value and FFh     
+    ]
+    i: 0
+    while [i < n] [
+       	rgba
+       	yy: as float! r
+		cr: as float! g
+		cb: as float! b
+		r: as integer! (yy + (1.403 * (cr - delta)))
+		g: as integer! (yy - (0.714 * (cr - delta)) - (0.344 * (cb - delta)))
+		b: as integer! (yy + (1.773 * (cb - delta)))
+		switch op [
+			1 [r: r g: g b: b]
+			2 [r: b g: g b: r]
+		]
+		pixD/value: pixel
+        pixS: pixS + 1
+        pixD: pixD + 1
+       	i: i + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
+]
+
 
 rcvRGB2YCrCb: function [
 "RBG color to YCrCb conversion"
@@ -571,8 +1009,25 @@ rcvBGR2YCrCb: function [
 	rcvYCrCb src dst 2
 ]
 
+rcvYCrCb2RGB: function [
+"RBG color to YCrCb conversion"
+	src [image!] 
+	dst [image!]
+][
+	rcvYCrCbRGB src dst 1
+] 
+
+rcvYCrCb2BGR: function [
+"RBG color to YCrCb conversion"
+	src [image!] 
+	dst [image!]
+][
+	rcvYCrCbRGB src dst 2
+] 
+
 ; A REVOIR
-;RGB<=>CIE L*a*b* 
+
+;************************ RGB<=>CIE L*a*b**********************
 rcvLab: routine [
     srcS [image!]
     dst  [image!]
@@ -717,7 +1172,7 @@ rcvLuv: routine [
     image/release-buffer dst handleD yes
 ]
 
-
+;**************************** RGB <> LUV ******************************
 rcvRGB2Luv: function [
 "RBG color to CIE L*u*v conversion"
 	src [image!] 
@@ -842,4 +1297,139 @@ rcvIR2RGB: routine [
     image/release-buffer src handleS no
     image/release-buffer dst handleD yes
 ]
+
+;--new
+;*********************** RGB<=>YIQ ******************************
+
+{RGB to YIQ conversion is used in the NTSC encoder where the RGB inputs are converted to a luminance (Y) and two chrominance information (I,Q).}
+
+;--OK
+rcvRGBYIQ: routine [
+    src 	[image!]
+    dst  	[image!]
+    /local
+    	pixel yiq				[subroutine!]
+        pixS 					[int-ptr!]
+        pixD 					[int-ptr!]
+        handleS handleD			[integer!] 
+        r g b a n ct			[integer!]
+        rf gf bf 				[float!]
+        Y I Q					[float!]
+        YY II QQ 				[integer!]
+][
+    handleS: handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+    r: g: b: a: 0
+    rf: gf: bf: 0.0
+    Y: I: Q: 0.0
+	YY: II: QQ: 0
+	;--subroutines
+    pixel: [(a << 24) OR (YY << 16) OR (II << 8) OR QQ] ;--use RGB mode 
+    ;pixel: [(a << 24) OR (QQ << 16) OR (II << 8) OR YY] ;--use RGB mode 
+    yiq: [
+    	a: pixS/value >>> 24
+       	r: pixS/value and FF0000h >> 16 
+        g: pixS/value and FF00h >> 8 
+        b: pixS/value and FFh   
+        rf: (as float! r) / 255.0							;--[0:1] normalization
+		gf: (as float! g) / 255.0							;--[0:1] normalization
+		bf: (as float! b) / 255.0 							;--[0:1] normalization 
+		Y: (rf * 0.299) + (gf * 0.587) + (bf * 0.114) 		;--luminance
+		I: (rf * 0.596) + (gf * -0.275) + (bf * -0.322)		;--chrominance 
+		Q: (rf * 0.212) + (gf * -0.523) + (bf * 0.311) 		;--chrominance
+		;i: -0.27 * (bf - y) + 0.74 * (rf - y)
+		;q: 0.41 * (bf - y) + 0.48 * (rf - y)
+		YY: as integer! (Y * 255.0) 
+		II: as integer! (I * 255.0) 
+		QQ: as integer! (Q * 255.0) 
+		;print-wide [(yy + ii + qq) / 3 lf]
+		if YY < 0 [YY: 0] 	;--[0:255] range
+		if II < 0 [II: 0]		;--[0:255] range 
+		if QQ < 0 [QQ: 0]		;--[0:255] range 
+    ]
+    
+	ct: 0
+    while [ct < n] [
+       	yiq
+    	pixD/value: pixel	
+        pixS: pixS + 1
+        pixD: pixD + 1
+        ct: ct + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
+]
+
+;--some default in rendering
+
+rcvYIQRGB: routine [
+    src 	[image!]
+    dst  	[image!]
+	/local
+    	pixel rgba				[subroutine!]
+        pixS 					[int-ptr!]
+        pixD 					[int-ptr!]
+        handleS handleD			[integer!] 
+        r g b a n ct			[integer!]
+        Y I Q					[integer!]
+        rf gf bf 				[float!]
+        fy fi fq				[float!]
+][
+	handleS: handleD: 0
+    pixS: image/acquire-buffer src :handleS
+    pixD: image/acquire-buffer dst :handleD
+    n: IMAGE_WIDTH(src/size) * IMAGE_HEIGHT(src/size)
+    rf: gf: bf: 0.0
+    fy: fi: fq: 0.0
+    r: g: b: 0
+    ;--subroutines
+    pixel: [(a << 24) OR (r << 16) OR (g << 8) OR b] ;--rgb order
+    ;pixel: [(a << 24) OR (b << 16) OR (g << 8) OR r] ;--bgr order
+    rgba: [
+    	a: pixS/value >>> 24
+       	Y: pixS/value and FF0000h >> 16 
+        I: pixS/value and FF00h >> 8 
+        Q: pixS/value and FFh  
+        fy: as float! Y fi: as float! I fq: as float! Q
+        fy: fy / 255.0	;--[0:1] normalization
+        fi: fi / 255.0	;--[0:1] normalization
+        fq: fq / 255.0	;--[0:1] normalization
+        
+        rf: fy + (fi * 0.956) + (fq * 0.621)
+        gf: fy - (fi * 0.272) - (fq * 0.647)
+        bf: fy - (fi * 1.105) + (fq * 1.702)
+        
+    	r: as integer! (rf * 255.0)	;--[0:255] range
+		g: as integer! (gf * 255.0)	;--[0:255] range
+		b: as integer! (bf * 255.0)	;--[0:255] range
+    ]
+    ct: 0
+    while [ct < n] [
+       	rgba
+    	pixD/value: pixel	
+        pixS: pixS + 1
+        pixD: pixD + 1
+        ct: ct + 1
+    ]
+    image/release-buffer src handleS no
+    image/release-buffer dst handleD yes
+]
+
+rcvRGB2YIQ: function [
+"RBG color to HSV conversion"
+	src [image!] 
+	dst [image!]
+][
+	rcvRGBYIQ src dst 
+] 
+
+rcvYIQ2RGB: function [
+"RBG color to HSV conversion"
+	src [image!] 
+	dst [image!]
+][
+	rcvYIQRGB src dst 
+] 
 
