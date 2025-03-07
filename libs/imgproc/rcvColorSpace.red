@@ -10,7 +10,7 @@ Red [
 	}
 ]
 
-;***************** COLORSPACE CONVERSIONS ************
+;***************** COLOR SPACE CONVERSIONS ************
 
 ;******************* RGB<=>CIE XYZ.Rec 709 **************************
 ;X, Y and Z output refer to a D65/2° standard illuminant
@@ -1025,9 +1025,8 @@ rcvYCrCb2BGR: function [
 	rcvYCrCbRGB src dst 2
 ] 
 
-; A REVOIR
-
 ;************************ RGB<=>CIE L*a*b**********************
+; A REVOIR
 rcvLab: routine [
     srcS [image!]
     dst  [image!]
@@ -1072,8 +1071,9 @@ rcvLab: routine [
     	xf: xf / 0.950456
     	zf: zf / 1.088754
     	either yf > 0.008856 [l: 116.0 *  pow yf ratio] [l: 903.3 * yf]			
-    	either yf > 0.008856 [aa: 500.0 * (pow xf ratio) - (pow yf ratio) + delta
-    						bb: 200.0 * (pow yf ratio) - (pow zf ratio) + delta] 
+    	either yf > 0.008856 [aa: 500.0 * ((pow xf ratio) - (pow yf ratio)) + delta
+    						bb: 200.0 * ((pow yf ratio) - (pow zf ratio)) + delta
+    				] 
     				[aa: 500.0 * (7787.0 * xf + ratio2) - (7787.0 * yf + ratio2)
     				 bb: 200.0 * (7787.0 * yf + ratio2) - (7787.0 * zf + ratio2)
     				]
@@ -1110,6 +1110,7 @@ rcvBGR2Lab: function [
 	rcvLab src dst 2
 ]
 
+;**************************** RGB <> LUV ******************************
 rcvLuv: routine [
     src [image!]
     dst  [image!]
@@ -1152,10 +1153,10 @@ rcvLuv: routine [
     	either yf > 0.008856 [l: (116.0 * pow yf ratio) - 16.00] 
     				[l: 903.3 * yf]	
     	;convert XYZ to CIE Luv
-    	uu: (4.0 * xf) / (xf + 15.00 * yf + 3.0 * zf)			
-    	vv: (9.0 * yf) / (xf + 15.00 * yf + 3.0 * zf)
-    	u: 13.00 * l * (uu - 0.19793943)
-		v: 13.00 * l * (vv - 0.46831096)
+    	uu: (4.0 * xf) / (xf + (15.00 * yf) + (3.0 * zf))			
+    	vv: (9.0 * yf) / (xf + (15.00 * yf) + (3.0 * zf))
+    	u: (13.00 * l) * (uu - 0.19793943)
+		v: (13.00 * l) * (vv - 0.46831096)
 		l: (l / 100.0) * 255.0
 		u: ((u + 134.0)  / 354.0) * 255.0
 		v: ((v + 140.0)  / 266.0) * 255.0    	 
@@ -1172,7 +1173,7 @@ rcvLuv: routine [
     image/release-buffer dst handleD yes
 ]
 
-;**************************** RGB <> LUV ******************************
+
 rcvRGB2Luv: function [
 "RBG color to CIE L*u*v conversion"
 	src [image!] 
@@ -1189,13 +1190,15 @@ rcvBGR2Luv: function [
 	rcvLuv src dst 2
 ]
 
+
+;************************* IR *********************
+
 _logOpp: routine [
 	value [float!]
 	return: [float!]
 ] [
-	105.0 * log-10 (value + 1.0)
+	105.0 * (log-10 (value + 1.0))
 ]
-
 rcvIRgBy: routine [
 "log-opponent conversion"
     src [image!]
@@ -1225,10 +1228,7 @@ rcvIRgBy: routine [
     pixel: [(a << 24) OR (b << 16 ) OR (g << 8) OR r]
     i: 0
     while [i < n] [
-       	a: pixS/value >>> 24
-		r: pixS/value and FF0000h >> 16 
-		g: pixS/value and FF00h >> 8 
-		b: pixS/value and FFh 
+        rgba
 		rf: as float! r * val
 		gf: as float! g * val
 		bf: as float! b * val
@@ -1290,6 +1290,7 @@ rcvIR2RGB: routine [
     		2 [r: as integer! zf g: as integer! yf b: as integer! xf] ;bgr
     	] 
     	pixD/value: pixel
+    	;pMat: pMat + 9
         pixS: pixS + 1
         pixD: pixD + 1
         i: i + 1
