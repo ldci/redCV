@@ -1,0 +1,5 @@
+we don't need to prefix matrix methods by self" - true, I removed `self/` (there was one conflict, but it is resolved now).
+" we have to decide which methods modify the mx object and which methods create a new mx object" - Currently: 
+1) like in case of vector!, scalar operations are modifying, and ops involving two matrices create new one
+2) modifying methods: _setAt _swapDim _matScalarOp _matRREF _changeData setAt removeRow removeCol insertRow appendRow insertCol appendCol augment split switchRows rowAdd rowProduct transpose negative rotate rotateRow rotateCol scalarAddition scalarSubtraction scalarProduct scalarDivision scalarRemainder scalarAnd scalarOr scalarXor scalarRightShift scalarLeftShift scalarRightShiftUnsigned
+methods creating new matrix: _matOp create init scalar (identity zero) invert addition subtraction standardProduct HadamardProduct KroneckerProduct division getIdentity
