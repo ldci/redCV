@@ -20,7 +20,8 @@ dst: 	rcvCreateImage iSize
 
 scale: 0.625
 centerXY: iSize / 2
-translation: (iSize * scale) / 2 - 8
+translation: as-pair (iSize/x * scale / 2 - 8) (iSize/y * scale / 2 - 8) 
+
 ;scale: 1.0
 ;translation: 90x90
 ;centerXY: 160x160

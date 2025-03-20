@@ -1108,7 +1108,7 @@ rcvDetectObjects: func [
 		;--size of the detection window scaled up (smaller to bigger)
 		_winSize: as-pair __round (factor * _winSize0/x) __round (factor * _winSize0/y)
 		;--size of the image scaled down (from bigger to smaller)
-		sz: img/size / factor
+		sz: as-pair (img/size/x / factor) (img/size/y / factor)
 		;--difference between sizes of the scaled image and the original detection window
 		sz1: sz - _winSize0
 		;--if the actual scaled image is smaller 

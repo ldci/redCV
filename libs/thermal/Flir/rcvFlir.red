@@ -95,7 +95,7 @@ rcvGetVisibleImage: function [
 	binstr: copy #{}
 	prog: copy rejoin [exifTool " -EmbeddedImage -b " to-local-file fileName]
 	ret: call/wait/output prog binstr
-	print ["Get visible image: " ret]
+	;print ["Get visible image: " ret]
 	switch EmbeddedImageType [ 
 		"PNG"  [write/binary to-file rgbpng binstr]
 		"JPG"  [write/binary to-file rgbjpg binstr]			
@@ -127,7 +127,7 @@ rcvGetFlirPalette: function [
 		to-local-file palimg
 	]
 	ret: call/shell/wait prog 
-	print ["Palette extraction: " ret]
+	;print ["Palette extraction: " ret]
 	load to-red-file palimg
 ]
 
@@ -165,7 +165,7 @@ rcvGetFlirRawData: function [
 			]
 	]
 	ret: call/shell/wait prog
-	print ["Raw data reading: " ret]
+	;print ["Raw data reading: " ret]
 	extracted?: true
 	load to-red-file rawimg
 ]
@@ -220,7 +220,7 @@ rcvGetImageTemperatures: function [
 	;--convert linear gray IR image to pgm format for temperature reading
 	prog: rejoin [convertTool " " to-local-file irimg " -compress none " to-local-file tempimg]
 	ret: call/shell/wait prog
-	print ["Image temperatures: " ret]
+	;print ["Image temperatures: " ret]
 	load to-red-file irimg
 ]
 
@@ -280,9 +280,11 @@ rcvAlignImages: function [
 ][
 	thermal: load to-red-file fileName							;--Original Flir Image
 	visible: rcvGetVisibleImage fileName						;--Embbedded RGB Image	
+	;--Real2IR comes from exif.red
 	imgRatio: 1.0 - (1.0 / Real2IR)								;--Image ratio OK
 	either imgRatio > 0.0 [
-		cropXY: visible/size * imgRatio							;--ROI Size
+		;--red 0.6.6 correction
+		cropXY: as-pair (visible/size/x * imgRatio) (visible/size/y * imgRatio)	;--ROI Size
 		offSetXY: as-pair to-integer OffsetX to-integer OffsetY	;--Flir Offset as pair!
 		imgOffset: cropXY / 2 + offSetXY						;--ROI Offset
 		imgPoffset: as-pair imgOffset/x imgOffset/y 
@@ -316,7 +318,9 @@ rcvGetPIPImage: func [
 	][
 		imgSize: as-pair (PiPX1 + PiPX2) (PiPY1 + PiPY2)	;--PIP image Size 
 		if odd? (PiPX1 + PiPX2) [imgSize: imgSize + 1]		;--0 or 1-based image computation
-		img: make image! imgSize * imgRatio					;--correct scale	
+		;--red 0.6.6 correction
+		sz: as-pair (imgSize/x * imgRatio) (imgSize/y * imgRatio)
+		img: make image! sz					;--correct scale
 		rcvCropImage thermal img as-pair PiPX1 + PiPX2 PiPY1 + PiPY2
 	]
 	img

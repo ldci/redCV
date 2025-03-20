@@ -55,19 +55,21 @@ loadClassifier: does [
 getFaces: does [
 	;--reduce original image size
 	rcvNearestNeighbor src0 src1	;--reduced  image
-	
 	t1: now/time/precise
 	;--ATTENTION rcvDetectObjects inhibits and restores Red garbage collector
 	;--not yet stable
+
 	faces: rcvDetectObjects 
 		src1 startPos scaleFactor 				;--use grayscale image
 		step sThreshold 
 		maxCandidates minNeighbors grouping		;--group candidates 
 		flag
+		
 	t2: now/time/precise
 	elapsed: round/to third (t2 - t1) 0.02 
 	elapsed: to-integer (1000 * elapsed)
 	sb/text: rejoin [form elapsed " ms"]
+	
 	;--draw rectangles
 	if (length? faces) > 0 [
 		minArea: 0 ct: big: 1
@@ -120,6 +122,7 @@ view win: layout [
 			unless none? src0 [getFaces]
 			cam/image: none
 			mem/text: form stats/show
+			;mem/text: form stats/info
 		]
 		
 		return

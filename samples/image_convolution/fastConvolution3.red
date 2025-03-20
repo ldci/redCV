@@ -1,7 +1,7 @@
 Red [
 	Title:   "Fast Convolution tests "
 	Author:  "ldci"
-	File: 	 %fastConvolution2.red
+	File: 	 %fastConvolution3.red
 	Needs:	 'View
 ]
 
@@ -13,7 +13,7 @@ Red [
 #include %../../libs/core/rcvCore.red
 #include %../../libs/matrix/rcvMatrix.red
 #include %../../libs/imgproc/rcvImgProc.red
-recycle/off
+
 ;a fast laplacian mask
 mask: [-1.0 0.0 -1.0 0.0 4.0 0.0 -1.0 0.0 -1.0]
 isize: 256x256
@@ -90,7 +90,7 @@ view win: layout [
 	]
 	f2: field 50 "0"
 	pad 430x0
-	button 50  "Quit" [recycle/on quit]
+	button 50  "Quit" [quit]
 	return
 	text 100 "Source"
 	pad 156x0 text "Channel 1: R"

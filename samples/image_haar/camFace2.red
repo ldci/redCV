@@ -125,7 +125,8 @@ view win: layout [
 			;--there is delay for the first frame
 			unless none? src0 [getFaces]
 			cam/image: none
-			mem/text: form stats/show
+			;mem/text: form stats/show
+			mem/text: form stats/info
 		]
 		return
 		mem: field 640

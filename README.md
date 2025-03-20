@@ -7,7 +7,7 @@
 
 ### Created and tested with macOS 10.14 (Mojave 32-bit on Intel processor).
 
-Code is functional with Red 0.6.5. 
+Code is now functional with Red 0.6.6. 
 
 You must compile samples since red routines are required.
 Most of samples require View.
@@ -16,12 +16,13 @@ Use first -c compiler option to create a Red RT library and in case of problems 
 
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
-### **UPDATE February 6 2025**
-I spent a lot of time adapting redCV to the new version of the Red compiler, which introduced the nodes-gc version in the master branch. The code is compatible in 99.61% of cases. But, in some cases, I had to deactivate the GC (with recycle/off).
-So, I'm waiting for Red Team fix for memory allocation.
+
+### **UPDATE March 20 2025**
+redCV is 100% compatible with the new version of Red 0.0.6.
+
 ### **UPDATE January 14 2025**
 Many of the libs have been modified to be compatible with the October 2024 Red-Toolchain. 
-All examples work perfectly. For a new toolchain for macOS, you have to compile it yourself, which requires a Rebol 2 SDK and a license. So I'll wait until Red reaches a stable version (0.7.0?) before updating redCV. 
+All examples work perfectly. For a new toolchain for macOS, you have to compile Red yourself, which requires a Rebol 2 SDK and a license. 
 ### **UPDATE May 25 2024**
 General update adapted to Red 0.6.5.
 
@@ -55,7 +56,6 @@ All libs and code samples are compatible with the new less permissive, but faste
 This udpate also includes **a new matrix object** developed with Toomas Vooglaid during the last summer in order to improve initial matrix implementation.
 
 You'll find in *libs/matrix/atrix-as-obj/docs* a short and incomplete documentation and some samples.
-
 
 
 
