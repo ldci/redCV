@@ -14,6 +14,8 @@ Most of samples require View.
 
 Use first -c compiler option to create a Red RT library and in case of problems use -u compiler option. See [https://www.red-lang.org](https://www.red-lang.org) for details.
 
+[![Join the chat at https://gitter.im/ldci/redCV](https://badges.gitter.im/ldci/redCV.svg)](https://gitter.im/ldci/redCV?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
 
