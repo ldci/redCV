@@ -1,71 +1,65 @@
 Red [
 	Title:   "Pyramidal test"
-	Author:  "Francois Jouen"
+	Author:  "ldci"
 	File: 	 %pyramidal.red
 	Needs:	 'View
 ]
 
 
-; last Red Master required!
-#include %../../libs/redcv.red ; for red functions
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgEffect.red
+#include %../../libs/imgproc/rcvGaussian.red
+#include %../../libs/imgproc/rcvConvolutionImg.red
+
 margins: 10x10
-knl: rcvMakeGaussian 5x5
-img1: rcvCreateImage 512x512
+src: rcvCreateImage 512x512
 dst: rcvCreateImage 512x512
 iSize: 0x0
-knl: rcvMakeGaussian 5x5
+isFile: false
+
 
 loadImage: does [
-	canvas/image/rgb: black
-	canvas/size: 0x0
+	
+	isFile: false
 	tmp: request-file
 	if not none? tmp [
-		fileName: to string! to-local-file tmp
+		canvas/image: none
+		fileName: to string! to-file tmp
 		win/text: fileName
-		img1: rcvLoadImage tmp
-		dst:  rcvCloneImage img1
-		; update faces
-		
-		iSize: img1/size
-		canvas/size: iSize
-		canvas/image/size: iSize	
-		
-		canvas/offset/x: (win/size/x - img1/size/x) / 2
-		
-		{if img1/size >= 256x256 [
-			win/size/x: iSize/x + 20
-			win/size/y: iSize/y + 100
-		] }
+		src: rcvLoadImage tmp
+		;dst: rcvCloneImage src
+		dst: copy src
+		iSize: src/size
 		canvas/image: dst
-		f/data: form dst/size
+		canvas/size: 256x256
+		canvas/offset: 138x168
+		f/text: form dst/size
+		isFile: true
 	]
 ]
 
+showResult: func [mode [integer!]] [
+	case [
+		mode = 0 [canvas/size: 256x256 canvas/offset: 138x168]
+		mode = 1 [canvas/size: 128x128 canvas/offset: 202x232]
+		mode = 2 [canvas/size: 512x512 canvas/offset: 10x50]
+	]
+	canvas/image: dst
+	f/text: form dst/size
+]
 
 
-	  
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Pyramidal Sizing"
-		button 80 "Load" 			[loadImage]
-		
-								    					    								
-		button 85 "Pyr Down"	   [
-									iSize: iSize / 2
-								    	if iSize > 5x5 [
-								    		f/data: form rcvResizeImage/gaussian dst canvas iSize
-										]
-								    ]	
-		button 80 "Pyr Up"	   		[
-									iSize: iSize * 2
-									f/data: form rcvResizeImage/gaussian dst canvas iSize
-								    ]				
-								    
-		f: field 80x29						
-		button 80 "Quit" 			[rcvReleaseImage img1 rcvReleaseImage dst Quit]
-		
+		button 60 "Load" 		[loadImage]		    					    								
+		button 80 "Pyr Down"	[if isFile [dst: rcvPyrDown src 2 showResult 1]]
+		button 70 "Source" 		[if isFile [dst: copy src showResult 0]]			
+		button 80 "Pyr Up"	   	[if isFile [dst: rcvPyrUp src 2 showResult 2]]								    
+		f: base 80x20 white	center					
+		button 60 "Quit" 		[rcvReleaseImage src rcvReleaseImage dst Quit]
 		return
-		canvas: base 512x512 dst
-		
-			
+		canvas: base 512x512 dst		
 ]

@@ -1,29 +1,49 @@
 Red [
 	Title:   "Logical Operators "
-	Author:  "Francois Jouen"
-	File: 	 %LogicalOps.red
+	Author:  "ldci"
+	File: 	 %logicalOps.red
 	Needs:	 'View
 ]
 
 
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
-margins: 10x10
-img1: rcvLoadImage %../../images/lena.jpg
+; required libs
+#include %../../libs/core/rcvCore.red
+#include %../../libs/matrix/rcvMatrix.red
+#include %../../libs/tools/rcvTools.red
+#include %../../libs/imgproc/rcvImgProc.red
+
+
+
+margins: 5x5
+img1: rcvCreateImage 512x512; rcvLoadImage %../../images/lena.jpg
 img2: rcvRandomImage/uniform img1/size 255.255.255 ;
 dst: rcvCreateImage img1/size
+
+loadImage: does [
+	tmp: request-file
+	if not none? tmp [
+		img1: rcvLoadImage  tmp
+		img2: rcvRandomImage/uniform img1/size 255.255.255 ;
+		dst: rcvCreateImage img1/size
+		rcvCopyImage img1 dst
+		canvas/image: dst
+	]
+]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Logical Tests"
 		origin margins space margins
+		button "Load"	[loadImage]
+		
 		button 70 "SRC" [rcvCopyImage img1 dst ]		
 		button 70 "NOT" [rcvNot img1 dst ]
 		button 70 "AND" [rcvAND img1 img2 dst]
 		button 70 "OR"  [rcvOR img1 img2 dst]
 		button 70 "XOR" [rcvXOR img1 img2 dst]
 		
-		button 80 "Quit" [	rcvReleaseImage img1 
+		button 50 "Quit" [	rcvReleaseImage img1 
 							rcvReleaseImage img2 
 							rcvReleaseImage dst 
 							Quit]
@@ -51,5 +71,5 @@ view win: layout [
 		return
 		pad 2x0
 		canvas: base 512x512 dst
-		do [rcvCopyImage img1 dst]
+		
 ]

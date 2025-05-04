@@ -1,0 +1,2 @@
+exiftool patient_221_final.jpg -b -RawThermalImage | magick - gray:- | magick -depth 16 -endian lsb -size 640x480 gray:- Outputfilename.png
+exiftool patient_221_m01.jpg -b -Palette | magick -size 224x1 -depth 8 YCbCr:- -separate -swap 1,2 -set colorspace YCbCr -combine -colorspace RGB -auto-level palette.png

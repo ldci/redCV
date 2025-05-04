@@ -1,25 +1,39 @@
 Red [
 	Title:   "Maths tests "
-	Author:  "Francois Jouen"
-	File: 	 %MathOps.red
+	Author:  "ldci"
+	File: 	 %mathOps.red
 	Needs:	 'View
 ]
 
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
+; required libs
+#include %../../libs/core/rcvCore.red
+
 margins: 5x5
-img1: rcvLoadImage %../../images/lena.jpg
-img2: rcvRandomImage/uniform img1/size 255.255.255 ;
+img1: rcvCreateImage 512x512
+img2: rcvRandomImage/uniform img1/size 255.255.255
 
 dst: rcvCreateImage img1/size
+
+loadImage: does [
+	tmp: request-file
+	if not none? tmp [
+		img1: rcvLoadImage  tmp
+		img2: rcvRandomImage/uniform img1/size 255.255.255
+		dst: rcvCreateImage img1/size
+		rcvCopyImage img1 dst
+		canvas/image: dst
+	]
+]
+
 
 ; ***************** Test Program ****************************
 view win: layout [
 		title "Math Operator Tests"
 		origin margins space margins
 		bb: base 80x30 img2 
+		button "Load" [LoadImage]
 		button "Generate image 2" [img2: rcvRandomImage/uniform img1/size 255.255.255 bb/image: img2]
-		button 80 "Source"  [_rcvMath img1 img2 dst 0] ; routine
+		button 80 "Source"  [rcvMath img1 img2 dst 0]
 		button 80 "Quit" [	rcvReleaseImage img1 
 							rcvReleaseImage img2 
 							rcvReleaseImage dst 
@@ -41,12 +55,12 @@ view win: layout [
 		
 		return 
 		text 80 "Tuple"
-		button 35 "+" [rcvAddT img1 dst 128.128.128]
-		button 35 "-" [rcvSubT img1 dst 128.128.128]
-		button 35 "*" [rcvMulT img1 dst 2.2.2]
-		button 35 "/" [rcvDivT img1 dst 2.2.2]
-		button 35 "//" [rcvModT img1 dst 1.1.1]
-		button 35 "%" [rcvRemT img1 dst  2.2.2]
+		button 35 "+" [rcvAddT img1 dst 128.128.128 false]
+		button 35 "-" [rcvSubT img1 dst 128.128.128 false]
+		button 35 "*" [rcvMulT img1 dst 2.2.2 false]
+		button 35 "/" [rcvDivT img1 dst 2.2.2 false]
+		button 35 "//"[rcvModT img1 dst 1.1.1 false]
+		button 35 "%" [rcvRemT img1 dst  2.2.2 false]
 		return
 		text 80 "Scalar"
 		button 35 "+" [rcvAddS img1 dst 128]
@@ -57,15 +71,13 @@ view win: layout [
 		button 35 "%" [rcvRemS img1 dst 2]
 		return
 		text 80 "Misc"
-		button 35 "^n" [rcvPow img1 dst 0.75]
-		button 35 "<<" [rcvLSH img1 dst 2]
-		button 35 ">>" [rcvRSH img1 dst 2]
-		button 35 "Sqr"[rcvSQR img1 dst 0.0]
-		
-		
+		button 50 "Pow" [rcvPow img1 dst 0.75]
+		button 50 "<<" [rcvLSH img1 dst 2]
+		button 50 ">>" [rcvRSH img1 dst 2]
+		button 50 "Sqr"[rcvSQR img1 dst 0.0]
 		return
 		canvas: base 512x512 dst
 		
-		do [_rcvMath img1 img2 dst 0]
+		do [rcvMath img1 img2 dst 0]
 ]
 

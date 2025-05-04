@@ -1,23 +1,288 @@
-# Computer Vision with Red Language 
-## see http://www.red-lang.org 
-### This library needs View 
 
+# Computer Vision with Red Language
+## see [http://www.red-lang.org](http://www.red-lang.org) 
 
-For Windows and macOS. Available for Linux ASAP.
+![](images/red.ico) ![](images/redCV.png)
+### You need a recent Red version. 
 
-### You need the lastest Red master version.
+### Created and tested with macOS 10.14 (Mojave 32-bit on Intel processor).
 
-Developped under MacOS 10.12
-
-Tested with MacOs, Windows XP and Windows 10.
+Code is now functional with Red 0.6.6. 
 
 You must compile samples since red routines are required.
+Most of samples require View.
 
-Use first -u compiler option to create a Red RT library and then just -c option which makes the compilation faster:
+Use first -c compiler option to create a Red RT library and in case of problems use -u compiler option. See [https://www.red-lang.org](https://www.red-lang.org) for details.
 
-*red -u -c FileName -> creates a specific LibRT*
 
-*then just red -c FileName -> Faster compilation*
+**Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
+
+### **UPDATE March 20 2025**
+redCV is 100% compatible with the new version of Red 0.0.6.
+
+### **UPDATE January 14 2025**
+Many of the libs have been modified to be compatible with the October 2024 Red-Toolchain. 
+All examples work perfectly. For a new toolchain for macOS, you have to compile Red yourself, which requires a Rebol 2 SDK and a license. 
+### **UPDATE May 25 2024**
+General update adapted to Red 0.6.5.
+
+### **UPDATE SEPTEMBER 1 2021**
+Support for Optris Infrared devices added including images and movies samples.
+
+### **UPDATE AUGUST 15 2021**
+
+## redCV version is now 2.0.0
+
+More than **600 routines and functions** for image processing.
+ 
+redCV is fully compatible with the **matrix object** we developed with Toomas Vooglaid and Qingtian Xie during 2020 summer break.
+
+redCV can talk with **Pandore C++ library**.
+
+redCV is completly **modular**.
+
+redCV documentation is **updated**.
+
+redCV code samples also **updated**. 
+
+
+
+### UPDATE JANUARY 2 2021
+redCV includes a support for Flir themal images. This will be extended to other thermal imagers such as Optris.
+
+### UPDATE NOVEMBER 30 2020
+All libs and code samples are compatible with the new less permissive, but faster Red compiler.
+
+This udpate also includes **a new matrix object** developed with Toomas Vooglaid during the last summer in order to improve initial matrix implementation.
+
+You'll find in *libs/matrix/atrix-as-obj/docs* a short and incomplete documentation and some samples.
+
+
+
+### UPDATE JULY 15 2020
+
+#### More than 200 code samples documented!
+
+**New libraries for Haar cascade and machine learning**
+
+1. /libs/objdetect/rcvHaarCascade.red
+1. /libs/objdetect/rcvHaarRectangles.red
+
+**New libraries for Portable bitmap support**
+
+1. /libs/pbm/rcvPbm.red				
+
+**Modified libraries**
+
+1. /libs/core/rcvCore.red 		
+1. /libs/matrix/rcvMatrix.red	
+1. /libsimgproc/rcvImgProc.red	
+1. /libs/math/rcvStats.red		
+1. /libs/math/rcvMoments.red		
+1. /libs/math/rcvHistogram.red	
+1. /libs/math/rcvDistance.red	
+1. /libs/zLib/rcvZLib.red			
+1. /libs/tiff/rcvTiff.red	
+
+**New code samples**
+
+1. /image_alpha/blendImage3.red
+1. /image_alpha/blendImage4.red
+1. /image_alpha/ mask.red
+1. /image_compression/compress2.red
+1. /image_draw/thread.red
+1. /image_Haar/faceDetection.red
+1. /image_Haar/camFace.red
+1. /image_Haar/xmlCascade.red
+1. /image_hog/hog1
+1. /image_hog/hog2
+1. /image_hog/hog3
+1. /image_hog/hog4
+1. /image_hog/hog5
+1. /image_transformation/imageCrop.red	
+
+**Updated code samples**
+
+1. /image_channel/redCVSplitMerge.red
+1. /image_distances/chamfer/chamfer2.red
+1. /image_distances/chamfer/flow.red
+1. /image_fft/imagefft1.red
+1. /image_fft/imagefft2.red
+1. /image_fft/imagefft3.red
+1. /image_filters/neuman/neuman1.red
+1. /image_histograms/colorHisto.red
+1. /image_histograms/grayHisto.red
+1. /image_histograms/meanShift.red
+1. /image_integral/integral3.red
+1. /image_operators/opimage.red
+1. /image_pixels/pixel1.red
+1. /image_pixels/pixel2.red
+1. /image_random/randomView.red
+1. /video/cam1.red
+1. /video/cam2.red
+1. /video/cam4.red
+1. /video/cam41.red
+1. /video/camBin.red
+1. /video/camConv.red
+1. /video/motion.red
+1. /video/tracking1.red
+1. /video/tracking2.red
+
+**Obsolete code samples**
+
+see [https://github.com/ldci/ffmpeg](https://github.com/ldci/ffmpeg) for better video access
+
+1. /video/movie.red
+1. /video/reccam.red
+
+
+### UPDATE FEBRUARY 4 2020
+
+### 100% macOS, Windows, and Linux GTK compatible
+For Windows and macOS and now Linux-GTK. Thanks to 
+@bitbegin, @loziniak and @rcqls. 
+
+**Modified libraries**
+
+1. rcvCore.red
+1. rcvImgProc.red
+1. rcvMatrix.red
+1. rcvStats.red
+
+**Modified samples**
+
+1. /image_alpha/blendImage2.red
+1. /image_alpha/blendMatrices.red
+1. /image_contours/signaturePolar.red
+1. /image_denoising/smoothing.red
+1. /image_distances/chamfer/chamfer.red
+1. /image_distances/chamfer/chamfer2.red
+1. /image_fft/fftLowPass.red
+1. /image_pixels/pixel1.red
+1. /image_pixels/pixel2.red
+1. /image_pixels/wpixel.red
+1. /image_random/randomMat.red
+1. /image_resizing/pyramidal.red
+1. /image_resizing/resize1.red
+1. /image_resizing/resize2.red
+1. /image_sort/sortimage2.red
+1. /image_statistics/imageStats.red
+1. /image_transformation/imageScale.red
+1. /signal_processing/fourier1.red
+1. /signal_processing/fourier2.red
+1. /signal_processing/fourier3.red
+1. /signal_processing/fourier4.red
+
+### UPDATE JANUARY 28 2020
+redCV is now 100% compatible with Linux-GTK.
+
+**modified library modules**
+
+1. /libs/core/rcCore.red
+1. /libs/matrix/rcvMatrix.red
+1. /libs/timeseries/rcvFFT.red 
+1. /libs/tiff/rcvTiff.red
+
+**modified samples**
+
+1. /samples/image_contours/ (all samples)
+1. /samples/image_detector/pointDetector.red
+1. /samples/image_distance/chamfer/flow.red
+1. /samples/image_fft/ (all fourier samples) 
+1. /samples/image_pixel/ (pixel1 pixel2)
+1. /samples/image_transformation (imageRotate imageSkew imageTranslate imageClip)
+1. /sample/signal_processsing/ (all fourier samples)
+
+### UPDATE JANUARY 9 2020
+Happy New Year!
+
+**A new version of redCV**.
+
+Most of functions are now defined as routines for a faster image processing and redCV is now *modular*. This means, that you can use only required libraries for your code and not all redCV library. This modular organization reduces compilation duration, reduces the size of the executable applications and, helps in maintaining redCV.As detailed in /libs/redcv.red file, some libraries are mandatory and other are optional according to specific applications. 
+
+*All code samples included in redCV use modular library calling*. Code sample documentation is quite complete.
+
+Updated documentation. New functions and samples, including Fast Fourier Transform.
+
+
+
+### UPDATE JULY 22 2019
+A lot of important changes before summer break
+
+Updated libs
+
+New functions for image effect. K-means algorithm implemented
+
+New sample directory organization
+
+New documentation including samples documentation (work in progress)
+
+
+### UPDATE APRIL 25 2019
+Updated documentation. New distance functions and samples (/samples/voronoi).
+
+### UPDATE MARCH 25 2019
+
+Updated documentation. New functions and samples.
+
+### UPDATE FEBRUARY 4 2019
+
+Update for red 0.6.4 version
+
+### UPDATE AUGUST 26 2018
+
+Dynamic Time Warping added to redCV.
+
+
+### UPDATE AUGUST 4 2018
+General update for documentation.
+
+General update for code sample.
+
+A lot of new samples are added for lines and shapes detection in image.
+
+
+### UPDATE FEBRUARY 16 2018
+redCV can write tiff images: 24-bit color format.
+
+### UPDATE FEBRUARY 10 2018
+
+redCV can read tiff files now. 1 to 4 channels 8-bit uncompressed images are supported. 
+see /samples/tiff for code sample.
+
+Doc is also updated.
+
+### UPDATE JANUARY 20 2018
+
+You'll find in /samples/image_compression/ new code for image compression with ZLib.
+
+Documentation is updated.
+
+### UPDATE JANUARY 04 2018
+
+Happy New Year!
+
+New samples in /video for wrting and reading video files with Red and Camera
+
+
+### UPDATE DECEMBER 28 2017
+Update for video samples according to evolution of red camera object. 
+
+### NEW OCTOBER 4 2017
+
+General update for Red 0.6.3
+
+New samples for distance maps
+
+Documentation is updated
+
+### NEW JULY 4 2017
+Added rcvContourArea function and new samples
+### NEW JULY 1 2017
+Quick Convex Hull algorithm added to RedCV.
+
+Samples and documentation updated. 
+
 
 ### NEW JUNE 22 2017
 
@@ -168,8 +433,10 @@ Image resizing and Gaussian Pyramid Decomposition are added with this function:
 
 rcvResizeImage: function [src [image!] canvas iSize [pair!]/gaussian return: [pair!]]
 
-Only Gaussian 5x5 kernel is currently supported. Canvas is a base facet.If you don’t call /Gaussian refinement image is just resized by Red.
-Documentation updated.
+Only Gaussian 5x5 kernel is currently supported. Canvas is a base facet.
+If you don’t call /Gaussian refinement image is just resized by Red.
+
+Documentation updated.
 
 
 ### NEW AUGUST 29 2016

@@ -1,69 +1,38 @@
+#!/usr/local/bin/red-view
 Red [
-	Title:   "Cam test 2"
-	Author:  "Francois Jouen"
+	Title:   "Test image operators and camera Red VID "
+	Author:  "ldci"
 	File: 	 %testCam2.red
 	Needs:	 'View
+] 
+maxSize: 	1280x720; 1920x1080	;--camera max resolution (iMac M1)
+cSize: 		maxSize / 3 ;--camera max resolution / n for visualization
+
+; required libs
+#include %../../libs/core/rcvCore.red	;--for rcvResizeImage routine
+
+
+mainWin: layout [ 
+	title "Camera test"
+	cam: camera cSize  
+	canvas: base black cSize
+	return
+	cam-list: drop-list 220 on-create [face/data: cam/data]			;--select the camera
+	toggle 90 "Start" false [	
+		either cam/selected 
+			[cam/selected: none face/text: "Start" canvas/draw: []]
+			[cam/selected: cam-list/selected face/text: "Stop"]
+	]																;--start or stop the selected camera	
+	button "Take snapshot" [														
+		if cam/selected [
+			img: to-image cam											;--get camera image
+			reducedImg: rcvResizeImage img  to pair! cSize				;--downsize camera image
+			canvas/draw: reduce ['image (reducedImg) 0x0 canvas/size] 	;--show the reduced snapshot
+			save/as %sample.jpg reducedImg 'jpeg						;--save reduced resolution image
+			save/as %samplefull.jpg img 'jpeg							;--save full resolution image
+		]
+	]
+	button "Quit" [quit]
+	do [cam-list/selected: 1 cam/selected: none]
 ]
-
-; last Red Master required!
-#include %../../libs/redcv.red ; for redCV functions
-margins: 10x10
-threshold: 0
-size: 640x480
-rimg: make image! reduce [size black]
-rimg2: make image! reduce [size black]
-
-cam: 0
-isActive: false
-to-text: function [val][form to integer! 0.5 + 255 * any [val 0]]
-
-view win: layout [
-		title "Camera"
-		origin margins space margins
-		wcam: drop-down 40 
-			data ["0" "1" "2"] 
-			on-change [sb/text: " " sb2/text: " " cam: to integer! face/selected - 1 isActive: false]
-		btnActivate: button "Activate" 60x24 on-click [
-		if not isActive[
-			handle: createCam cam
-			cSize: rcvgetCamSize cam
-			sb2/text: form cSize
-			rcvSetCamSize cam size
-			isActive: true
-			sb/text: "Camera active" 
-			clear win/text
-			win/text: "Camera "
-			append win/text form handle
-			
-		]
-		]
-		
-		btnStart: button "Start" 60x24 on-click [
-			if isActive [canvas/rate: 0:0:0.04]; 1/25 fps in ms		
-		]
-		
-		btnStop: button "Stop" 60x24 on-click [
-			canvas/rate: none
-		]
-		
-		btnQuit: button "Quit" 60x24 on-click [
-			canvas/rate: none
-			rcvReleaseImage rimg
-			; 	releaseCamera
-			quit
-		]
-		return
-		sl1: slider 285 [filter/text: to-text sl1/data threshold: to integer! filter/data ]
-		filter: field 25 "32"
-		return
-		canvas: base 320x240 rimg rate 0:0:1 on-time [
-			rcvGetCamImage cam rimg
-			either threshold > 0.0  [rcv2BWFilter rimg rimg2 threshold canvas/image: rimg2]
-									[canvas/image: rimg]
-			
-		]
-		return
-		sb: field 220
-		sb2: field 90 
-		do [canvas/rate: none sl1/data: 0.0 wcam/selected: 1]
-]
+view mainWin
