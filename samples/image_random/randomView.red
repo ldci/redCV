@@ -173,15 +173,17 @@ generateDist: does [
 		append plot p
 		append plot radius
 		;'
-		lbin: round/to (low + i * delta) 0.001
-		hbin: round/to (low + i + 1 * delta) 0.001
+		lbin: round/to (low + i * delta - high + 0.25) 0.01		;--low limit for the classe
+		hbin: round/to (low + i + 1 * delta - high + 0.25) 0.01
+		;lbin: round/to (low + i * delta) 0.001
+		;hbin: round/to (low + i + 1 * delta) 0.001
 		v: round/to (bins/:i * 100.0) / n 0.01
 		s: rejoin ["[" form lbin " " form hbin "]: " v "%" ]
 		append stat/data s
 		canvas/image: draw img plot
 		do-events/no-wait
 	]
-	s: rejoin ["Mean: " round/to mean values 0.001 " STD : " round/to stddev values 0.001
+	s: rejoin ["Mean: " round/to mean values 0.01 " STD : " round/to stddev values 0.01
 	" " stat/data/(nBins / 2 + 1)]
 	sb/text: s 
 ]

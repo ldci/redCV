@@ -62,8 +62,8 @@ printHistogram: function [values [block! vector!]] [
 	n: length? values
 	width: 50
 	maxi: 0
-	low: -3.05
-	high: 3.05
+	low: -3.0
+	high: 3.0
 	delta: 0.1
 	nbins: to-integer ((high - low) / delta)
 	bins: copy []
@@ -83,8 +83,8 @@ printHistogram: function [values [block! vector!]] [
 	]
 	j: 1
 	while [j <= nbins] [
-		lbin: round/to low + j * delta 0.001
-		hbin: round/to low + (j + 1) * delta 0.001
+		lbin: round/to (low + j * delta - high + 0.25) 0.01		;--low limit for the classe
+		hbin: round/to (low + j + 1 * delta - high + 0.25) 0.01
 		s: rejoin ["[" lbin " " hbin "] |"]
 		pad/left s 17
 		k: to-integer (to-float width * to-float bins/:j / to-float maxi)

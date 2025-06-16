@@ -111,8 +111,8 @@ printHistogram: routine [
 	unit: GET_UNIT(s)
 	width: 50
 	maxi: 0
-	low: -3.05
-	high: 3.05
+	low: -3.0
+	high: 3.0
 	delta: 0.1
 	nbins: as integer! ((high - low) / delta)
 	vector/rs-clear bins
@@ -142,8 +142,8 @@ printHistogram: routine [
 	while [j < nbins] [
 		idx: headB + (j * unit)
 		p: as int-ptr! idx
-		lbin: (low + (as float! j) * delta) 
-		hbin: (low + (as float! (j + 1)) * delta)
+		lbin: (low + (as float! j) * delta - high + 0.25) 
+		hbin: (low + (as float! (j + 1)) * delta - high + 0.25)
 		printf["[%5.2f %5.2f] |" lbin hbin]
 		k: (width * p/value /  maxi)
 		while [k >= 0] [
