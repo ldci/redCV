@@ -1,12 +1,13 @@
 #! /usr/local/bin/red
 Red [
-	Title:   "Flir"
+	Title:   "Flir Read"
 	Author:  "ldci"
 	File: 	 %flirRead.red
 	needs:   view
 ]
 
 ; required libs
+;probe %../../../libs/thermal/Flir/rcvFlir.red
 #include %../../../libs/thermal/Flir/rcvFlir.red
 
 flirFile: 	none

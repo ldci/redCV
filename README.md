@@ -18,7 +18,7 @@ Use first -c compiler option to create a Red RT library and in case of problems 
 **Extra documentation here :** [http://redlcv.blogspot.com/2017/04/blog-post.html](http://redlcv.blogspot.com/2017/04/blog-post.html)
 
 ### **UPDATE March 20 2025**
-redCV is 100% compatible with the new version of Red 0.0.6.
+redCV is 100% compatible with the new version of Red 0.6.6.
 
 ### **UPDATE January 14 2025**
 Many of the libs have been modified to be compatible with the October 2024 Red-Toolchain. 

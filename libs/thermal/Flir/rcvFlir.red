@@ -13,15 +13,9 @@ Red [
 ;--this file is mandatory and is automatically updated for new images
 #include %default_exif.red 	
 
-;--redCV required libraries
-#include %../../core/rcvCore.red
-#include %../../imgproc/rcvConvolutionImg.red
-#include %../../imgproc/rcvImgEffect.red
-#include %../../imgproc/rcvGaussian.red
-
 ;--this must be adapted according your OS
 ;--for macOS
-;exifTool: "/usr/local/bin/exiftool"		;--native installation with no conflicts
+;exifTool: "/usr/local/bin/exiftool"	;--native installation with no conflicts
 ;convertTool: "/usr/local/bin/convert"  ;--convert is a macOS program
 ;convertTool: "/usr/local/bin/magick"	;--use ImageMagick	
 
@@ -271,60 +265,6 @@ rcvGetTemperatureAsBlock: function [
 ]
 
 
-;--aligment
-;--for most cameras
-rcvAlignImages: function [
-"Align visible and thermal images"
-	fileName	[string!]
-	return:		[image!]
-][
-	thermal: load to-red-file fileName							;--Original Flir Image
-	visible: rcvGetVisibleImage fileName						;--Embbedded RGB Image	
-	;--Real2IR comes from exif.red
-	imgRatio: 1.0 - (1.0 / Real2IR)								;--Image ratio OK
-	either imgRatio > 0.0 [
-		;--red 0.6.6 correction
-		cropXY: as-pair (visible/size/x * imgRatio) (visible/size/y * imgRatio)	;--ROI Size
-		offSetXY: as-pair to-integer OffsetX to-integer OffsetY	;--Flir Offset as pair!
-		imgOffset: cropXY / 2 + offSetXY						;--ROI Offset
-		imgPoffset: as-pair imgOffset/x imgOffset/y 
-		imgSize: cropXY +  thermal/size							;--ROI Size	
-		img: rcvResizeImage visible imgSize						;--Resize destination image
-		rcvCropImage visible img imgPoffset						;--Crop ROI to destination
-	][
-		dec: visible/size % thermal/size
-		factor: 0.85
-		scale: max EmbeddedImageWidth / RawThermalImageWidth EmbeddedImageHeight / RawThermalImageHeight
-		imgSize: visible/size * factor
-		img: rcvResizeImage visible imgSize
-		rcvCropImage visible img (dec * scale)
-	]
-	img
-]
-
-
-rcvGetPIPImage: func [
-"Picture in Picture Mode"
-	fileName	[string!]
-	return:		[image!]
-][
-	thermal: load to-file fileName						;--Original Flir Image
-	;--scale
-	imgRatio: round/floor (EmbeddedImageWidth / RawThermalImageWidth / 4.0)
-	;--pip mode is used if ratio > 1.0 otherwise returns the whole thermal image
-	either imgRatio <= 1.0 [
-		img: make image! as-pair RawThermalImageWidth RawThermalImageHeight
-		rcvCropImage thermal img 0x0
-	][
-		imgSize: as-pair (PiPX1 + PiPX2) (PiPY1 + PiPY2)	;--PIP image Size 
-		if odd? (PiPX1 + PiPX2) [imgSize: imgSize + 1]		;--0 or 1-based image computation
-		;--red 0.6.6 correction
-		sz: as-pair (imgSize/x * imgRatio) (imgSize/y * imgRatio)
-		img: make image! sz					;--correct scale
-		rcvCropImage thermal img as-pair PiPX1 + PiPX2 PiPY1 + PiPY2
-	]
-	img
-]
 
 rcvCleanThermal: does [
 	if exists? to-red-file rgbjpg 		[delete to-file rgbjpg]
